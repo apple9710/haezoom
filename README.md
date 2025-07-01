@@ -1,35 +1,167 @@
-# haezoom
+# 해줌 에너지 모니터링 대시보드
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3와 Pinia를 사용하여 구축된 에너지 모니터링 대시보드 애플리케이션입니다.
 
-## Recommended IDE Setup
+## 기능
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### 📱 화면 구성
+- **로그인** → **메인** → **대시보드** 순서의 3단계 네비게이션
+- 사용자 인증 및 세션 관리
+- 반응형 웹 디자인
 
-## Customize configuration
+### 🧩 위젯 시스템 (총 12개)
+1. **선 시계열 그래프** - 전력 사용량, 태양광발전량 시계열 데이터
+2. **막대 시계열 그래프** - 전력 데이터를 막대 차트로 표현
+3. **원 그래프** - 전력사용량 비율 분석
+4. **박스 위젯** - 전력량 등 수치 데이터 표시
+5. **막대(%, ℃ 등) 위젯** - 온도, 습도, 압력 등 게이지 형태
+6. **페이지 링크 위젯** - 외부 URL 연결
+7. **제어(ON/OFF) 위젯** - 설비 제어
+8. **제어(UP/DOWN) 위젯** - 설비 세부 제어
+9. **에너지 진단보고서 분석 위젯** - PDF 분석 결과
+10. **알람 위젯** - 시스템 알람 표시
+11. **그림삽입 위젯** - 이미지 표시
+12. **상태표시 위젯** - 현재 상태를 색상으로 표현
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 📊 데이터 주기
+- 1분, 15분, 1시간, 하루 단위의 다양한 데이터 갱신 주기
 
-## Project Setup
+### 🎨 대시보드 기능
+- 드래그 앤 드롭으로 위젯 배치
+- 위젯 크기 조절 (1~4 그리드 칸)
+- 위젯 추가/삭제
+- 대시보드 설정 저장/불러오기
 
-```sh
+## 기술 스택
+
+- **Frontend**: Vue 3 (Composition API)
+- **상태관리**: Pinia
+- **라우팅**: Vue Router 4
+- **차트**: Chart.js + Vue-ChartJS
+- **드래그앤드롭**: Vue-Draggable-Next
+- **날짜처리**: Day.js
+- **HTTP 클라이언트**: Axios
+- **PDF 처리**: PDF-lib, PDF.js
+- **빌드도구**: Vite
+
+## 설치 및 실행
+
+### 1. 의존성 설치
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
+### 2. 개발 서버 실행
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
+### 3. 브라우저에서 접속
+`http://localhost:5173` 으로 접속
 
-```sh
+## 로그인 정보
+
+**데모 계정**
+- 아이디: `admin`
+- 비밀번호: `password`
+
+## 프로젝트 구조
+
+```
+src/
+├── assets/          # 정적 자원 (CSS, 이미지)
+├── components/      # 재사용 가능한 컴포넌트
+│   ├── widgets/     # 위젯 컴포넌트들
+│   │   └── charts/  # 차트 위젯들
+│   └── icons/       # 아이콘 컴포넌트들
+├── router/          # Vue Router 설정
+├── stores/          # Pinia 스토어
+├── views/           # 페이지 컴포넌트
+│   ├── LoginView.vue     # 로그인 페이지
+│   ├── MainView.vue      # 메인 페이지
+│   └── DashboardView.vue # 대시보드 페이지
+├── App.vue          # 루트 컴포넌트
+└── main.js          # 앱 진입점
+```
+
+## 사용법
+
+### 1. 로그인
+- 로그인 페이지에서 데모 계정으로 로그인
+- 인증 정보는 localStorage에 저장되어 세션 유지
+
+### 2. 메인 페이지
+- 시스템 개요 및 기능 소개
+- 대시보드 바로가기
+- 시스템 현황 요약
+
+### 3. 대시보드
+- 왼쪽 사이드바에서 원하는 위젯 선택
+- 클릭하여 대시보드에 추가
+- 드래그로 위젯 순서 변경
+- 위젯 헤더의 크기 조절 버튼으로 크기 변경
+- 삭제 버튼으로 위젯 제거
+- '대시보드 저장' 버튼으로 설정 저장
+
+## 개발 명령어
+
+```bash
+# 개발 서버 실행
+npm run dev
+
+# 프로덕션 빌드
 npm run build
-```
 
-### Lint with [ESLint](https://eslint.org/)
+# 빌드 결과 미리보기
+npm run preview
 
-```sh
+# 코드 린팅
 npm run lint
+
+# 코드 포맷팅
+npm run format
 ```
+
+## 향후 개발 계획
+
+### Phase 1: 위젯 구현
+- [ ] 선 시계열 그래프 위젯
+- [ ] 막대 시계열 그래프 위젯
+- [ ] 원 그래프 위젯
+- [ ] 박스 위젯
+- [ ] 막대(%, ℃) 위젯
+- [ ] 페이지 링크 위젯
+- [ ] 제어(ON/OFF) 위젯
+- [ ] 제어(UP/DOWN) 위젯
+- [ ] 에너지 진단보고서 위젯
+- [ ] 알람 위젯
+- [ ] 그림삽입 위젯
+- [ ] 상태표시 위젯
+
+### Phase 2: 데이터 연동
+- [ ] 실시간 데이터 API 연동
+- [ ] WebSocket 실시간 통신
+- [ ] 데이터 주기별 업데이트 로직
+- [ ] 에러 처리 및 재시도 로직
+
+### Phase 3: 고급 기능
+- [ ] 위젯 설정 모달
+- [ ] 대시보드 템플릿 관리
+- [ ] 사용자별 대시보드 저장
+- [ ] 데이터 필터링 및 검색
+- [ ] 알람 설정 및 관리
+- [ ] 보고서 생성 및 내보내기
+
+### Phase 4: 최적화
+- [ ] 성능 최적화
+- [ ] 모바일 최적화
+- [ ] PWA 지원
+- [ ] 오프라인 모드
+
+## 라이센스
+
+MIT License
+
+## 문의
+
+프로젝트 관련 문의사항이 있으시면 개발팀에 연락해주세요.

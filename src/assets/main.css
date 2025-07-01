@@ -1,23 +1,51 @@
 @import './base.css';
 
+/* 해줌 컬러 팔레트 */
+:root {
+  /* Primary Colors */
+  --color-primary: #E16349;
+  --color-primary-light: #F0BBB1;
+  --color-primary-lighter: #F3D7D0;
+  --color-primary-lightest: #F7EBEB;
+  
+  /* Secondary Colors */
+  --color-black: #000000;
+  --color-gray-dark: #424242;
+  --color-gray: #7F7F7F;
+  --color-gray-light: #D0D0D0;
+  --color-gray-lighter: #E4E4E4;
+  --color-gray-lightest: #EFEFEF;
+  --color-gray-bg: #F8F8F8;
+  
+  /* Background Colors */
+  --color-bg-gray: #E1E1E1;
+  --color-bg-light: #F8F8F8;
+  --color-bg-white: #FFFFFF;
+  
+  /* Font Colors */
+  --color-font-primary: #000000;
+  --color-font-secondary: #7F7F7F;
+  --color-font-white: #FFFFFF;
+}
+
 #app {
-  max-width: 1280px;
+  max-width: 1920;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0rem;
   font-weight: normal;
 }
 
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
+  color: var(--color-primary);
   transition: 0.4s;
   padding: 3px;
 }
 
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+    background-color: var(--color-primary-lightest);
   }
 }
 
@@ -28,8 +56,8 @@ a,
   }
 
   #app {
-    display: grid;
+    /* display: grid; */
     grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+    padding: 0 0rem;
   }
 }
