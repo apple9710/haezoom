@@ -1,97 +1,158 @@
 <template>
   <div class="dashboard-container">
     <div class="dashboard-content">
-      <aside class="widget-sidebar">
+      <!-- 우측 사이드바 (편집모드에서만) -->
+      <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
         <h3 class="sidebar-title">위젯 추가</h3>
         <div class="widget-categories">
+          <!-- 데이터 종류별로 구분 -->
           <div class="category-section">
-            <h4 class="category-title">차트 위젯</h4>
+            <h4 class="category-title">⚡ 전력 사용량</h4>
+            <div class="data-description">실시간 전력 사용량 모니터링</div>
             <div class="widget-list">
-              <div 
-                v-for="widget in chartWidgets" 
-                :key="widget.id"
-                class="widget-item"
-                @click="addWidget(widget)"
-              >
-                <span class="widget-icon">{{ widget.icon }}</span>
-                <span class="widget-name">{{ widget.name }}</span>
+              <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 사용량')">
+                <span class="widget-icon">📈</span>
+                <span class="widget-name">전력 사용량 위젯 추가</span>
+                <span class="widget-arrow">→</span>
               </div>
             </div>
           </div>
 
           <div class="category-section">
-            <h4 class="category-title">제어 위젯</h4>
+            <h4 class="category-title">☀️ 태양광 발전량</h4>
+            <div class="data-description">태양광 발전량 및 예측량</div>
             <div class="widget-list">
-              <div 
-                v-for="widget in controlWidgets" 
-                :key="widget.id"
+              <div
                 class="widget-item"
-                @click="addWidget(widget)"
+                @click="showWidgetSelector('solar_generation', '태양광 발전량')"
               >
-                <span class="widget-icon">{{ widget.icon }}</span>
-                <span class="widget-name">{{ widget.name }}</span>
+                <span class="widget-icon">📈</span>
+                <span class="widget-name">태양광 위젯 추가</span>
+                <span class="widget-arrow">→</span>
               </div>
             </div>
           </div>
 
           <div class="category-section">
-            <h4 class="category-title">기타 위젯</h4>
+            <h4 class="category-title">🌡️ 환경 센서</h4>
+            <div class="data-description">온도, 습도, 압력 등</div>
             <div class="widget-list">
-              <div 
-                v-for="widget in otherWidgets" 
-                :key="widget.id"
+              <div class="widget-item" @click="showWidgetSelector('environment', '환경 센서')">
+                <span class="widget-icon">🌡️</span>
+                <span class="widget-name">환경 센서 위젯 추가</span>
+                <span class="widget-arrow">→</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="category-section">
+            <h4 class="category-title">⚙️ 설비 제어</h4>
+            <div class="data-description">설비 제어 및 상태 모니터링</div>
+            <div class="widget-list">
+              <div
                 class="widget-item"
-                @click="addWidget(widget)"
+                @click="showWidgetSelector('equipment_control', '설비 제어')"
               >
-                <span class="widget-icon">{{ widget.icon }}</span>
-                <span class="widget-name">{{ widget.name }}</span>
+                <span class="widget-icon">🔘</span>
+                <span class="widget-name">설비 제어 위젯 추가</span>
+                <span class="widget-arrow">→</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="category-section">
+            <h4 class="category-title">🔔 시스템 정보</h4>
+            <div class="data-description">알람, 상태, 보고서 등</div>
+            <div class="widget-list">
+              <div class="widget-item" @click="showWidgetSelector('system_info', '시스템 정보')">
+                <span class="widget-icon">🔔</span>
+                <span class="widget-name">시스템 정보 위젯 추가</span>
+                <span class="widget-arrow">→</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="category-section">
+            <h4 class="category-title">🔗 기타</h4>
+            <div class="data-description">링크, 이미지 등</div>
+            <div class="widget-list">
+              <div class="widget-item" @click="showWidgetSelector('misc', '기타')">
+                <span class="widget-icon">🔗</span>
+                <span class="widget-name">기타 위젯 추가</span>
+                <span class="widget-arrow">→</span>
               </div>
             </div>
           </div>
         </div>
       </aside>
 
-      <main class="dashboard-main">
-        <div class="dashboard-toolbar">
-          <div class="toolbar-left">
-            <h2 class="dashboard-title">에너지 모니터링 대시보드</h2>
-          </div>
+      <main class="dashboard-main" :class="{ 'sidebar-open': sidebarOpen }">
+        <div v-if="isEditMode" class="dashboard-toolbar">
           <div class="toolbar-right">
             <button @click="clearDashboard" class="clear-btn">
+              <span class="btn-icon">🗑️</span>
               모든 위젯 삭제
-            </button>
-            <button @click="saveDashboard" class="save-btn">
-              대시보드 저장
             </button>
           </div>
         </div>
 
-        <div 
+        <div
           ref="dashboardGrid"
           class="dashboard-grid"
-          :class="{ 'empty': dashboardWidgets.length === 0 }"
+          :class="{ empty: dashboardWidgets.length === 0 }"
         >
           <div v-if="dashboardWidgets.length === 0" class="empty-state">
-            <div class="empty-icon">📊</div>
+            <div class="empty-icon">📈</div>
             <h3 class="empty-title">대시보드가 비어있습니다</h3>
             <p class="empty-description">
-              왼쪽 사이드바에서 위젯을 선택하여 대시보드에 추가해보세요.
+              <span v-if="!isEditMode">
+                헤더의 '위젯 편집' 버튼을 눌러<br />
+                위젯을 추가해보세요.
+              </span>
+              <span v-else>
+                우측 사이드바에서 데이터 종류를 선택하고<br />
+                원하는 위젯을 추가해보세요.
+              </span>
             </p>
+            <div class="empty-features">
+              <div class="feature-item">
+                <span class="feature-icon">📈</span>
+                <span>시계열 그래프</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <span>막대 차트</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">🍰</span>
+                <span>원형 차트</span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">🔘</span>
+                <span>제어 위젯</span>
+              </div>
+            </div>
           </div>
 
           <div class="widget-grid">
-            <div 
+            <div
               v-for="element in dashboardWidgets"
               :key="element.instanceId"
               class="widget-container"
-              :style="{ 
+              :style="{
                 gridColumn: `span ${element.gridSize.width}`,
-                gridRow: `span ${element.gridSize.height}`
+                gridRow: `span ${element.gridSize.height}`,
               }"
             >
               <div class="widget-header">
-                <span class="widget-title">{{ element.name }}</span>
-                <div class="widget-controls">
+                <div class="widget-title-section">
+                  <span class="widget-category">{{ element.dataType }}</span>
+                  <span class="widget-title">{{ element.name }}</span>
+                </div>
+                <div v-if="isEditMode" class="widget-controls">
+                  <button @click="configureWidget(element)" class="control-btn" title="설정">
+                    ⚙️
+                  </button>
                   <button @click="resizeWidget(element)" class="control-btn" title="크기 조절">
                     ⛶
                   </button>
@@ -100,17 +161,51 @@
                   </button>
                 </div>
               </div>
-              
+
               <div class="widget-content">
-                <div style="text-align: center; color: var(--color-font-secondary);">
-                  {{ element.name }} 위젯<br>
-                  <small>(위젯 내용이 여기에 표시됩니다)</small>
+                <div class="widget-placeholder">
+                  <div class="placeholder-icon">{{ element.icon }}</div>
+                  <div class="placeholder-text">
+                    <strong>{{ element.name }}</strong
+                    ><br />
+                    <small>{{ element.description }}</small
+                    ><br />
+                    <span class="update-cycle">업데이트 주기: {{ element.updateCycle }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </main>
+    </div>
+
+    <!-- 위젯 선택 모달 -->
+    <div v-if="widgetSelector.show" class="modal-overlay" @click="closeWidgetSelector">
+      <div class="modal-content widget-selector-modal" @click.stop>
+        <h3 class="modal-title">{{ widgetSelector.dataType }} 위젯 선택</h3>
+        <p class="modal-description">
+          {{ widgetSelector.dataType }}를 표시할 위젯 형태를 선택하세요
+        </p>
+
+        <div class="widget-type-grid">
+          <div
+            v-for="widget in getAvailableWidgets(widgetSelector.category)"
+            :key="widget.id"
+            class="widget-type-card"
+            @click="addWidget(widget)"
+          >
+            <div class="widget-type-icon">{{ widget.icon }}</div>
+            <div class="widget-type-name">{{ widget.name }}</div>
+            <div class="widget-type-description">{{ widget.description }}</div>
+            <div class="widget-type-badge">{{ widget.updateCycle }}</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="closeWidgetSelector" class="cancel-btn">취소</button>
+        </div>
+      </div>
     </div>
 
     <!-- 위젯 크기 조절 모달 -->
@@ -125,6 +220,7 @@
               <option :value="2">2칸</option>
               <option :value="3">3칸</option>
               <option :value="4">4칸</option>
+              <option :value="6">6칸</option>
             </select>
           </div>
           <div class="size-control">
@@ -143,34 +239,235 @@
         </div>
       </div>
     </div>
+
+    <!-- 나가기 확인 모달 -->
+    <div v-if="exitConfirmModal.show" class="modal-overlay" @click="closeExitConfirmModal">
+      <div class="modal-content exit-confirm-modal" @click.stop>
+        <h3 class="modal-title">편집 내용을 저장하시겠습니까?</h3>
+        <p class="modal-description">
+          변경된 내용이 있습니다. 저장하지 않으면 변경사항이 손실될 수 있습니다.
+        </p>
+
+        <div class="modal-actions exit-confirm-actions">
+          <button @click="closeExitConfirmModal" class="cancel-btn">취소</button>
+          <button @click="exitWithoutSaving" class="exit-without-save-btn">
+            저장하지 않고 나가기
+          </button>
+          <button @click="saveAndExit" class="save-and-exit-btn">저장하고 나가기</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-// import { VueDraggableNext as draggable } from 'vue-draggable-next' // 임시로 비활성화
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
-// 위젯 정의
-const chartWidgets = ref([
-  { id: 'line-chart', name: '선 시계열 그래프', icon: '📈', type: 'line-chart' },
-  { id: 'bar-chart', name: '막대 시계열 그래프', icon: '📊', type: 'bar-chart' },
-  { id: 'pie-chart', name: '원 그래프', icon: '🍰', type: 'pie-chart' }
-])
+// 사이드바 상태 관리
+const sidebarOpen = ref(false)
+const isEditMode = ref(false)
 
-const controlWidgets = ref([
-  { id: 'on-off-control', name: '제어(ON/OFF)', icon: '🔘', type: 'on-off-control' },
-  { id: 'up-down-control', name: '제어(UP/DOWN)', icon: '🔼', type: 'up-down-control' },
-  { id: 'bar-widget', name: '막대(%, 온도 등)', icon: '📏', type: 'bar-widget' }
-])
+// 헤더에서 편집모드 변경 이벤트 리스너
+const handleEditModeChange = (event) => {
+  isEditMode.value = event.detail.isEditMode
+  sidebarOpen.value = event.detail.sidebarOpen
+}
 
-const otherWidgets = ref([
-  { id: 'box-widget', name: '박스 위젯', icon: '📦', type: 'box-widget' },
-  { id: 'page-link', name: '페이지 링크', icon: '🔗', type: 'page-link' },
-  { id: 'energy-report', name: '에너지 진단보고서', icon: '📋', type: 'energy-report' },
-  { id: 'alarm-widget', name: '알람 위젯', icon: '🚨', type: 'alarm-widget' },
-  { id: 'image-widget', name: '그림삽입 위젯', icon: '🖼️', type: 'image-widget' },
-  { id: 'status-widget', name: '상태표시 위젯', icon: '🟢', type: 'status-widget' }
-])
+// 헤더에서 사이드바 토글 이벤트 리스너
+const handleSidebarToggle = (event) => {
+  if (isEditMode.value) {
+    sidebarOpen.value = event.detail.isOpen
+  }
+}
+
+// 헤더에서 나가기 확인 이벤트 리스너
+const handleConfirmExitEditMode = () => {
+  exitConfirmModal.show = true
+}
+
+// 나가기 확인 모달 닫기
+const closeExitConfirmModal = () => {
+  exitConfirmModal.show = false
+}
+
+// 저장하지 않고 나가기
+const exitWithoutSaving = () => {
+  exitConfirmModal.show = false
+  // 헤더에 강제 종료 이벤트 전송
+  window.dispatchEvent(new CustomEvent('force-exit-edit-mode'))
+}
+
+// 저장하고 나가기
+const saveAndExit = () => {
+  saveDashboard()
+  exitConfirmModal.show = false
+  // 헤더에 강제 종료 이벤트 전송
+  window.dispatchEvent(new CustomEvent('force-exit-edit-mode'))
+}
+
+// 헤더에서 저장 이벤트 리스너
+const handleSaveDashboard = () => {
+  saveDashboard()
+}
+
+// 데이터 종류별 사용 가능한 위젯 정의
+const widgetDefinitions = {
+  power_usage: [
+    {
+      id: 'power-line-chart',
+      name: '선 시계열 그래프',
+      icon: '📈',
+      type: 'line-chart',
+      description: '시간에 따른 전력 사용량 변화를 선그래프로 표시',
+      updateCycle: '1분~하루',
+    },
+    {
+      id: 'power-bar-chart',
+      name: '막대 시계열 그래프',
+      icon: '📊',
+      type: 'bar-chart',
+      description: '시간에 따른 전력 사용량 변화를 막대그래프로 표시',
+      updateCycle: '1분~하루',
+    },
+    {
+      id: 'power-pie-chart',
+      name: '원 그래프',
+      icon: '🍰',
+      type: 'pie-chart',
+      description: '전력 사용량 비율을 원형 차트로 표시',
+      updateCycle: '15분~하루',
+    },
+    {
+      id: 'power-box-widget',
+      name: '박스 위젯',
+      icon: '📦',
+      type: 'box-widget',
+      description: '현재 전력량을 숫자로 표시',
+      updateCycle: '1분',
+    },
+  ],
+  solar_generation: [
+    {
+      id: 'solar-line-chart',
+      name: '선 시계열 그래프',
+      icon: '📈',
+      type: 'line-chart',
+      description: '태양광 발전량과 예측량을 선그래프로 표시',
+      updateCycle: '1분~하루',
+    },
+    {
+      id: 'solar-bar-chart',
+      name: '막대 시계열 그래프',
+      icon: '📊',
+      type: 'bar-chart',
+      description: '태양광 발전량과 예측량을 막대그래프로 표시',
+      updateCycle: '1분~하루',
+    },
+    {
+      id: 'solar-box-widget',
+      name: '박스 위젯',
+      icon: '📦',
+      type: 'box-widget',
+      description: '현재 발전량을 숫자로 표시',
+      updateCycle: '1분',
+    },
+  ],
+  environment: [
+    {
+      id: 'temp-bar-widget',
+      name: '막대(온도) 위젯',
+      icon: '🌡️',
+      type: 'bar-gauge-widget',
+      description: '온도를 막대 게이지로 표시',
+      updateCycle: '1분~15분',
+    },
+    {
+      id: 'humidity-bar-widget',
+      name: '막대(습도) 위젯',
+      icon: '💧',
+      type: 'bar-gauge-widget',
+      description: '습도를 퍼센트 막대로 표시',
+      updateCycle: '1분~15분',
+    },
+    {
+      id: 'pressure-box-widget',
+      name: '박스 위젯',
+      icon: '📦',
+      type: 'box-widget',
+      description: '압력값을 숫자로 표시',
+      updateCycle: '1분~15분',
+    },
+  ],
+  equipment_control: [
+    {
+      id: 'on-off-control',
+      name: '제어(ON/OFF) 위젯',
+      icon: '🔘',
+      type: 'on-off-control',
+      description: '설비 ON/OFF 제어 및 현재 상태 표시',
+      updateCycle: '실시간',
+    },
+    {
+      id: 'up-down-control',
+      name: '제어(UP/DOWN) 위젯',
+      icon: '🔼',
+      type: 'up-down-control',
+      description: '온도/압력/조도 등 수치 제어',
+      updateCycle: '실시간',
+    },
+    {
+      id: 'status-widget',
+      name: '상태표시 위젯',
+      icon: '🟢',
+      type: 'status-widget',
+      description: '현재 상태를 색상으로 표시',
+      updateCycle: '1분',
+    },
+  ],
+  system_info: [
+    {
+      id: 'alarm-widget',
+      name: '알람 위젯',
+      icon: '🚨',
+      type: 'alarm-widget',
+      description: '통신 또는 설비 알람 표시',
+      updateCycle: '실시간',
+    },
+    {
+      id: 'energy-report',
+      name: '에너지 진단보고서',
+      icon: '📋',
+      type: 'energy-report',
+      description: 'PDF 진단보고서 분석 결과',
+      updateCycle: '하루',
+    },
+  ],
+  misc: [
+    {
+      id: 'page-link',
+      name: '페이지 링크 위젯',
+      icon: '🔗',
+      type: 'page-link',
+      description: 'URL 링크 표시 및 이동',
+      updateCycle: '정적',
+    },
+    {
+      id: 'image-widget',
+      name: '그림삽입 위젯',
+      icon: '🖼️',
+      type: 'image-widget',
+      description: '이미지 파일 표시',
+      updateCycle: '정적',
+    },
+  ],
+}
+
+// 위젯 선택 모달 상태
+const widgetSelector = reactive({
+  show: false,
+  category: '',
+  dataType: '',
+})
 
 // 대시보드 상태
 const dashboardWidgets = ref([])
@@ -181,26 +478,65 @@ const resizeModal = reactive({
   show: false,
   widget: null,
   width: 2,
-  height: 2
+  height: 2,
 })
+
+// 나가기 확인 모달
+const exitConfirmModal = reactive({
+  show: false,
+})
+
+// 위젯 선택기 표시
+const showWidgetSelector = (category, dataType) => {
+  widgetSelector.category = category
+  widgetSelector.dataType = dataType
+  widgetSelector.show = true
+}
+
+// 위젯 선택기 닫기
+const closeWidgetSelector = () => {
+  widgetSelector.show = false
+  widgetSelector.category = ''
+  widgetSelector.dataType = ''
+}
+
+// 카테고리별 사용 가능한 위젯 가져오기
+const getAvailableWidgets = (category) => {
+  return widgetDefinitions[category] || []
+}
 
 // 위젯 추가
 const addWidget = (widget) => {
   const newWidget = {
     ...widget,
     instanceId: Date.now() + Math.random(),
+    dataType: widgetSelector.dataType,
     gridSize: { width: 2, height: 2 },
     data: {},
-    config: {}
+    config: {
+      updateCycle: widget.updateCycle,
+      dataSource: '',
+      customSettings: {},
+    },
   }
   dashboardWidgets.value.push(newWidget)
+  closeWidgetSelector()
+  
+  // 위젯 추가 후 사이드바 닫기
+  sidebarOpen.value = false
+  // 헤더에 사이드바 상태 변경 알림
+  window.dispatchEvent(new CustomEvent('sidebar-state-change', {
+    detail: { isOpen: false }
+  }))
 }
 
 // 위젯 제거
 const removeWidget = (widget) => {
-  const index = dashboardWidgets.value.findIndex(w => w.instanceId === widget.instanceId)
-  if (index > -1) {
-    dashboardWidgets.value.splice(index, 1)
+  if (confirm(`${widget.name} 위젯을 삭제하시겠습니까?`)) {
+    const index = dashboardWidgets.value.findIndex((w) => w.instanceId === widget.instanceId)
+    if (index > -1) {
+      dashboardWidgets.value.splice(index, 1)
+    }
   }
 }
 
@@ -225,20 +561,41 @@ const applyResize = () => {
   closeResizeModal()
 }
 
-// 드래그 끝났을 때
-// const onDragEnd = () => {
-//   console.log('Widget order changed')
-// }
+// 위젯 설정
+const configureWidget = (widget) => {
+  alert(`${widget.name} 위젯 설정 기능은 개발 중입니다.`)
+}
 
 // 대시보드 저장
 const saveDashboard = () => {
-  localStorage.setItem('dashboard-config', JSON.stringify(dashboardWidgets.value))
-  alert('대시보드가 저장되었습니다.')
+  localStorage.setItem('haezoom-dashboard-config', JSON.stringify(dashboardWidgets.value))
+
+  const toast = document.createElement('div')
+  toast.className = 'save-toast'
+  toast.textContent = '✅ 대시보드가 저장되었습니다!'
+  toast.style.cssText = `
+    position: fixed;
+    top: 120px;
+    right: 24px;
+    background: #E16349;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    z-index: 10000;
+    font-weight: 600;
+    animation: slideIn 0.3s ease;
+  `
+  document.body.appendChild(toast)
+
+  setTimeout(() => {
+    toast.remove()
+  }, 3000)
 }
 
 // 대시보드 불러오기
 const loadDashboard = () => {
-  const saved = localStorage.getItem('dashboard-config')
+  const saved = localStorage.getItem('haezoom-dashboard-config')
   if (saved) {
     dashboardWidgets.value = JSON.parse(saved)
   }
@@ -246,415 +603,30 @@ const loadDashboard = () => {
 
 // 대시보드 초기화
 const clearDashboard = () => {
-  if (confirm('모든 위젯을 삭제하시겠습니까?')) {
+  if (confirm('모든 위젯을 삭제하시겠습니까?\n(저장된 대시보드 설정도 함께 삭제됩니다)')) {
     dashboardWidgets.value = []
+    localStorage.removeItem('haezoom-dashboard-config')
   }
 }
 
 onMounted(() => {
   loadDashboard()
+  // 헤더에서 오는 이벤트 리스너 등록
+  window.addEventListener('edit-mode-change', handleEditModeChange)
+  window.addEventListener('sidebar-toggle', handleSidebarToggle)
+  window.addEventListener('save-dashboard', handleSaveDashboard)
+  window.addEventListener('confirm-exit-edit-mode', handleConfirmExitEditMode)
+})
+
+onUnmounted(() => {
+  // 이벤트 리스너 제거
+  window.removeEventListener('edit-mode-change', handleEditModeChange)
+  window.removeEventListener('sidebar-toggle', handleSidebarToggle)
+  window.removeEventListener('save-dashboard', handleSaveDashboard)
+  window.removeEventListener('confirm-exit-edit-mode', handleConfirmExitEditMode)
 })
 </script>
 
 <style scoped>
-.dashboard-container {
-  min-height: calc(100vh - 90px);
-  width: 100vw;
-  background: var(--color-bg-gray);
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  margin-top:90px;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.dashboard-content {
-  flex: 1;
-  display: flex;
-  width: 100%;
-  height: calc(100vh - 90px);
-}
-
-.widget-sidebar {
-  width: 320px;
-  background: var(--color-bg-white);
-  border-right: 1px solid var(--color-gray-lightest);
-  padding: 32px 24px;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-.sidebar-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-font-primary);
-  margin: 0 0 32px 0;
-}
-
-.category-section {
-  margin-bottom: 40px;
-}
-
-.category-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-font-secondary);
-  margin: 0 0 16px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.widget-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.widget-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border: 2px solid var(--color-gray-lightest);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: var(--color-bg-white);
-}
-
-.widget-item:hover {
-  background: var(--color-primary-lightest);
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-}
-
-.widget-icon {
-  font-size: 24px;
-}
-
-.widget-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--color-font-primary);
-}
-
-.dashboard-main {
-  flex: 1;
-  padding: 32px 24px;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-.dashboard-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-}
-
-.dashboard-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-font-primary);
-  margin: 0;
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 16px;
-}
-
-.clear-btn, .save-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.clear-btn {
-  background: var(--color-primary-lightest);
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary-light);
-}
-
-.clear-btn:hover {
-  background: var(--color-primary-light);
-  color: var(--color-font-white);
-}
-
-.save-btn {
-  background: var(--color-primary);
-  color: var(--color-font-white);
-}
-
-.save-btn:hover {
-  background: var(--color-primary-light);
-  transform: translateY(-1px);
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  min-height: 500px;
-}
-
-.dashboard-grid.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state {
-  text-align: center;
-  color: var(--color-font-secondary);
-}
-
-.empty-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
-}
-
-.empty-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  color: var(--color-font-primary);
-}
-
-.empty-description {
-  font-size: 18px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.widget-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  width: 100%;
-}
-
-.widget-container {
-  background: var(--color-bg-white);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.2s ease;
-  border: 1px solid var(--color-gray-lightest);
-}
-
-.widget-container:hover {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-  transform: translateY(-4px);
-}
-
-.widget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: var(--color-bg-light);
-  border-bottom: 1px solid var(--color-gray-lightest);
-}
-
-.widget-title {
-  font-weight: 600;
-  color: var(--color-font-primary);
-  font-size: 16px;
-}
-
-.widget-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.control-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  color: var(--color-font-secondary);
-}
-
-.control-btn:hover {
-  background: var(--color-gray-lightest);
-  color: var(--color-font-primary);
-}
-
-.control-btn.remove:hover {
-  background: var(--color-primary-lightest);
-  color: var(--color-primary);
-}
-
-.widget-content {
-  padding: 24px;
-  height: calc(100% - 77px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-font-secondary);
-  font-size: 16px;
-  min-height: 150px;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: var(--color-bg-white);
-  border-radius: 16px;
-  padding: 32px;
-  width: 100%;
-  max-width: 500px;
-  margin: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-font-primary);
-  margin: 0 0 32px 0;
-}
-
-.size-controls {
-  margin-bottom: 32px;
-}
-
-.size-control {
-  margin-bottom: 20px;
-}
-
-.size-control label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--color-font-primary);
-  font-size: 16px;
-}
-
-.size-control select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid var(--color-gray-light);
-  border-radius: 8px;
-  font-size: 16px;
-  background: var(--color-bg-white);
-  color: var(--color-font-primary);
-}
-
-.size-control select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-}
-
-.cancel-btn, .apply-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.cancel-btn {
-  background: var(--color-gray-light);
-  color: var(--color-font-primary);
-}
-
-.apply-btn {
-  background: var(--color-primary);
-  color: var(--color-font-white);
-}
-
-.cancel-btn:hover {
-  background: var(--color-gray);
-}
-
-.apply-btn:hover {
-  background: var(--color-primary-light);
-  transform: translateY(-1px);
-}
-
-@media (max-width: 1024px) {
-  .widget-sidebar {
-    width: 280px;
-  }
-  
-  .widget-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-content {
-    flex-direction: column;
-    height: auto;
-  }
-  
-  .widget-sidebar {
-    width: 100%;
-    max-height: 300px;
-    padding: 24px 20px;
-  }
-  
-  .dashboard-main {
-    padding: 24px 20px;
-  }
-  
-  .widget-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  
-  .dashboard-toolbar {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-  
-  .toolbar-right {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .widget-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .modal-content {
-    padding: 24px;
-    margin: 16px;
-  }
-}
+@import './DashboardView-styles.css';
 </style>

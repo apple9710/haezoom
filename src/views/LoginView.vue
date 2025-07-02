@@ -136,7 +136,7 @@ const handleLogin = async () => {
   })
   
   if (result.success) {
-    router.push('/main')
+    router.push('/dashboard')
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="app-container">
     <AppHeader />
     <router-view />
   </div>
@@ -20,7 +20,7 @@ onMounted(() => {
 
 <style>
 /* 전체 앱 스타일 */
-#app {
+.app-container {
   min-height: 100vh;
   width: 100vw;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Noto Sans', sans-serif;
@@ -137,7 +137,7 @@ textarea:focus-visible,
 
 /* 고대비 모드 지원 */
 @media (prefers-contrast: high) {
-  .app-header {
+  .app-container .app-header {
     border-bottom: 2px solid var(--color-font-primary);
   }
   
