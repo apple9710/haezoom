@@ -15,7 +15,7 @@
         <div class="login-header">
           <div class="logo">
             <div class="logo-circle">
-              <img src="/logo.svg" alt="해줌" class="logo-image" />
+              <img src="@/assets/images/haezoom_logo.svg" alt="해줌" class="logo-image" />
             </div>
             <h1 class="logo-text">해줌</h1>
             <p class="logo-subtitle">Energy Monitoring</p>
