@@ -1,12 +1,12 @@
 <template>
   <div class="login-container">
     <!-- 배경 애니메이션 요소들 -->
-    <div class="background-elements">
+    <!-- <div class="background-elements">
       <div class="floating-element element-1"></div>
       <div class="floating-element element-2"></div>
       <div class="floating-element element-3"></div>
       <div class="floating-element element-4"></div>
-    </div>
+    </div> -->
 
     <div class="login-card">
       <div class="glass-overlay"></div>
@@ -17,8 +17,8 @@
             <div class="logo-circle">
               <img src="@/assets/images/haezoom_logo.svg" alt="해줌" class="logo-image" />
             </div>
-            <h1 class="logo-text">해줌</h1>
-            <p class="logo-subtitle">Energy Monitoring</p>
+            <h1 class="logo-text">에너지 모니터링</h1>
+            <!-- <p class="logo-subtitle">Energy Monitoring</p> -->
           </div>
           <p class="login-description">에너지 효율성을 위한 스마트 대시보드</p>
         </div>

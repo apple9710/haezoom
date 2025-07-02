@@ -23,7 +23,7 @@ onMounted(() => {
 .app-container {
   min-height: 100vh;
   width: 100vw;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   overflow-x: hidden;
   position: relative;
   background: #F8F8F8;
