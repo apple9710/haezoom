@@ -84,6 +84,14 @@
   fill: var(--color-font-white);
 }
 
+.dashboard-header .welcome-text{
+  font-size: 24px;
+  font-weight: 300;
+  padding-right:12vw;
+}
+
+
+
 .dashboard-content {
   flex: 1;
   display: flex;
@@ -91,7 +99,9 @@
   height:98vh;
   /* height: calc(100vh - 90px); */
 }
-
+.dashboard-content .user-name{
+  font-weight:700;
+}
 /* 메인 대시보드 영역 */
 .dashboard-main {
   flex: 1;

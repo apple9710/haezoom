@@ -12,6 +12,8 @@
       </div>
 
       <div class="header-center">
+
+
         <button
           v-if="route.name === 'Dashboard' && isEditMode"
           @click="toggleSidebar"
@@ -21,6 +23,25 @@
           <span class="toggle-icon">☰</span>
           <span class="toggle-text">위젯 메뉴</span>
         </button>
+        <ul class="top-menu"
+          v-else
+        >
+          <li v-if="route.name ==='Dashboard'" class="active">
+            <a class="top-menu-item" href="#">대시보드</a>
+          </li>
+          <li>
+            <a class="top-menu-item" href="#">공조기</a>
+          </li>
+          <li>
+            <a class="top-menu-item" href="#">공조기</a>
+          </li>
+          <li>
+            <a class="top-menu-item" href="#">공조기</a>
+          </li>
+          <li>
+            <a class="top-menu-item" href="#">공조기</a>
+          </li>
+        </ul>
       </div>
 
       <div class="header-right" v-if="authStore.isAuthenticated">
@@ -537,6 +558,45 @@ onUnmounted(() => {
 
 .logout-btn:hover .logout-icon {
   transform: translateX(2px);
+}
+
+
+/* top-menu */
+
+.top-menu {
+  display:flex;
+  align-items:center;
+  background-color:var(--color-bg-white);
+  border-radius:999px;
+}
+.top-menu  li {
+  list-style-type:none;
+
+
+  font-size:20px;
+}
+.top-menu  li .top-menu-item {
+  color:#000;
+  width:138px;
+  height:64px;
+  display:flex;
+  align-items: center;
+  justify-content:center;
+  border-radius:999px;
+
+  /* display:block;
+  padding:20px 34px;
+  background-color: #000;
+  border-radius:999px;
+  color:#fff;
+  font-size:20px; */
+}
+.top-menu  li .top-menu-item:hover{
+  background:none;
+}
+.top-menu li.active .top-menu-item{
+    color:#fff;
+    background-color: #000;
 }
 
 /* 스크롤시 헤더 스타일 변경 (선택사항) */
