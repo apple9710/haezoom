@@ -213,11 +213,11 @@ onUnmounted(() => {
 
 <style scoped>
 .app-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(225, 99, 73, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  /* background: rgba(255, 255, 255, 0.95); */
+  /* backdrop-filter: blur(20px); */
+  /* -webkit-backdrop-filter: blur(20px); */
+  /* border-bottom: 1px solid rgba(225, 99, 73, 0.2); */
+  /* box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); */
   position: fixed;
   border-radius: 24px;
   top: 1%;
@@ -225,7 +225,8 @@ onUnmounted(() => {
   transform: translateX(-50%);
   z-index: 1000;
   width: 95%;
-  max-width: 1200px;
+  padding: 0 2.5%;
+  /* max-width: 1200px; */
   transition: all 0.3s ease;
 }
 
@@ -235,7 +236,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 1400px;
+  /* max-width: 1400px; */
   margin: 0 auto;
   box-sizing: border-box;
 }
