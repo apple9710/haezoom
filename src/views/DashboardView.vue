@@ -195,12 +195,12 @@
 
               <div class="widget-content">
                 <div class="widget-placeholder">
-                  <div class="placeholder-icon">{{ element.icon }}</div>
+                  <!-- <div class="placeholder-icon">{{ element.icon }}</div> -->
                   <div class="placeholder-text">
                     <strong>{{ element.name }}</strong
-                    ><br />
+                    >
                     <small>{{ element.description }}</small
-                    ><br />
+                    >
                     <span class="update-cycle">업데이트 주기: {{ element.updateCycle }}</span>
                   </div>
                 </div>

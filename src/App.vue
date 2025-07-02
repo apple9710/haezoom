@@ -26,7 +26,7 @@ onMounted(() => {
   font-family: 'Pretendard', sans-serif;
   overflow-x: hidden;
   position: relative;
-  background: #F8F8F8;
+  background: var(--color-bg-gray);
 }
 
 /* 기본 리셋 */
