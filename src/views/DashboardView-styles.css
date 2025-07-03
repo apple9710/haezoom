@@ -702,6 +702,7 @@ background-color: var(--color-bg-white);
   display: flex;
   gap: 16px;
   justify-content: flex-end;
+  margin-top:24px;
 }
 
 .cancel-btn,
@@ -924,7 +925,23 @@ background-color: var(--color-bg-white);
   pointer-events: none;
   /* position은 Vue에서 동적으로 설정 */
 }
+.widget-options p {
+  text-align: center;
+  font-size:14px;
+  color: var(--color-font-primary);
 
+}
+
+.widget-options .input-box{
+  display:flex;
+  margin-top:24px;
+  color:var(--color-font-secondary);
+  justify-content: space-around;
+
+}
+.widget-options .input-box label{
+  margin-left:8px;
+}
 @keyframes pulse {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 0.8; }

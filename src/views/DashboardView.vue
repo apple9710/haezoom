@@ -220,7 +220,9 @@
                 <div class="placeholder-text">
                   <strong>{{ element.name }}</strong>
                   <small>{{ element.description }}</small>
-                  <span class="update-cycle">업데이트 주기: {{ element.updateCycle }}</span>
+                  <span class="update-cycle">업데이트 주기: {{
+                  element.updateCycle.length !== 1 ? widgetChar(Math.min(...element.updateCycle)) + "~" + widgetChar(Math.max(...element.updateCycle)) : element.updateCycle[0]
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -238,28 +240,48 @@
     <!-- 위젯 선택 모달 -->
     <div v-if="widgetSelector.show" class="modal-overlay" @click="closeWidgetSelector">
       <div class="modal-content widget-selector-modal" @click.stop>
-        <h3 class="modal-title">{{ widgetSelector.dataType }} 위젯 선택</h3>
+        <h3 class="modal-title">{{ widgetSelector.dataType }} {{ widgetOptions.show ? '옵션' : '위젯' }} 선택</h3>
         <p class="modal-description">
           {{ widgetSelector.dataType }}를 표시할 위젯 형태를 선택하세요
         </p>
 
-        <div class="widget-type-grid">
+        <div v-if="!widgetOptions.show" class="widget-type-grid">
           <div
             v-for="widget in getAvailableWidgets(widgetSelector.category)"
             :key="widget.id"
             class="widget-type-card"
-            @click="addWidget(widget)"
+            @click="changeShowWidget(widget)"
           >
             <div class="widget-type-icon">{{ widget.icon }}</div>
             <div class="widget-type-name">{{ widget.name }}</div>
             <div class="widget-type-description">{{ widget.description }}</div>
             <div class="widget-type-badge">
-              {{ Math.min(...widget.updateCycle) }} ~ {{ Math.max(...widget.updateCycle) }}
+              {{ widget.updateCycle.length !== 1 ? (widgetChar(Math.min(...widget.updateCycle)) + "~" +widgetChar(Math.max(...widget.updateCycle))) : widgetChar(widget.updateCycle[0]) }}
             </div>
           </div>
         </div>
+        <div v-else-if="widgetOptions.show" class="widget-options">
+
+          <p>
+            업데이트 주기
+          </p>
+          <div class="input-box">
+<div v-for="(option, index) in widgetOptions.cycle" :key="index" class="widget-option-item">
+  <input
+    type="radio"
+    name="cycle"
+    :value="option"
+    v-model="widgetOptions.selectedCycle"
+    :id="`cycle-${index}`"
+  />
+   <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
+</div>
+          </div>
+
+        </div>
 
         <div class="modal-actions">
+          <button @click="addWidget(widgetOptions.other)" class="cancel-btn">등록</button>
           <button @click="closeWidgetSelector" class="cancel-btn">취소</button>
         </div>
       </div>
@@ -465,7 +487,7 @@ const widgetDefinitions = {
       icon: '🔘',
       type: 'on-off-control',
       description: '설비 ON/OFF 제어 및 현재 상태 표시',
-      updateCycle:  [8],
+      updateCycle:  '실시간',
     },
     {
       id: 'up-down-control',
@@ -473,7 +495,7 @@ const widgetDefinitions = {
       icon: '🔼',
       type: 'up-down-control',
       description: '온도/압력/조도 등 수치 제어',
-      updateCycle:  [8],
+      updateCycle:  '실시간',
     },
     {
       id: 'status-widget',
@@ -481,7 +503,7 @@ const widgetDefinitions = {
       icon: '🟢',
       type: 'status-widget',
       description: '현재 상태를 색상으로 표시',
-      updateCycle: [8],
+      updateCycle: '실시간',
     },
   ],
   system_info: [
@@ -491,7 +513,7 @@ const widgetDefinitions = {
       icon: '🚨',
       type: 'alarm-widget',
       description: '통신 또는 설비 알람 표시',
-      updateCycle: [8],
+      updateCycle: '실시간',
     },
     {
       id: 'energy-report',
@@ -509,7 +531,7 @@ const widgetDefinitions = {
       icon: '🔗',
       type: 'page-link',
       description: 'URL 링크 표시 및 이동',
-      updateCycle: [9],
+      updateCycle: '정적',
     },
     {
       id: 'image-widget',
@@ -517,7 +539,7 @@ const widgetDefinitions = {
       icon: '🖼️',
       type: 'image-widget',
       description: '이미지 파일 표시',
-      updateCycle: [9],
+      updateCycle: '정적',
     },
   ],
 }
@@ -529,6 +551,15 @@ const widgetSelector = reactive({
   dataType: '',
 })
 
+
+
+const widgetOptions = reactive({
+  show : false,
+  keyword: [],
+  cycle: [],
+  unit: '',
+  selectedCycle: '',
+})
 
 
 
@@ -577,17 +608,49 @@ const showWidgetSelector = (category, dataType) => {
 
 // 위젯 선택기 닫기
 const closeWidgetSelector = () => {
+  widgetOptions.show = false;
   widgetSelector.show = false
   widgetSelector.category = ''
   widgetSelector.dataType = ''
 }
+
+
+// 위젯 사이클 변환 
+const widgetChar = (ele)=>{
+  const numArr = ['1분', '15분', '1시간', '하루'];
+  if(typeof ele === 'number'){
+    return numArr[ele];
+  }else if(typeof ele === 'string'){
+    return ele;
+  }
+
+};
+
 
 // 카테고리별 사용 가능한 위젯 가져오기
 const getAvailableWidgets = (category) => {
   return widgetDefinitions[category] || []
 };
 
+
+// const selectWidgetOption = (widget) => {
+//   // 위젯 옵션 선택 로직
+//   widgetOptions.show = true
+//   widgetOptions.keyword = widget.keywords || []
+//   widgetOptions.cycle = widget.updateCycle || []
+//   widgetOptions.unit = widget.unit || ''
+// }
+
 // 위젯 추가
+const changeShowWidget = (widget)=>{
+  widgetOptions.show = true;
+  // widgetOptions = {...widget}
+  
+  widgetOptions.other = {...widget}
+  widgetOptions.cycle = widget.updateCycle || [];
+  console.log(widgetOptions)
+}
+
 const addWidget = (widget) => {
   // 빈 공간 찾기
   const emptyPosition = findEmptyPosition({ width: 2, height: 2 })
@@ -595,6 +658,10 @@ const addWidget = (widget) => {
   const newWidget = {
     ...widget,
     instanceId: Date.now() + Math.random(),
+    cycle: widgetOptions.cycle ,
+    selectedCycle: widgetOptions.selectedCycle,
+    keyword : widgetOptions.keyword,
+    unit: widgetOptions.unit,
     dataType: widgetSelector.dataType,
     gridSize: { width: 2, height: 2 },
     position: emptyPosition, // 위치 설정
