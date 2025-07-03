@@ -739,6 +739,9 @@ background-color: var(--color-bg-white);
   box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
 }
 
+
+
+
 /* 반응형 디자인 */
 @media (max-width: 1400px) {
   .widget-sidebar {
@@ -894,4 +897,35 @@ background-color: var(--color-bg-white);
   background: linear-gradient(135deg, #d45740 0%, #e8a89a 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
+}
+
+/* 드래그 앤 드롭 스타일 */
+.widget-container {
+  transition: all 0.3s ease;
+  /* cursor는 Vue에서 동적으로 설정 */
+}
+
+.widget-container.dragging {
+  opacity: 0.7;
+  transform: rotate(2deg) scale(0.98);
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.widget-container:not(.dragging):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.drop-guide {
+  z-index: 999;
+  animation: pulse 1.5s infinite;
+  border-radius: 12px;
+  pointer-events: none;
+  /* position은 Vue에서 동적으로 설정 */
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
 }
