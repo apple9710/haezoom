@@ -142,7 +142,7 @@
             gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
             gap: '16px',
             padding: '24px',
-            position: 'relative'
+            position: 'relative',
           }"
         >
           <div v-if="dashboardWidgets.length === 0" class="empty-state">
@@ -188,51 +188,78 @@
             @dragstart="isEditMode ? handleDragStart(element, $event) : null"
             @dragend="handleDragEnd"
             :style="{
-              gridColumn: element.position 
+              gridColumn: element.position
                 ? `${element.position.x + 1} / span ${element.gridSize.width}`
                 : `1 / span ${element.gridSize.width}`,
-              gridRow: element.position 
+              gridRow: element.position
                 ? `${element.position.y + 1} / span ${element.gridSize.height}`
                 : `auto / span ${element.gridSize.height}`,
-              cursor: isEditMode ? 'move' : 'default'
+              cursor: isEditMode ? 'move' : 'default',
             }"
           >
-            <div class="widget-header">
-              <div class="widget-title-section">
-                <span class="widget-category">{{ element.dataType }}</span>
-                <span class="widget-title">{{ element.name }}</span>
-              </div>
-              <div v-if="isEditMode" class="widget-controls">
-                <button @click="configureWidget(element)" class="control-btn" title="설정">
-                  ⚙️
-                </button>
-                <button @click="resizeWidget(element)" class="control-btn" title="크기 조절">
-                  ⛶
-                </button>
-                <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
-                  ✕
-                </button>
-              </div>
-            </div>
+            <div v-if="element.name === '선 시계열 그래프'" class="chart">
+                            <div class="widget-header" style="padding:0;">
 
-            <div class="widget-content">
-              <div class="widget-placeholder">
-                <div class="placeholder-text">
-                  <strong>{{ element.name }}</strong>
-                  <small>{{ element.description }}</small>
-                  <span class="update-cycle">업데이트 주기: {{
-                  element.updateCycle.length !== 1 ? widgetChar(Math.min(...element.updateCycle)) + "~" + widgetChar(Math.max(...element.updateCycle)) : element.updateCycle[0]
-                  }}</span>
+                <div v-if="isEditMode" class="widget-controls">
+                  <button @click="configureWidget(element)" class="control-btn" title="설정">
+                    ⚙️
+                  </button>
+                  <button @click="resizeWidget(element)" class="control-btn" title="크기 조절">
+                    ⛶
+                  </button>
+                  <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <PowerUsageWidget />
+            </div>
+            <div v-else class="widget-inner">
+              <div class="widget-header">
+                <div class="widget-title-section">
+                  <span class="widget-category">{{ element.dataType }}</span>
+                  <span class="widget-title">{{ element.name }}</span>
+                </div>
+                <div v-if="isEditMode" class="widget-controls">
+                  <button @click="configureWidget(element)" class="control-btn" title="설정">
+                    ⚙️
+                  </button>
+                  <button @click="resizeWidget(element)" class="control-btn" title="크기 조절">
+                    ⛶
+                  </button>
+                  <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div class="widget-content">
+                <div class="widget-placeholder">
+                  <div class="placeholder-text">
+                    <strong>{{ element.name }}</strong>
+                    <small>{{ element.description }}</small>
+                    <span class="update-cycle"
+                      >업데이트 주기:
+                      {{
+                        element.updateCycle.length !== 1
+                          ? widgetChar(Math.min(...element.updateCycle)) +
+                            '~' +
+                            widgetChar(Math.max(...element.updateCycle))
+                          : element.updateCycle[0]
+                      }}</span
+                    >
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- 드롭 가이드 -->
-          <div v-if="dragState.showDropGuide" 
-               class="drop-guide"
-               :style="dragState.dropGuideStyle">
-          </div>
+          <div
+            v-if="dragState.showDropGuide"
+            class="drop-guide"
+            :style="dragState.dropGuideStyle"
+          ></div>
         </div>
       </main>
     </div>
@@ -240,7 +267,9 @@
     <!-- 위젯 선택 모달 -->
     <div v-if="widgetSelector.show" class="modal-overlay" @click="closeWidgetSelector">
       <div class="modal-content widget-selector-modal" @click.stop>
-        <h3 class="modal-title">{{ widgetSelector.dataType }} {{ widgetOptions.show ? '옵션' : '위젯' }} 선택</h3>
+        <h3 class="modal-title">
+          {{ widgetSelector.dataType }} {{ widgetOptions.show ? '옵션' : '위젯' }} 선택
+        </h3>
         <p class="modal-description">
           {{ widgetSelector.dataType }}를 표시할 위젯 형태를 선택하세요
         </p>
@@ -256,28 +285,34 @@
             <div class="widget-type-name">{{ widget.name }}</div>
             <div class="widget-type-description">{{ widget.description }}</div>
             <div class="widget-type-badge">
-              {{ widget.updateCycle.length !== 1 ? (widgetChar(Math.min(...widget.updateCycle)) + "~" +widgetChar(Math.max(...widget.updateCycle))) : widgetChar(widget.updateCycle[0]) }}
+              {{
+                widget.updateCycle.length !== 1
+                  ? widgetChar(Math.min(...widget.updateCycle)) +
+                    '~' +
+                    widgetChar(Math.max(...widget.updateCycle))
+                  : widgetChar(widget.updateCycle[0])
+              }}
             </div>
           </div>
         </div>
         <div v-else-if="widgetOptions.show" class="widget-options">
-
-          <p>
-            업데이트 주기
-          </p>
+          <p>업데이트 주기</p>
           <div class="input-box">
-<div v-for="(option, index) in widgetOptions.cycle" :key="index" class="widget-option-item">
-  <input
-    type="radio"
-    name="cycle"
-    :value="option"
-    v-model="widgetOptions.selectedCycle"
-    :id="`cycle-${index}`"
-  />
-   <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
-</div>
+            <div
+              v-for="(option, index) in widgetOptions.cycle"
+              :key="index"
+              class="widget-option-item"
+            >
+              <input
+                type="radio"
+                name="cycle"
+                :value="option"
+                v-model="widgetOptions.selectedCycle"
+                :id="`cycle-${index}`"
+              />
+              <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
+            </div>
           </div>
-
         </div>
 
         <div class="modal-actions">
@@ -342,6 +377,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import PowerUsageWidget from '@/components/widgets/PowerUsageWidget.vue'
 
 const authStore = useAuthStore()
 
@@ -409,7 +445,7 @@ const widgetDefinitions = {
       icon: '📊',
       type: 'bar-chart',
       description: '시간에 따른 전력 사용량 변화를 막대그래프로 표시',
-      updateCycle:  [0, 1, 2, 3],
+      updateCycle: [0, 1, 2, 3],
     },
     {
       id: 'power-pie-chart',
@@ -417,7 +453,7 @@ const widgetDefinitions = {
       icon: '🍰',
       type: 'pie-chart',
       description: '전력 사용량 비율을 원형 차트로 표시',
-      updateCycle:  [1, 2, 3],
+      updateCycle: [1, 2, 3],
     },
     {
       id: 'power-box-widget',
@@ -425,7 +461,7 @@ const widgetDefinitions = {
       icon: '📦',
       type: 'box-widget',
       description: '현재 전력량을 숫자로 표시',
-      updateCycle:  [0],
+      updateCycle: [0],
     },
   ],
   solar_generation: [
@@ -435,7 +471,7 @@ const widgetDefinitions = {
       icon: '📈',
       type: 'line-chart',
       description: '태양광 발전량과 예측량을 선그래프로 표시',
-      updateCycle:  [0, 1, 2, 3],
+      updateCycle: [0, 1, 2, 3],
     },
     {
       id: 'solar-bar-chart',
@@ -443,7 +479,7 @@ const widgetDefinitions = {
       icon: '📊',
       type: 'bar-chart',
       description: '태양광 발전량과 예측량을 막대그래프로 표시',
-      updateCycle:  [0, 1, 2, 3],
+      updateCycle: [0, 1, 2, 3],
     },
     {
       id: 'solar-box-widget',
@@ -451,7 +487,7 @@ const widgetDefinitions = {
       icon: '📦',
       type: 'box-widget',
       description: '현재 발전량을 숫자로 표시',
-      updateCycle:  [0],
+      updateCycle: [0],
     },
   ],
   environment: [
@@ -461,7 +497,7 @@ const widgetDefinitions = {
       icon: '🌡️',
       type: 'bar-gauge-widget',
       description: '온도를 막대 게이지로 표시',
-      updateCycle:  [0, 1],
+      updateCycle: [0, 1],
     },
     {
       id: 'humidity-bar-widget',
@@ -469,7 +505,7 @@ const widgetDefinitions = {
       icon: '💧',
       type: 'bar-gauge-widget',
       description: '습도를 퍼센트 막대로 표시',
-      updateCycle:  [0, 1],
+      updateCycle: [0, 1],
     },
     {
       id: 'pressure-box-widget',
@@ -477,7 +513,7 @@ const widgetDefinitions = {
       icon: '📦',
       type: 'box-widget',
       description: '압력값을 숫자로 표시',
-      updateCycle:  [0, 1],
+      updateCycle: [0, 1],
     },
   ],
   equipment_control: [
@@ -487,7 +523,7 @@ const widgetDefinitions = {
       icon: '🔘',
       type: 'on-off-control',
       description: '설비 ON/OFF 제어 및 현재 상태 표시',
-      updateCycle:  '실시간',
+      updateCycle: '실시간',
     },
     {
       id: 'up-down-control',
@@ -495,7 +531,7 @@ const widgetDefinitions = {
       icon: '🔼',
       type: 'up-down-control',
       description: '온도/압력/조도 등 수치 제어',
-      updateCycle:  '실시간',
+      updateCycle: '실시간',
     },
     {
       id: 'status-widget',
@@ -521,7 +557,7 @@ const widgetDefinitions = {
       icon: '📋',
       type: 'energy-report',
       description: 'PDF 진단보고서 분석 결과',
-      updateCycle:  [ 3],
+      updateCycle: [3],
     },
   ],
   misc: [
@@ -551,17 +587,13 @@ const widgetSelector = reactive({
   dataType: '',
 })
 
-
-
 const widgetOptions = reactive({
-  show : false,
+  show: false,
   keyword: [],
   cycle: [],
   unit: '',
   selectedCycle: '',
 })
-
-
 
 // 대시보드 상태
 const dashboardWidgets = ref([])
@@ -573,17 +605,15 @@ const dragState = reactive({
   dragElement: null,
   dropPosition: { x: 0, y: 0 },
   showDropGuide: false,
-  dropGuideStyle: {}
+  dropGuideStyle: {},
 })
-
-
 
 // 그리드 설정
 const gridConfig = {
-  cols: 16,  // 6개 컬럼
+  cols: 16, // 6개 컬럼
   rows: 6, // 10개 행
   // cellSize: 120, // 각 셀 크기
-  gap: 16 // 셀 간격
+  gap: 16, // 셀 간격
 }
 
 // 크기 조절 모달
@@ -608,30 +638,26 @@ const showWidgetSelector = (category, dataType) => {
 
 // 위젯 선택기 닫기
 const closeWidgetSelector = () => {
-  widgetOptions.show = false;
+  widgetOptions.show = false
   widgetSelector.show = false
   widgetSelector.category = ''
   widgetSelector.dataType = ''
 }
 
-
-// 위젯 사이클 변환 
-const widgetChar = (ele)=>{
-  const numArr = ['1분', '15분', '1시간', '하루'];
-  if(typeof ele === 'number'){
-    return numArr[ele];
-  }else if(typeof ele === 'string'){
-    return ele;
+// 위젯 사이클 변환
+const widgetChar = (ele) => {
+  const numArr = ['1분', '15분', '1시간', '하루']
+  if (typeof ele === 'number') {
+    return numArr[ele]
+  } else if (typeof ele === 'string') {
+    return ele
   }
-
-};
-
+}
 
 // 카테고리별 사용 가능한 위젯 가져오기
 const getAvailableWidgets = (category) => {
   return widgetDefinitions[category] || []
-};
-
+}
 
 // const selectWidgetOption = (widget) => {
 //   // 위젯 옵션 선택 로직
@@ -642,25 +668,25 @@ const getAvailableWidgets = (category) => {
 // }
 
 // 위젯 추가
-const changeShowWidget = (widget)=>{
-  widgetOptions.show = true;
+const changeShowWidget = (widget) => {
+  widgetOptions.show = true
   // widgetOptions = {...widget}
-  
-  widgetOptions.other = {...widget}
-  widgetOptions.cycle = widget.updateCycle || [];
+
+  widgetOptions.other = { ...widget }
+  widgetOptions.cycle = widget.updateCycle || []
   console.log(widgetOptions)
 }
 
 const addWidget = (widget) => {
   // 빈 공간 찾기
   const emptyPosition = findEmptyPosition({ width: 2, height: 2 })
-  
+
   const newWidget = {
     ...widget,
     instanceId: Date.now() + Math.random(),
-    cycle: widgetOptions.cycle ,
+    cycle: widgetOptions.cycle,
     selectedCycle: widgetOptions.selectedCycle,
-    keyword : widgetOptions.keyword,
+    keyword: widgetOptions.keyword,
     unit: widgetOptions.unit,
     dataType: widgetSelector.dataType,
     gridSize: { width: 2, height: 2 },
@@ -702,7 +728,6 @@ const findEmptyPosition = (size) => {
 // 위젯 제거
 const removeWidget = (widget) => {
   if (confirm(`${widget.name} 위젯을 삭제하시겠습니까?`)) {
-    
     const index = dashboardWidgets.value.findIndex((w) => w.instanceId === widget.instanceId)
     if (index > -1) {
       console.log(dashboardWidgets.value[index])
@@ -796,7 +821,7 @@ const handleDragStart = (element, event) => {
   dragState.dragElement = element
   event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData('text/plain', element.instanceId)
-  
+
   // 드래그 이미지 설정 (선택적)
   const dragImage = event.target.cloneNode(true)
   dragImage.style.opacity = '0.5'
@@ -806,25 +831,25 @@ const handleDragStart = (element, event) => {
 const handleDragOver = (event) => {
   event.preventDefault()
   if (!dragState.isDragging) return
-  
+
   const gridRect = dashboardGrid.value?.getBoundingClientRect()
   if (!gridRect) return
-  
+
   // 그리드 셀 위치 계산
   const cellWidth = (gridRect.width - 48) / gridConfig.cols // padding 제외
   const cellHeight = 120 + 16 // 셀 높이 + gap
-  
+
   const mouseX = event.clientX - gridRect.left - 24 // padding 제외
   const mouseY = event.clientY - gridRect.top - 24
-  
+
   const gridX = Math.floor(mouseX / cellWidth)
   const gridY = Math.floor(mouseY / cellHeight)
-  
+
   dragState.dropPosition = {
     x: Math.max(0, Math.min(gridX, gridConfig.cols - dragState.dragElement.gridSize.width)),
-    y: Math.max(0, Math.min(gridY, gridConfig.rows - dragState.dragElement.gridSize.height))
+    y: Math.max(0, Math.min(gridY, gridConfig.rows - dragState.dragElement.gridSize.height)),
   }
-  
+
   // 드래그 가이드 표시
   showDropGuide()
 }
@@ -832,15 +857,15 @@ const handleDragOver = (event) => {
 const handleDrop = (event) => {
   event.preventDefault()
   console.log('드롭 이벤트 발생') // 디버그용
-  
+
   if (!dragState.dragElement) {
     console.log('드래그 요소가 없음')
     return
   }
-  
+
   const draggedElement = dragState.dragElement
   const newPosition = { ...dragState.dropPosition }
-  
+
   // 배치 가능성 확인
   if (canPlaceWidget(newPosition, draggedElement.gridSize, draggedElement)) {
     console.log(`위젯 위치 변경: (${newPosition.x}, ${newPosition.y})`)
@@ -849,16 +874,20 @@ const handleDrop = (event) => {
   } else {
     console.log('해당 위치에 배치할 수 없음')
   }
-  
+
   resetDragState()
 }
 
 const showDropGuide = () => {
   const { x, y } = dragState.dropPosition
   const { width, height } = dragState.dragElement.gridSize
-  
-  const canPlace = canPlaceWidget(dragState.dropPosition, dragState.dragElement.gridSize, dragState.dragElement)
-  
+
+  const canPlace = canPlaceWidget(
+    dragState.dropPosition,
+    dragState.dragElement.gridSize,
+    dragState.dragElement,
+  )
+
   dragState.showDropGuide = true
   dragState.dropGuideStyle = {
     gridColumn: `${x + 1} / span ${width}`,
@@ -867,27 +896,23 @@ const showDropGuide = () => {
     border: `2px dashed ${canPlace ? '#E16349' : '#ff0000'}`,
     borderRadius: '12px',
     pointerEvents: 'none',
-    zIndex: 999
+    zIndex: 999,
   }
 }
 
 // 위젯 배치 가능성 확인
 const canPlaceWidget = (position, size, excludeWidget = null) => {
   // 그리드 경계 확인
-  if (position.x + size.width > gridConfig.cols || 
-      position.y + size.height > gridConfig.rows) {
+  if (position.x + size.width > gridConfig.cols || position.y + size.height > gridConfig.rows) {
     return false
   }
-  
+
   // 다른 위젯과 겹치는지 확인
-  return !dashboardWidgets.value.some(widget => {
+  return !dashboardWidgets.value.some((widget) => {
     if (widget === excludeWidget) return false
     if (!widget.position) return false
-    
-    return isOverlapping(
-      position, size,
-      widget.position, widget.gridSize
-    )
+
+    return isOverlapping(position, size, widget.position, widget.gridSize)
   })
 }
 
@@ -903,25 +928,25 @@ const isOverlapping = (pos1, size1, pos2, size2) => {
 
 const reorderWidgets = (draggedElement, dropY) => {
   const widgets = dashboardWidgets.value
-  const draggedIndex = widgets.findIndex(w => w.instanceId === draggedElement.instanceId)
-  
+  const draggedIndex = widgets.findIndex((w) => w.instanceId === draggedElement.instanceId)
+
   if (draggedIndex === -1) {
     console.log('드래그된 요소를 찾을 수 없음')
     return
   }
-  
+
   // 드롭 위치에 따라 새로운 인덱스 계산
   const widgetHeight = 150 // 대략적인 위젯 높이
   let newIndex = Math.floor(dropY / widgetHeight)
   newIndex = Math.max(0, Math.min(widgets.length - 1, newIndex))
-  
+
   if (newIndex !== draggedIndex) {
     console.log(`위젯 순서 변경: ${draggedIndex} -> ${newIndex}`)
-    
+
     // 배열에서 요소 이동
     const [removed] = widgets.splice(draggedIndex, 1)
     widgets.splice(newIndex, 0, removed)
-    
+
     // 대시보드 저장
     saveDashboard()
   }
