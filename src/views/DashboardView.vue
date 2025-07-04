@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-container">
+      <AppHeader />
     <div class="dashboard-content">
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
@@ -434,6 +435,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import WidgetFactory from '@/components/widgets/WidgetFactory.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 const authStore = useAuthStore()
 
