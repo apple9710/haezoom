@@ -350,6 +350,8 @@ background-color: var(--color-bg-white);
   max-width: 600px;
   padding: 60px 40px;
   grid-column : 1/ 5;
+  margin: 0 auto;
+  grid-area: 1/ span 16;
 }
 
 .empty-icon {
