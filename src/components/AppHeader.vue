@@ -7,44 +7,72 @@
           <span class="back-text">뒤로가기</span>
         </button>
         <div class="logo-section">
+          <div id="logo">
+            <img src="@/assets/images/logo_en.svg" alt="해줌" class="logo-image" />
+          </div>
           <h1 class="header-title">{{ pageTitle }}</h1>
         </div>
       </div>
 
-      <div class="header-center">
-
-
-        <button
-          v-if="route.name === 'Dashboard' && isEditMode"
-          @click="toggleSidebar"
-          class="sidebar-toggle-btn"
-          :class="{ active: sidebarOpen }"
-        >
-          <span class="toggle-icon">☰</span>
-          <span class="toggle-text">위젯 메뉴</span>
-        </button>
-        <ul class="top-menu"
-          v-else
-        >
+      <div class="header-center" v-if="!isEditMode" >
+        <ul class="top-menu" >
           <li v-if="route.name ==='Dashboard'" class="active">
             <a class="top-menu-item" href="#">대시보드</a>
           </li>
           <li>
-            <a class="top-menu-item" href="#">공조기</a>
+            <a class="top-menu-item" href="#">에너지 진단보고서</a>
           </li>
-          <li>
-            <a class="top-menu-item" href="#">공조기</a>
-          </li>
-          <li>
-            <a class="top-menu-item" href="#">공조기</a>
-          </li>
-          <li>
-            <a class="top-menu-item" href="#">공조기</a>
-          </li>
+
         </ul>
       </div>
 
       <div class="header-right">
+
+
+        <!-- 대시보드 편집 관련 버튼들 -->
+        <div v-if="route.name === 'Dashboard'" class="dashboard-controls">
+          <div v-if="!isEditMode" class="view-mode-controls">
+            <button @click="enterEditMode" class="edit-mode-btn user-btn">
+              <span class="user-btn-icon">
+                  <img src="@/assets/images/settings.svg" alt="위젯편집" class="btn-icon_img" />
+              </span>
+              <span class="sound_only">위젯 편집</span>
+            </button>
+          </div>
+          <div v-else class="edit-mode-controls">
+            <button
+              
+              @click="toggleSidebar"
+              class="sidebar-toggle-btn"
+              :class="{ active: sidebarOpen }"
+            >
+              <span class="toggle-icon">                  
+                <img src="@/assets/images/add.svg" alt="위젯추가" class="btn-icon_img" />
+              </span>
+              <span class="toggle-text">{{ sidebarOpen ? '닫기' : '위젯 추가' }}</span>
+            </button>
+            <button @click="saveDashboard" class="save-btn">
+              <span class="btn-icon">  
+                <img src="@/assets/images/save.svg" alt="저장" class="btn-icon_img" />
+                </span>
+              <span>저장</span>
+            </button>
+            <button @click="exitEditMode" class="exit-btn">
+              <span class="btn-icon">
+                <img src="@/assets/images/close.svg" alt="나가기" class="btn-icon_img" />
+              </span>
+              <span>나가기</span>
+            </button>
+          </div>
+        </div>
+
+        <button @click="handleLogout" class="logout-btn user-btn">
+          <span class="sound_only">로그아웃</span>
+          <span class="logout-icon user-btn-icon">
+            <img src="@/assets/images/logout.svg" alt="로그아웃" class="btn-icon_img" />
+          </span>
+        </button>
+
         <div class="user-info">
           <div class="user-avatar">
             <span>{{ getUserInitials() }}</span>
@@ -54,32 +82,6 @@
             <span class="user-role">{{ authStore.user?.role || '관리자' }}</span>
           </div>
         </div>
-
-        <!-- 대시보드 편집 관련 버튼들 -->
-        <div v-if="route.name === 'Dashboard'" class="dashboard-controls">
-          <div v-if="!isEditMode" class="view-mode-controls">
-            <button @click="enterEditMode" class="edit-mode-btn">
-              <span class="btn-icon">✏️</span>
-              <span>위젯 편집</span>
-            </button>
-          </div>
-
-          <div v-else class="edit-mode-controls">
-            <button @click="saveDashboard" class="save-btn">
-              <span class="btn-icon">💾</span>
-              <span>저장</span>
-            </button>
-            <button @click="exitEditMode" class="exit-btn">
-              <span class="btn-icon">✕</span>
-              <span>나가기</span>
-            </button>
-          </div>
-        </div>
-
-        <button @click="handleLogout" class="logout-btn">
-          <span>로그아웃</span>
-          <span class="logout-icon">→</span>
-        </button>
       </div>
     </div>
   </header>
@@ -101,11 +103,11 @@ const isEditMode = ref(false) // 편집모드 상태
 // 편집모드 진입
 const enterEditMode = () => {
   isEditMode.value = true
-  sidebarOpen.value = true
+  // sidebarOpen.value = true
   // 대시보드에 편집모드 알림
   window.dispatchEvent(
     new CustomEvent('edit-mode-change', {
-      detail: { isEditMode: true, sidebarOpen: true },
+      detail: { isEditMode: true, sidebarOpen: false },
     }),
   )
 }
@@ -270,46 +272,43 @@ onUnmounted(() => {
 }
 
 .header-center {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .sidebar-toggle-btn {
+  width: 140px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 2px solid rgba(225, 99, 73, 0.2);
-  border-radius: 12px;
+  padding: 12px 0;
+  background:#000;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-primary);
+  color: #fff;
   transition: all 0.3s ease;
   font-family: inherit;
 }
 
 .sidebar-toggle-btn:hover {
-  background: rgba(225, 99, 73, 0.1);
-  border-color: rgba(225, 99, 73, 0.3);
+  background: var(--color-primary);
+  color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(225, 99, 73, 0.2);
 }
 
 .sidebar-toggle-btn.active {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .toggle-icon {
-  font-size: 18px;
+  width: 24px;
+  height: 24px;
   transition: transform 0.3s ease;
 }
 
@@ -319,6 +318,8 @@ onUnmounted(() => {
 
 .toggle-text {
   font-family: inherit;
+  font-size: 15px;
+  transition: all 0.3s ease;
 }
 
 .back-btn {
@@ -360,9 +361,9 @@ onUnmounted(() => {
 }
 
 .logo-section {
-  display: flex;
+  /* display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 16px; */
 }
 
 .header-logo {
@@ -387,23 +388,29 @@ onUnmounted(() => {
   color: white;
   font-weight: bold;
 }
-
+#logo{
+  display: block;
+  width: 130px;
+}
+#logo img{
+  width: 100%;
+}
 .header-title {
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-font-primary);
   margin: 0;
-  letter-spacing: -0.5px;
+  line-height: 20px;
+  /* letter-spacing: -0.5px;
   background: linear-gradient(135deg, var(--color-font-primary) 0%, var(--color-gray) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background-clip: text; */
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
 }
 
 .dashboard-controls {
@@ -419,72 +426,65 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-.edit-mode-btn,
 .save-btn,
 .exit-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
+  height: 48px;
   border: none;
-  border-radius: 12px;
+  border-radius: 99px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   transition: all 0.3s ease;
   font-family: inherit;
 }
 
-.edit-mode-btn {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  color: var(--color-font-white);
-  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
-}
-
-.edit-mode-btn:hover {
-  background: linear-gradient(135deg, #d45740 0%, #e8a89a 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
-}
 
 .save-btn {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+  color: #fff;
+  background: var(--color-primary);
 }
 
 .save-btn:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+  background: #000;;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(88, 78, 73, 0.4);
 }
 
 .exit-btn {
-  background: var(--color-gray-light);
-  color: var(--color-font-primary);
-  border: 2px solid var(--color-gray);
+  background: #000;
+  color: #fff;
+  font-weight: 700;
 }
 
 .exit-btn:hover {
-  background: var(--color-gray);
+  background: var(--color-primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .btn-icon {
   font-size: 16px;
+  width: 24px;
+  height: 24px;
+  display: block;
 }
-
+span.sound_only{
+  font-size: 0;
+  display: none;
+}
+.btn-icon_img{
+  width: 100%;
+}
 .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* background: #fff; */
+  /* border: 1px solid var(--color-gray); */
   transition: all 0.3s ease;
 }
 
@@ -494,17 +494,16 @@ onUnmounted(() => {
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  width: 48px;
+  height: 48px;
+  border-radius: 100%;
+  background: var(--color-font-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 14px;
-  box-shadow: 0 2px 8px rgba(225, 99, 73, 0.3);
+  font-size: 16px;
 }
 
 .user-details {
@@ -529,37 +528,25 @@ onUnmounted(() => {
 }
 
 .logout-btn {
+  margin-left: 16px;
+}
+
+.user-btn{
+  width: 52px;
+  height: 52px;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  color: var(--color-font-white);
+  background: #000;
   border: none;
-  border-radius: 12px;
+  border-radius: 100%;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
   font-family: inherit;
+  transition: all 0.3s ease;
 }
-
-.logout-btn:hover {
+.user-btn:hover{
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
-  background: linear-gradient(135deg, #d45740 0%, #e8a89a 100%);
 }
-
-.logout-icon {
-  font-size: 16px;
-  transition: transform 0.3s ease;
-}
-
-.logout-btn:hover .logout-icon {
-  transform: translateX(2px);
-}
-
 
 /* top-menu */
 
@@ -568,17 +555,18 @@ onUnmounted(() => {
   align-items:center;
   background-color:var(--color-bg-white);
   border-radius:999px;
+  gap: 8px;
 }
 .top-menu  li {
   list-style-type:none;
-
-
   font-size:20px;
 }
+
 .top-menu  li .top-menu-item {
   color:#000;
-  width:138px;
-  height:64px;
+  /* width:138px; */
+  padding: 10px 30px;
+  height:52px;
   display:flex;
   align-items: center;
   justify-content:center;
@@ -592,7 +580,7 @@ onUnmounted(() => {
   font-size:20px; */
 }
 .top-menu  li .top-menu-item:hover{
-  background:none;
+  background: #dcdcdc;
 }
 .top-menu li.active .top-menu-item{
     color:#fff;
@@ -661,14 +649,6 @@ onUnmounted(() => {
   .dashboard-controls {
     gap: 8px;
   }
-
-  .edit-mode-btn,
-  .save-btn,
-  .exit-btn {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
   .edit-mode-btn span:last-child,
   .save-btn span:last-child,
   .exit-btn span:last-child {

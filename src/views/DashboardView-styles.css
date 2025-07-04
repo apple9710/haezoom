@@ -16,7 +16,7 @@
 
 .dashboard-container {
   max-height:98vh;
-  width: 95vw;
+  width: 90vw;
   height:98vh;
   background: var(--color-bg-light);
   display: flex;
@@ -99,8 +99,35 @@
   height:98vh;
   /* height: calc(100vh - 90px); */
 }
+.dashboard-content .welcome-text{
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-content .welcome-text span{
+  display: flex;
+  line-height: 32px;
+}
+/* .dashboard-content .welcome-text .say-hi{display: flex;} */
 .dashboard-content .user-name{
+  gap: 4px;
+}
+.dashboard-content .user-name b{
   font-weight:700;
+
+}
+.dashboard-content .user-name .hand_icon{
+  font-size: 32px;
+  display: block;
+  animation: shake 2s infinite linear;
+  margin-top: -4px;
+}
+@keyframes shake {
+  0%,100%{
+    transform: rotate(-25deg);
+  }
+  50%{
+    transform: rotate(0deg);
+  }
 }
 /* 메인 대시보드 영역 */
 .dashboard-main {
@@ -250,8 +277,10 @@
   /* box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); */
   /* border: 1px solid var(--color-gray-lightest); */
   position: fixed;
-  top: 10%;
+  /* top: 10%; */
+  top: 170px;
   right: 5%;
+  z-index: 1;
 }
 
 .toolbar-left {
@@ -280,36 +309,41 @@
   gap: 16px;
 }
 
-.clear-btn,
-.save-btn {
-  padding: 12px 20px;
+.clear-btn{
+  height: 64px;
+  width: 64px;
+  padding: 8px;
   border: none;
-  border-radius: 12px;
+  border-radius: 100%;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
   transition: all 0.3s ease;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 8px;
   font-family: inherit;
+  background: var(--color-primary);
+  box-shadow: 0px 1px 1px 11px var(--color-primary-light);
 }
-
-.btn-icon {
-  font-size: 18px;
-}
-
-.clear-btn {
-  background: var(--color-gray-light);
-  color: var(--color-font-primary);
-  border: 2px solid var(--color-gray);
-}
-
 .clear-btn:hover {
-  background: var(--color-gray);
+  background: #eb755e;
+  box-shadow: 0px 1px 1px 11px var(--color-primary-lightest);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
+
+.sound_only{
+  font-size: 0;
+  display: none;
+}
+.btn-icon{
+  width: 32px;
+  height: 32px;
+}
+.btn-icon_img{
+  width: 100%;
+}
+
+
 
 .save-btn {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
@@ -350,6 +384,8 @@ background-color: var(--color-bg-white);
   max-width: 600px;
   padding: 60px 40px;
   grid-column : 1/ 5;
+  margin: 0 auto;
+  grid-area: 1/ span 16;
 }
 
 .empty-icon {
@@ -716,7 +752,7 @@ background-color: var(--color-bg-white);
 .apply-btn {
   padding: 14px 28px;
   border: none;
-  border-radius: 12px;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
@@ -727,7 +763,6 @@ background-color: var(--color-bg-white);
 .cancel-btn {
   background: var(--color-gray-light);
   color: var(--color-font-primary);
-  border: 2px solid var(--color-gray);
 }
 
 .apply-btn {
@@ -872,7 +907,7 @@ background-color: var(--color-bg-white);
 .save-and-exit-btn {
   padding: 14px 20px;
   border: none;
-  border-radius: 12px;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
@@ -886,23 +921,22 @@ background-color: var(--color-bg-white);
 .exit-without-save-btn {
   background: var(--color-gray-light);
   color: var(--color-font-primary);
-  border: 2px solid var(--color-gray);
+  /* border: 2px solid var(--color-gray); */
 }
 
 .exit-without-save-btn:hover {
   background: var(--color-gray);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); */
 }
 
 .save-and-exit-btn {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: var(--color-primary);
   color: var(--color-font-white);
   box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
 }
 
 .save-and-exit-btn:hover {
-  background: linear-gradient(135deg, #d45740 0%, #e8a89a 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
 }

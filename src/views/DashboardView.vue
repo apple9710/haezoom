@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-container">
+      <AppHeader />
     <div class="dashboard-content">
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
@@ -115,8 +116,8 @@
 
           <div class="dashboard-right">
             <div class="welcome-text">
-              <span class="user-name">{{ authStore.user?.name || 'ADMIN' }}님</span> 반가워요 🖐<br />
-              무엇을 도와드릴까요?
+              <span class="user-name"><b>{{ authStore.user?.name || 'ADMIN' }}님</b> <span>반가워요 <span class="hand_icon">👋</span></span></span> 
+              <span>무엇을 도와드릴까요?</span>
             </div>
           </div>
         </div>
@@ -124,8 +125,8 @@
         <div v-if="isEditMode" class="dashboard-toolbar">
           <div class="toolbar-right">
             <button @click="clearDashboard" class="clear-btn">
-              <span class="btn-icon">🗑️</span>
-              모든 위젯 삭제
+              <span class="btn-icon"><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"></span>
+              <span class="sound_only">모든 위젯 삭제</span>
             </button>
           </div>
         </div>
@@ -335,7 +336,7 @@
       <div class="modal-content exit-confirm-modal" @click.stop>
         <h3 class="modal-title">편집 내용을 저장하시겠습니까?</h3>
         <p class="modal-description">
-          변경된 내용이 있습니다. 저장하지 않으면 변경사항이 손실될 수 있습니다.
+          변경된 내용이 있습니다.<br> 저장하지 않으면 변경사항이 손실될 수 있습니다.
         </p>
 
         <div class="modal-actions exit-confirm-actions">
@@ -434,6 +435,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import WidgetFactory from '@/components/widgets/WidgetFactory.vue'
+import AppHeader from '@/components/AppHeader.vue'
 
 const authStore = useAuthStore()
 
