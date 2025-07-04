@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
@@ -16,19 +16,19 @@ const routes = [
   {
     path: '/main',
     name: 'Main',
-    component: () => import('@/views/MainView.vue')
-    // meta: { requiresAuth: true } // 임시로 주석처리 - 개발용
+    component: () => import('@/views/MainView.vue'),
+    meta: { requiresAuth: true } // 인증 필요
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/DashboardView.vue')
-    // meta: { requiresAuth: true } // 임시로 주석처리 - 개발용
+    component: () => import('@/views/DashboardView.vue'),
+    meta: { requiresAuth: true } // 인증 필요
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 

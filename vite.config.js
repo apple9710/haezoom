@@ -6,6 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './', // 상대 경로로 설정 (서브 디렉토리 업로드용)
   plugins: [
     vue(),
     vueDevTools(),

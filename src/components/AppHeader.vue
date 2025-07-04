@@ -44,7 +44,7 @@
         </ul>
       </div>
 
-      <div class="header-right" v-if="authStore.isAuthenticated">
+      <div class="header-right">
         <div class="user-info">
           <div class="user-avatar">
             <span>{{ getUserInitials() }}</span>

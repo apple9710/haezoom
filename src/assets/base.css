@@ -34,6 +34,14 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  /* 추가된 색상 변수들 */
+  --color-primary: #E16349;
+  --color-primary-light: #E8A89A;
+  --color-font-white: #ffffff;
+  --color-font-dark: #333333;
+  --color-bg-light: #f8f9fa;
+  --color-border-light: #e9ecef;
 }
 
 @media (prefers-color-scheme: dark) {
