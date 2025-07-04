@@ -16,7 +16,7 @@
 
 .dashboard-container {
   max-height:98vh;
-  width: 95vw;
+  width: 90vw;
   height:98vh;
   background: var(--color-bg-light);
   display: flex;
@@ -99,8 +99,35 @@
   height:98vh;
   /* height: calc(100vh - 90px); */
 }
+.dashboard-content .welcome-text{
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-content .welcome-text span{
+  display: flex;
+  line-height: 32px;
+}
+/* .dashboard-content .welcome-text .say-hi{display: flex;} */
 .dashboard-content .user-name{
+  gap: 4px;
+}
+.dashboard-content .user-name b{
   font-weight:700;
+
+}
+.dashboard-content .user-name .hand_icon{
+  font-size: 32px;
+  display: block;
+  animation: shake 2s infinite linear;
+  margin-top: -4px;
+}
+@keyframes shake {
+  0%,100%{
+    transform: rotate(-25deg);
+  }
+  50%{
+    transform: rotate(0deg);
+  }
 }
 /* 메인 대시보드 영역 */
 .dashboard-main {

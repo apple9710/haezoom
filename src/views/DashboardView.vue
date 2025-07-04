@@ -116,8 +116,8 @@
 
           <div class="dashboard-right">
             <div class="welcome-text">
-              <span class="user-name">{{ authStore.user?.name || 'ADMIN' }}님</span> 반가워요 🖐<br />
-              무엇을 도와드릴까요?
+              <span class="user-name"><b>{{ authStore.user?.name || 'ADMIN' }}님</b> <span>반가워요 <span class="hand_icon">👋</span></span></span> 
+              <span>무엇을 도와드릴까요?</span>
             </div>
           </div>
         </div>
