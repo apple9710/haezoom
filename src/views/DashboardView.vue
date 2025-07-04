@@ -442,7 +442,8 @@ const dragState = reactive({
   isDragging: false,
   dragElement: null,
   showDropGuide: false,
-  dropGuideStyle: {}
+  dropGuideStyle: {},
+  dropPosition: null
 })
 
 // 크기 조절 모달 상태
@@ -797,6 +798,7 @@ const loadDashboard = () => {
 const handleDragStart = (element, event) => {
   dragState.isDragging = true
   dragState.dragElement = element
+  dragState.dropPosition = null // 초기화
   event.dataTransfer.effectAllowed = 'move'
 }
 
@@ -809,6 +811,7 @@ const resetDragState = () => {
   dragState.dragElement = null
   dragState.showDropGuide = false
   dragState.dropGuideStyle = {}
+  dragState.dropPosition = null
 }
 
 const handleDragOver = (event) => {
@@ -888,10 +891,22 @@ const canPlaceWidget = (position, size, excludeWidget = null) => {
 const showDropGuide = () => {
   if (!dragState.dropPosition) return
 
+  // 드롭 가능 여부 확인
+  const canPlace = canPlaceWidget(
+    dragState.dropPosition,
+    dragState.dragElement.gridSize,
+    dragState.dragElement
+  )
+
   dragState.showDropGuide = true
   dragState.dropGuideStyle = {
     gridColumn: `${dragState.dropPosition.x + 1} / span ${dragState.dragElement.gridSize.width}`,
     gridRow: `${dragState.dropPosition.y + 1} / span ${dragState.dragElement.gridSize.height}`,
+    background: canPlace ? 'rgba(225, 99, 73, 0.2)' : 'rgba(255, 0, 0, 0.2)',
+    border: `2px dashed ${canPlace ? '#E16349' : '#ff0000'}`,
+    borderRadius: '12px',
+    pointerEvents: 'none',
+    zIndex: 999,
   }
 }
 

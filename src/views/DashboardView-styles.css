@@ -927,10 +927,22 @@ background-color: var(--color-bg-white);
 
 .drop-guide {
   z-index: 999;
-  animation: pulse 1.5s infinite;
+  animation: dropGuideGlow 1.5s ease-in-out infinite;
   border-radius: 12px;
   pointer-events: none;
+  transition: all 0.2s ease;
   /* position은 Vue에서 동적으로 설정 */
+}
+
+@keyframes dropGuideGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
 }
 .widget-options p {
   text-align: center;
