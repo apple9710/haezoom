@@ -103,11 +103,11 @@ const isEditMode = ref(false) // 편집모드 상태
 // 편집모드 진입
 const enterEditMode = () => {
   isEditMode.value = true
-  sidebarOpen.value = true
+  // sidebarOpen.value = true
   // 대시보드에 편집모드 알림
   window.dispatchEvent(
     new CustomEvent('edit-mode-change', {
-      detail: { isEditMode: true, sidebarOpen: true },
+      detail: { isEditMode: true, sidebarOpen: false },
     }),
   )
 }
