@@ -1,7 +1,7 @@
 <template>
   <div class="bar-chart-widget" :data-expanded="config.isExpanded">
     <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '막대 시계열 그래프' }}</h3>
       <div class="widget-controls">
         <select v-model="selectedPeriod" @change="updateData" class="period-selector">
@@ -84,6 +84,11 @@ const props = defineProps({
 // 반응형 데이터
 const selectedPeriod = ref('1day')
 const selectedDate = ref(new Date().toISOString().split('T')[0])
+
+  const selectYear = ref(selectedDate.value.split('-')[0]);
+  const slectMonth = ref(selectedDate.value.split('-')[1]);
+const selectDay = ref(selectedDate.value.split('-')[2]);
+
 const hoveredData = ref(null)
 const tooltipPosition = ref({ left: '0px', top: '0px' })
 
@@ -102,15 +107,20 @@ const chartConfig = computed(() => ({
   scales: {
     x: {
       title: {
-        display: true,
+        display: false,
         text: '시간'
       }
     },
     y: {
       title: {
-        display: true,
-        text: `전력량 ${props.config.unit}`
+        display: false,
+        text: `${props.config.unit}`
       }
+    }
+  },
+  plugins: {
+    legend : {
+      display:false,
     }
   }
 }))
@@ -122,45 +132,48 @@ const chartData = computed(() => ({
     {
       label: '전력 사용량',
       data: rawData.value.map(item => item.powerUsage),
-      backgroundColor: '#3b82f6',
-      borderColor: '#3b82f6'
+      backgroundColor: '#E16349',
+      borderColor: '#E16349'
     },
     {
       label: '태양광 발전량',
       data: rawData.value.map(item => item.solarGeneration),
-      backgroundColor: '#10b981',
-      borderColor: '#10b981'
+      backgroundColor: '#F0BBB1',
+      borderColor: '#F0BBB1'
     },
     {
       label: '태양광 예측량',
       data: rawData.value.map(item => item.solarPrediction),
-      backgroundColor: '#f59e0b',
-      borderColor: '#f59e0b'
+      backgroundColor: '#F3D7D0',
+      borderColor: '#F3D7D0'
     }
   ]
 }))
 
 // 범례 데이터
 const legendItems = computed(() => [
-  { name: '전력 사용량', color: '#3b82f6' },
-  { name: '태양광 발전량', color: '#10b981' },
-  { name: '태양광 예측량', color: '#f59e0b' }
+  { name: '전력 사용량', color: '#E16349' },
+  { name: '태양광 발전량', color: '#F0BBB1' },
+  { name: '태양광 예측량', color: '#F3D7D0' }
 ])
 
 // 메서드
-const previousDay = () => {
+const previousDay = (e) => {
+e.stopPropagation();
   const date = new Date(selectedDate.value)
   date.setDate(date.getDate() - 1)
   selectedDate.value = date.toISOString().split('T')[0]
 }
 
-const nextDay = () => {
+const nextDay = (e) => {
+  e.stopPropagation();
   const date = new Date(selectedDate.value)
   date.setDate(date.getDate() + 1)
   selectedDate.value = date.toISOString().split('T')[0]
 }
 
-const updateData = async () => {
+const updateData = async (e) => {
+  e.stopPropagation();
   console.log('데이터 업데이트:', {
     date: selectedDate.value,
     period: selectedPeriod.value
@@ -192,6 +205,9 @@ watch([selectedDate, selectedPeriod], () => {
 </script>
 
 <style scoped>
+.widget-inner {
+  height:100%;
+}
 .bar-chart-widget {
   background: white;
   border-radius: 8px;
@@ -199,6 +215,7 @@ watch([selectedDate, selectedPeriod], () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  width:100%;
 }
 
 /* 확대 모드 스타일 */
@@ -210,6 +227,7 @@ watch([selectedDate, selectedPeriod], () => {
 
 .bar-chart-widget[data-expanded="true"] .chart-container {
   min-height: 400px;
+  height:100%;
 }
 
 .bar-chart-widget[data-expanded="true"] .widget-title {
@@ -266,7 +284,8 @@ watch([selectedDate, selectedPeriod], () => {
 
 .nav-btn {
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
+  /* border: 1px solid #d1d5db; */
+  border:none;
   background: white;
   border-radius: 4px;
   cursor: pointer;
@@ -279,15 +298,23 @@ watch([selectedDate, selectedPeriod], () => {
 
 .date-picker {
   padding: 6px;
-  border: 1px solid #d1d5db;
+  /* border: 1px solid #d1d5db; */
+  border:none;
   border-radius: 4px;
 }
 
 .chart-container {
   flex: 1;
-  min-height: 300px;
+  /* min-height: 300px; */
   margin-bottom: 16px;
+  width:100%;
+
+  
+
 }
+.chart-container  canvas{
+    height:0px;
+  }
 
 .chart-legend {
   display: flex;

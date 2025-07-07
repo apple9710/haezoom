@@ -978,6 +978,11 @@ background-color: var(--color-bg-white);
     transform: scale(1.02);
   }
 }
+
+
+.widget-inner {
+  height:100%;
+}
 .widget-options p {
   text-align: center;
   font-size:14px;

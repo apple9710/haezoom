@@ -1,6 +1,7 @@
 <template>
   <div class="bar-chart">
     <Bar 
+
       :data="chartData" 
       :options="chartOptions" 
       @chart:hover="handleHover"
