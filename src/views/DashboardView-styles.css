@@ -193,17 +193,17 @@
 }
 
 .category-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-font-primary);
-  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+  /* margin: 0 0 8px 0; */
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .data-description {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-font-secondary);
   margin-bottom: 16px;
   line-height: 1.4;
@@ -219,9 +219,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 16px 24px;
   border: 2px solid var(--color-gray-lightest);
-  border-radius: 12px;
+  border-radius: 99px;
   cursor: pointer;
   transition: all 0.3s ease;
   background: var(--color-bg-white);
@@ -245,10 +245,15 @@
 }
 
 .widget-item:hover {
-  background: var(--color-primary-lightest);
+  background: var(--color-primary);
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(225, 99, 73, 0.2);
+}
+
+.widget-item:hover .widget-name,
+.widget-item:hover .widget-arrow{
+  color: #fff;
 }
 
 .widget-icon {
@@ -462,17 +467,17 @@ background-color: var(--color-bg-white);
 }
 
 .widget-container {
-  background: var(--color-bg-white);
+  background: var(--color-bg-light);
   border-radius: 20px ;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); */
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 1px solid var(--color-gray-lightest);
+  border: 1px solid var(--color-gray-light);
   /* min-height: 200px; */
 }
 
 .widget-container:hover {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  /* box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15); */
   transform: translateY(-4px);
 }
 .widget_modal_btn {
@@ -561,7 +566,7 @@ background-color: var(--color-bg-white);
   width: 36px;
   height: 36px;
   border: none;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--color-primary);
   cursor: pointer;
   border-radius: 10px;
   display: flex;
@@ -569,21 +574,22 @@ background-color: var(--color-bg-white);
   justify-content: center;
   font-size: 16px;
   transition: all 0.3s ease;
-  color: var(--color-font-secondary);
+  color: var(--color-bg-white);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .control-btn:hover {
-  background: var(--color-gray-lightest);
-  color: var(--color-font-primary);
+  /* background: var(--color-gray-lightest); */
+  background: var(--color-font-primary);
+  color: var(--color-font-white);
   transform: scale(1.1);
 }
-
+/* 
 .control-btn.remove:hover {
   background: var(--color-primary-lightest);
   color: var(--color-primary);
-}
+} */
 
 .widget-content {
   padding: 8px;
@@ -700,7 +706,7 @@ background-color: var(--color-bg-white);
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: var(--color-bg-white);
+  background: var(--color-bg-light);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -994,6 +1000,7 @@ background-color: var(--color-bg-white);
 
 /* 드래그 앤 드롭 스타일 */
 .widget-container {
+  
   transition: all 0.3s ease;
   /* cursor는 Vue에서 동적으로 설정 */
 }
