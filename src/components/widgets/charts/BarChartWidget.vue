@@ -16,14 +16,14 @@
 
     <!-- 날짜 선택 컨트롤 -->
     <div class="date-controls">
-      <button @click="previousDay" class="nav-btn">◀ 이전</button>
+      <button @click="previousDay" class="nav-btn"><img src="@/assets/images/prev_arrow_circle.png" alt="전날">전날</button>
       <input 
         type="date" 
         v-model="selectedDate" 
         @change="updateData"
         class="date-picker"
       />
-      <button @click="nextDay" class="nav-btn">다음 ▶</button>
+      <button @click="nextDay" class="nav-btn">다음날 <img src="@/assets/images/next_arrow_circle.png" alt=""></button>
     </div>
 
     <!-- 차트 영역 -->
@@ -283,24 +283,37 @@ watch([selectedDate, selectedPeriod], () => {
 }
 
 .nav-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
-  /* border: 1px solid #d1d5db; */
-  border:none;
-  background: white;
-  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #f9f9f9;
+  border-radius: 99px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .nav-btn:hover {
-  background: #f3f4f6;
+  background: #e4e4e4;
+}
+
+.nav-btn img{
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
 }
 
 .date-picker {
-  padding: 6px;
-  /* border: 1px solid #d1d5db; */
-  border:none;
-  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #f9f9f9;
+  border-radius: 99px;
 }
 
 .chart-container {
