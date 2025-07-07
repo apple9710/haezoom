@@ -313,7 +313,7 @@ onUnmounted(() => {
 }
 
 .sidebar-toggle-btn.active .toggle-icon {
-  transform: rotate(90deg);
+  transform: rotate(45deg);
 }
 
 .toggle-text {
