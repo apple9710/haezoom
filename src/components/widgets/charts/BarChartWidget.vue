@@ -211,7 +211,7 @@ watch([selectedDate, selectedPeriod], () => {
   height:100%;
 }
 .bar-chart-widget {
-  background: white;
+  /* background: white; */
   border-radius: 8px;
   padding: 16px;
   height: 100%;
