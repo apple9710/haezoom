@@ -280,7 +280,7 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   /* margin-bottom: 16px; */
 }
 
@@ -299,6 +299,7 @@ watch([selectedDate, selectedPeriod], () => {
   border-radius: 99px;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
