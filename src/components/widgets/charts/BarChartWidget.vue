@@ -295,7 +295,7 @@ watch([selectedDate, selectedPeriod], () => {
   font-size: 12px;
   font-weight: 500;
   border: 1px solid #e4e4e4;
-  background: #f9f9f9;
+  background: #fff;
   border-radius: 99px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -317,7 +317,7 @@ watch([selectedDate, selectedPeriod], () => {
   font-size: 12px;
   font-weight: 500;
   border: 1px solid #e4e4e4;
-  background: #f9f9f9;
+  background: #fff;
   border-radius: 99px;
 }
 
