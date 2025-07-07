@@ -36,6 +36,10 @@ const props = defineProps({
     type: String,
     required: true
   },
+  data: {
+    type: Object,
+    default: () => ({})
+  },
   widgetData: {
     type: Object,
     default: () => ({})
@@ -47,10 +51,14 @@ const props = defineProps({
   isEditMode: {
     type: Boolean,
     default: false
+  },
+  instanceId: {
+    type: [String, Number],
+    default: null
   }
 })
 
-const emit = defineEmits(['update'])
+// defineEmits(['update']) // 필요시 사용
 
 // 위젯 타입에 따른 컴포넌트 매핑
 const widgetComponents = {
@@ -84,12 +92,13 @@ const getWidgetComponent = (type) => {
 
 // 위젯에 전달할 props
 const widgetProps = computed(() => ({
-  data: props.widgetData,
+  data: props.data || props.widgetData || {},
   config: {
     ...props.config,
     isExpanded: props.config?.isExpanded || false
   },
-  isEditMode: props.isEditMode
+  isEditMode: props.isEditMode,
+  instanceId: props.instanceId
 }))
 </script>
 

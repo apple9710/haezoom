@@ -146,6 +146,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useControlWidget } from '@/composables/useWidgetData'
 
 const props = defineProps({
   data: {
@@ -172,16 +173,58 @@ const props = defineProps({
   isEditMode: {
     type: Boolean,
     default: false
+  },
+  instanceId: {
+    type: [String, Number],
+    default: null
+  }
+})
+
+// 위젯 데이터 관리
+const { widgetData, updateData } = useControlWidget(props.instanceId)
+
+// 현재 데이터 - 실시간 데이터를 우선 사용
+const currentData = computed(() => {
+  const realtimeData = widgetData.value
+  const fallbackData = props.data
+  
+  if (realtimeData && Object.keys(realtimeData).length > 0) {
+    return realtimeData
+  }
+  
+  if (fallbackData && Object.keys(fallbackData).length > 0) {
+    return fallbackData
+  }
+  
+  // 기본 데이터
+  return {
+    value: 50,
+    min: props.config.min || 0,
+    max: props.config.max || 100,
+    unit: props.config.unit || '°C',
+    lastChanged: new Date().toLocaleTimeString()
   }
 })
 
 // 반응형 데이터
-const currentValue = ref(50)
+const currentValue = computed({
+  get: () => currentData.value.value || 50,
+  set: (newValue) => {
+    const updatedData = {
+      ...currentData.value,
+      value: newValue,
+      lastChanged: new Date().toLocaleTimeString(),
+      lastUpdated: new Date().toLocaleTimeString()
+    }
+    updateData(updatedData)
+  }
+})
+
 const targetValue = ref(50)
 const isConnected = ref(true)
 const isTransitioning = ref(false)
-const lastChangeTime = ref('알 수 없음')
-const lastUpdateTime = ref(new Date().toLocaleTimeString())
+const lastChangeTime = computed(() => currentData.value.lastChanged || '알 수 없음')
+const lastUpdateTime = computed(() => currentData.value.lastUpdated || new Date().toLocaleTimeString())
 const controlLogs = ref([])
 
 let statusInterval = null
@@ -237,6 +280,9 @@ const setPreset = async (value) => {
 }
 
 const setValue = async (newValue, description) => {
+  console.log('UpDownControl - setValue 호출, instanceId:', props.instanceId)
+  console.log('UpDownControl - 새 값:', newValue, 'description:', description)
+
   isTransitioning.value = true
   targetValue.value = newValue
   
@@ -261,15 +307,31 @@ const setValue = async (newValue, description) => {
         ? 2 * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 2) / 2
 
-      currentValue.value = startValue + (endValue - startValue) * easeProgress
+      const intermediateValue = startValue + (endValue - startValue) * easeProgress
 
       if (progress < 1) {
+        // 애니메이션 중간값 업데이트
+        const tempData = {
+          ...currentData.value,
+          value: intermediateValue,
+          lastUpdated: new Date().toLocaleTimeString()
+        }
+        updateData(tempData)
         requestAnimationFrame(animate)
       } else {
-        currentValue.value = endValue
-        lastChangeTime.value = new Date().toLocaleTimeString()
+        // 최종값 설정
+        const finalData = {
+          ...currentData.value,
+          value: endValue,
+          lastChanged: new Date().toLocaleTimeString(),
+          lastUpdated: new Date().toLocaleTimeString()
+        }
+        updateData(finalData)
         isTransitioning.value = false
         addControlLog(`설정 완료: ${endValue}${props.config.unit}`)
+        
+        console.log('UpDownControl - 최종 데이터 업데이트:', finalData)
+        console.log('UpDownControl - 업데이트 후 스토어 데이터:', widgetData.value)
       }
     }
 
@@ -280,12 +342,10 @@ const setValue = async (newValue, description) => {
     addControlLog(`설정 실패: ${error.message}`)
     isTransitioning.value = false
   }
-
-  updateStatus()
 }
 
 // 슬라이더 이벤트
-const onSliderInput = (event) => {
+const onSliderInput = () => {
   // 실시간 미리보기 (옵션)
 }
 
@@ -306,35 +366,36 @@ const addControlLog = (message) => {
   }
 }
 
-// 상태 업데이트
-const updateStatus = () => {
-  lastUpdateTime.value = new Date().toLocaleTimeString()
-  
-  // 연결 상태 시뮬레이션
-  if (Math.random() < 0.98) {
-    isConnected.value = true
-  } else {
-    isConnected.value = false
-    addControlLog('장치 연결 끊김')
-  }
-}
-
 // 주기적 상태 체크
 const startStatusCheck = () => {
+  // 컨트롤 위젯의 경우 사용자가 직접 제어하므로 주기적 상태 체크 비활성화
+  // 필요시 연결 상태만 체크하는 가벼운 인터벌로 변경
   statusInterval = setInterval(() => {
     if (!props.isEditMode && !isTransitioning.value) {
-      updateStatus()
+      // 단순히 연결 상태만 체크 (값 변경 없음)
+      // 실제 환경에서는 ping이나 health check 등으로 연결 상태만 확인
     }
-  }, 15000) // 15초마다 상태 체크
+  }, 30000) // 30초마다 연결 상태만 체크 (데이터 변경 없음)
 }
 
 // 라이프사이클
 onMounted(() => {
-  // 초기값 설정
-  const initialValue = (props.config.min || 0) + (props.config.max || 100) * 0.5
-  currentValue.value = initialValue
-  targetValue.value = initialValue
-  lastChangeTime.value = new Date().toLocaleTimeString()
+  // 초기 데이터가 없다면 기본 데이터 설정
+  if (!widgetData.value || Object.keys(widgetData.value).length === 0) {
+    const initialValue = (props.config.min || 0) + (props.config.max || 100) * 0.5
+    const initialData = {
+      value: initialValue,
+      min: props.config.min || 0,
+      max: props.config.max || 100,
+      unit: props.config.unit || '°C',
+      lastChanged: new Date().toLocaleTimeString(),
+      lastUpdated: new Date().toLocaleTimeString()
+    }
+    updateData(initialData)
+  }
+  
+  // 타겟값을 현재값과 동기화
+  targetValue.value = currentValue.value
   
   addControlLog('제어 위젯 초기화 완료')
   startStatusCheck()

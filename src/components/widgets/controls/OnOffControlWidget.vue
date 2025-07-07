@@ -9,6 +9,12 @@
       </div>
     </div>
 
+    <!-- 실시간 업데이트 표시 -->
+    <div v-if="!isEditMode && lastUpdateTime" class="update-indicator">
+      <span class="update-time">최근 업데이트: {{ lastUpdateTime }}</span>
+      <div class="status-dot" :class="{ active: isConnected }"></div>
+    </div>
+
     <!-- 현재 상태 표시 -->
     <div class="current-status">
       <div class="status-indicator" :class="statusClass">
@@ -60,23 +66,6 @@
       </div>
     </div>
 
-    <!-- 스케줄 정보 (옵션) -->
-    <div v-if="config.showSchedule" class="schedule-info">
-      <div class="schedule-title">예약된 작업</div>
-      <div class="schedule-list">
-        <div 
-          v-for="schedule in schedules" 
-          :key="schedule.id"
-          class="schedule-item"
-          :class="{ active: schedule.active }"
-        >
-          <span class="schedule-time">{{ schedule.time }}</span>
-          <span class="schedule-action">{{ schedule.action }}</span>
-          <span class="schedule-status">{{ schedule.active ? '활성' : '비활성' }}</span>
-        </div>
-      </div>
-    </div>
-
     <!-- 제어 로그 -->
     <div class="control-log">
       <div class="log-title">제어 기록</div>
@@ -101,6 +90,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useControlWidget } from '@/composables/useWidgetData'
 
 const props = defineProps({
   data: {
@@ -120,21 +110,46 @@ const props = defineProps({
   isEditMode: {
     type: Boolean,
     default: false
+  },
+  instanceId: {
+    type: [String, Number],
+    default: null
+  }
+})
+
+// 위젯 데이터 관리
+const { widgetData, updateData } = useControlWidget(props.instanceId)
+
+// 현재 데이터 - 실시간 데이터를 우선 사용
+const currentData = computed(() => {
+  const realtimeData = widgetData.value
+  const fallbackData = props.data
+  
+  if (realtimeData && Object.keys(realtimeData).length > 0) {
+    return realtimeData
+  }
+  
+  if (fallbackData && Object.keys(fallbackData).length > 0) {
+    return fallbackData
+  }
+  
+  // 기본 데이터
+  return {
+    isOn: false,
+    label: '설비 상태',
+    lastToggled: new Date().toLocaleTimeString()
   }
 })
 
 // 반응형 데이터
-const currentState = ref('off') // 'on', 'off', 'unknown'
+const currentState = computed(() => currentData.value.isOn ? 'on' : 'off')
 const isConnected = ref(true)
 const isTransitioning = ref(false)
-const lastStateChange = ref('알 수 없음')
-const lastUpdateTime = ref(new Date().toLocaleTimeString())
+const lastStateChange = computed(() => currentData.value.lastToggled || '알 수 없음')
+const lastUpdateTime = computed(() => currentData.value.lastUpdated || new Date().toLocaleTimeString())
+
+// 로그 데이터
 const controlLogs = ref([])
-const schedules = ref([
-  { id: 1, time: '09:00', action: '자동 켜기', active: true },
-  { id: 2, time: '18:00', action: '자동 끄기', active: true },
-  { id: 3, time: '22:00', action: '절전 모드', active: false }
-])
 
 let statusInterval = null
 
@@ -171,44 +186,68 @@ const statusDescription = computed(() => {
 const turnOn = async () => {
   if (!isConnected.value || isTransitioning.value || props.isEditMode) return
 
+  console.log('OnOffControl - turnOn 호출, instanceId:', props.instanceId)
+  console.log('OnOffControl - 현재 데이터:', currentData.value)
+
   isTransitioning.value = true
   addControlLog('on', '켜기 명령 전송')
 
   try {
     // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
-    currentState.value = 'on'
-    lastStateChange.value = new Date().toLocaleTimeString()
+    // 실시간 데이터 스토어 업데이트
+    const newData = {
+      ...currentData.value,
+      isOn: true,
+      lastToggled: new Date().toLocaleTimeString(),
+      lastUpdated: new Date().toLocaleTimeString()
+    }
+    
+    console.log('OnOffControl - 업데이트할 데이터:', newData)
+    updateData(newData)
+    console.log('OnOffControl - 업데이트 후 스토어 데이터:', widgetData.value)
+    
     addControlLog('on', '장치 켜기 완료')
   } catch (error) {
     console.error('장치 켜기 실패:', error)
     addControlLog('error', '켜기 실패: ' + error.message)
   } finally {
     isTransitioning.value = false
-    updateStatus()
   }
 }
 
 const turnOff = async () => {
   if (!isConnected.value || isTransitioning.value || props.isEditMode) return
 
+  console.log('OnOffControl - turnOff 호출, instanceId:', props.instanceId)
+  console.log('OnOffControl - 현재 데이터:', currentData.value)
+
   isTransitioning.value = true
   addControlLog('off', '끄기 명령 전송')
 
   try {
     // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
-    currentState.value = 'off'
-    lastStateChange.value = new Date().toLocaleTimeString()
+    // 실시간 데이터 스토어 업데이트
+    const newData = {
+      ...currentData.value,
+      isOn: false,
+      lastToggled: new Date().toLocaleTimeString(),
+      lastUpdated: new Date().toLocaleTimeString()
+    }
+    
+    console.log('OnOffControl - 업데이트할 데이터:', newData)
+    updateData(newData)
+    console.log('OnOffControl - 업데이트 후 스토어 데이터:', widgetData.value)
+    
     addControlLog('off', '장치 끄기 완료')
   } catch (error) {
     console.error('장치 끄기 실패:', error)
     addControlLog('error', '끄기 실패: ' + error.message)
   } finally {
     isTransitioning.value = false
-    updateStatus()
   }
 }
 
@@ -226,33 +265,31 @@ const addControlLog = (action, message) => {
   }
 }
 
-// 상태 업데이트
-const updateStatus = () => {
-  lastUpdateTime.value = new Date().toLocaleTimeString()
-  
-  // 연결 상태 시뮬레이션 (실제로는 ping 등으로 확인)
-  if (Math.random() < 0.95) { // 95% 확률로 연결됨
-    isConnected.value = true
-  } else {
-    isConnected.value = false
-    addControlLog('error', '장치 연결 끊김')
-  }
-}
-
 // 주기적 상태 체크
 const startStatusCheck = () => {
+  // 컨트롤 위젯의 경우 사용자가 직접 제어하므로 주기적 상태 체크 비활성화
+  // 필요시 연결 상태만 체크하는 가벼운 인터벌로 변경
   statusInterval = setInterval(() => {
     if (!props.isEditMode && !isTransitioning.value) {
-      updateStatus()
+      // 단순히 연결 상태만 체크 (상태값 변경 없음)
+      // 실제 환경에서는 ping이나 health check 등으로 연결 상태만 확인
     }
-  }, 10000) // 10초마다 상태 체크
+  }, 30000) // 30초마다 연결 상태만 체크 (데이터 변경 없음)
 }
 
 // 라이프사이클
 onMounted(() => {
-  // 초기 상태 설정
-  currentState.value = 'off'
-  lastStateChange.value = new Date().toLocaleTimeString()
+  // 초기 데이터가 없다면 기본 데이터 설정
+  if (!widgetData.value || Object.keys(widgetData.value).length === 0) {
+    const initialData = {
+      isOn: false,
+      label: '설비 상태',
+      lastToggled: new Date().toLocaleTimeString(),
+      lastUpdated: new Date().toLocaleTimeString()
+    }
+    updateData(initialData)
+  }
+  
   addControlLog('info', '제어 위젯 초기화 완료')
   
   // 주기적 상태 체크 시작
@@ -318,6 +355,30 @@ onUnmounted(() => {
   background: currentColor;
 }
 
+.update-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: background-color 0.3s ease;
+}
+
+.status-dot.active {
+  background: #10b981;
+}
+
 .current-status {
   display: flex;
   align-items: center;
@@ -349,14 +410,14 @@ onUnmounted(() => {
   border: 3px solid #6b7280;
 }
 
-.status-transitioning {
-  background: #fef3c7;
-  border: 3px solid #f59e0b;
-}
-
 .status-disconnected {
   background: #fecaca;
   border: 3px solid #ef4444;
+}
+
+.status-transitioning {
+  background: #fef3c7;
+  border: 3px solid #f59e0b;
 }
 
 .status-icon {
@@ -365,12 +426,10 @@ onUnmounted(() => {
 
 .status-pulse {
   position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: 3px solid #f59e0b;
+  border: 2px solid #f59e0b;
   animation: pulse 1.5s infinite;
 }
 
@@ -380,7 +439,7 @@ onUnmounted(() => {
     opacity: 1;
   }
   100% {
-    transform: scale(1.1);
+    transform: scale(1.2);
     opacity: 0;
   }
 }
@@ -391,55 +450,48 @@ onUnmounted(() => {
 
 .status-title {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 4px;
 }
 
 .status-description {
   font-size: 14px;
-  color: #6b7280;
+  color: #64748b;
   line-height: 1.4;
 }
 
 .control-section {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .control-btn {
   flex: 1;
-  padding: 16px;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: #f9fafb;
-  color: #6b7280;
+  padding: 16px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.control-btn:not(.disabled):hover {
+.control-btn:hover:not(.disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.on-btn.active {
+.control-btn.active {
+  border-color: #10b981;
   background: #dcfce7;
   color: #166534;
-  border-color: #10b981;
-}
-
-.off-btn.active {
-  background: #fecaca;
-  color: #991b1b;
-  border-color: #ef4444;
 }
 
 .control-btn.disabled {
@@ -447,126 +499,122 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
+.on-btn.active {
+  border-color: #10b981;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.off-btn.active {
+  border-color: #6b7280;
+  background: #f3f4f6;
+  color: #374151;
+}
+
 .btn-icon {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .btn-text {
-  font-size: 14px;
+  font-weight: 600;
 }
 
 .device-info {
-  background: #f9fafb;
+  background: #f8fafc;
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 4px 0;
+  margin-bottom: 8px;
 }
 
-.info-row:not(:last-child) {
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
+.info-row:last-child {
+  margin-bottom: 0;
 }
 
 .info-label {
   font-size: 14px;
-  color: #6b7280;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .info-value {
   font-size: 14px;
+  color: #1f2937;
   font-weight: 600;
-  color: #1f2937;
-}
-
-.schedule-info {
-  margin-bottom: 16px;
-}
-
-.schedule-title,
-.log-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.schedule-list,
-.log-list {
-  max-height: 120px;
-  overflow-y: auto;
-}
-
-.schedule-item,
-.log-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: #f9fafb;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  font-size: 12px;
-}
-
-.schedule-item.active {
-  background: #dcfce7;
-}
-
-.schedule-time,
-.log-time {
-  color: #6b7280;
-  min-width: 60px;
-}
-
-.schedule-action {
-  flex: 1;
-  color: #1f2937;
-}
-
-.schedule-status {
-  color: #059669;
-  font-weight: 500;
-}
-
-.log-action {
-  flex: 1;
-  color: #1f2937;
-}
-
-.action-on {
-  color: #059669;
-}
-
-.action-off {
-  color: #dc2626;
-}
-
-.action-error {
-  color: #dc2626;
-  font-weight: 500;
-}
-
-.action-info {
-  color: #2563eb;
 }
 
 .control-log {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.log-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
   margin-bottom: 12px;
 }
 
-.update-time {
+.log-list {
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px;
+  overflow-y: auto;
+  max-height: 150px;
+}
+
+.log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: white;
+  border-radius: 6px;
   font-size: 12px;
-  color: #9ca3af;
+}
+
+.log-time {
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.log-action {
+  flex: 1;
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.action-on {
+  color: #10b981;
+}
+
+.action-off {
+  color: #6b7280;
+}
+
+.action-error {
+  color: #ef4444;
+}
+
+.action-info {
+  color: #3b82f6;
+}
+
+.update-time {
+  margin-top: 16px;
   text-align: center;
-  margin-top: auto;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 </style>

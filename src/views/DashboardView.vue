@@ -233,9 +233,10 @@
                 <!-- WidgetFactory를 사용하여 동적으로 위젯 렌더링 -->
                 <WidgetFactory
                   :widgetType="element.type"
-                  :data="element.data || {}"
+                  :data="widgetDataStore.getWidgetData(element.instanceId)"
                   :config="element.config || {}"
                   :isEditMode="isEditMode"
+                  :instanceId="element.instanceId"
                 />
               </div>
               <!-- 위젯 모달 버튼 (일반 모드) -->
@@ -349,6 +350,22 @@
               <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
             </div>
           </div>
+          <p>데이터 종류</p>
+          <div class="input-box">
+            <div
+              v-for="(option, index) in dumyData"
+              :key="index"
+              class="widget-option-item"
+            >
+              <input
+                type="radio"
+                name="cycle"
+                :value="option"
+                :id="`data-${index}`"
+              />
+              <label :for="`cycle-${index}`">{{option}}</label>
+            </div>
+          </div>
         </div>
 
         <div class="modal-actions">
@@ -426,9 +443,10 @@
             <div class="expanded-widget">
               <WidgetFactory
                 :widgetType="widgetModal.widget.type"
-                :data="widgetModal.widget.data || {}"
+                :data="widgetDataStore.getWidgetData(widgetModal.widget.instanceId)"
                 :config="{ ...widgetModal.widget.config, isExpanded: true }"
                 :isEditMode="false"
+                :instanceId="widgetModal.widget.instanceId"
               />
             </div>
 
@@ -505,6 +523,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { widgetDataStore, widgetStateStore, realtimeUpdateManager } from '@/stores/widgetData'
 import WidgetFactory from '@/components/widgets/WidgetFactory.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import DetailIcon from '@/components/icons/DetailIcon.vue'
@@ -619,6 +638,10 @@ const getIconPath = (iconName) => {
     return '@/assets/images/icon/1.png' // 기본 이미지
   }
 }
+
+const dumyData = [
+  'AH', 'AQ', 'CBL', 'EL', 'EM', 'MP', 'MW', 'PMV', 'RE', 'SC'
+]
 // 데이터 종류별 사용 가능한 위젯 정의
 const widgetsData = {
   power_usage: [
@@ -629,6 +652,7 @@ const widgetsData = {
       type: 'line-chart',
       description: '시간에 따른 전력 사용량 변화를 선그래프로 표시',
       updateCycle: [0, 1, 2, 3],
+
     },
     {
       id: 'power-bar-chart',
@@ -808,7 +832,20 @@ const addWidget = (widget) => {
       customSettings: {},
     },
   }
+  
   dashboardWidgets.value.push(newWidget)
+  
+  // 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
+  const isControlWidget = newWidget.type.includes('control')
+  if (!isControlWidget) {
+    realtimeUpdateManager.startUpdate(
+      newWidget.instanceId, 
+      newWidget.type, 
+      newWidget.dataType,
+      5000 // 5초마다 업데이트
+    )
+  }
+  
   closeWidgetSelector()
 
   // 위젯 추가 후 사이드바 닫기
@@ -859,6 +896,12 @@ const configureWidget = (widget) => {
 
 const clearDashboard = () => {
   if (confirm('모든 위젯을 삭제하시겠습니까?')) {
+    // 모든 실시간 업데이트 중지
+    realtimeUpdateManager.stopAllUpdates()
+    // 모든 위젯 데이터 및 상태 제거
+    widgetDataStore.clearAll()
+    widgetStateStore.clearAll()
+    // 위젯 배열 초기화
     dashboardWidgets.value = []
   }
 }
@@ -872,6 +915,19 @@ const loadDashboard = () => {
   const saved = localStorage.getItem('dashboard-widgets')
   if (saved) {
     dashboardWidgets.value = JSON.parse(saved)
+    
+    // 저장된 위젯들의 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
+    dashboardWidgets.value.forEach(widget => {
+      const isControlWidget = widget.type.includes('control')
+      if (!isControlWidget) {
+        realtimeUpdateManager.startUpdate(
+          widget.instanceId,
+          widget.type,
+          widget.dataType,
+          5000
+        )
+      }
+    })
   }
 }
 
@@ -1025,6 +1081,12 @@ const removeWidget = (widget) => {
   if (confirm('이 위젯을 삭제하시겠습니까?')) {
     const index = dashboardWidgets.value.findIndex((w) => w.instanceId === widget.instanceId)
     if (index !== -1) {
+      // 실시간 업데이트 중지
+      realtimeUpdateManager.stopUpdate(widget.instanceId)
+      // 위젯 데이터 및 상태 제거
+      widgetDataStore.removeWidgetData(widget.instanceId)
+      widgetStateStore.removeWidgetState(widget.instanceId)
+      // 위젯 제거
       dashboardWidgets.value.splice(index, 1)
       saveDashboard()
     }
@@ -1060,6 +1122,9 @@ const applyResize = () => {
 
 // 위젯 상세보기 모달 열기
 const openWidgetModal = (widget) => {
+  console.log('모달 열기 - 위젯:', widget);
+  console.log('모달 열기 - 현재 스토어 데이터:', widgetDataStore.getWidgetData(widget.instanceId));
+  
   widgetModal.widget = widget
   widgetModal.additionalInfo = {
     '업데이트 주기': Array.isArray(widget.updateCycle)
@@ -1227,6 +1292,9 @@ onMounted(() => {
 // onUnmounted() 이전에 위치
 
 onUnmounted(() => {
+  // 모든 실시간 업데이트 중지
+  realtimeUpdateManager.stopAllUpdates()
+  
   // 이벤트 리스너 제거
   window.removeEventListener('edit-mode-change', handleEditModeChange)
   window.removeEventListener('sidebar-toggle', handleSidebarToggle)

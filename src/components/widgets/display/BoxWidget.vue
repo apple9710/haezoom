@@ -9,11 +9,17 @@
       </div>
     </div>
 
+    <!-- 실시간 업데이트 표시 -->
+    <div v-if="!isEditMode && lastUpdated" class="update-indicator">
+      <span class="update-time">최근 업데이트: {{ lastUpdated }}</span>
+      <div class="status-dot" :class="{ active: hasData }"></div>
+    </div>
+
     <!-- 메인 수치 표시 -->
     <div class="main-value-container">
       <div class="main-value">
         <span class="value-number">{{ formattedValue }}</span>
-        <span class="value-unit">{{ config.unit || '' }}</span>
+        <span class="value-unit">{{ currentData.unit || config.unit || '' }}</span>
       </div>
       <div class="value-label">{{ config.label || '현재값' }}</div>
     </div>
@@ -22,15 +28,15 @@
     <div class="additional-info">
       <div class="info-row">
         <span class="info-label">최대값:</span>
-        <span class="info-value">{{ formattedMaxValue }}{{ config.unit }}</span>
+        <span class="info-value">{{ formattedMaxValue }}{{ currentData.unit || config.unit }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">최소값:</span>
-        <span class="info-value">{{ formattedMinValue }}{{ config.unit }}</span>
+        <span class="info-value">{{ formattedMinValue }}{{ currentData.unit || config.unit }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">평균값:</span>
-        <span class="info-value">{{ formattedAvgValue }}{{ config.unit }}</span>
+        <span class="info-value">{{ formattedAvgValue }}{{ currentData.unit || config.unit }}</span>
       </div>
     </div>
 
@@ -41,14 +47,15 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div class="update-time">
+    <div v-if="isEditMode" class="update-time">
       마지막 업데이트: {{ lastUpdateTime }}
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
+import { useWidgetData } from '@/composables/useWidgetData'
 
 const props = defineProps({
   data: {
@@ -71,113 +78,108 @@ const props = defineProps({
   isEditMode: {
     type: Boolean,
     default: false
+  },
+  instanceId: {
+    type: [String, Number],
+    default: null
   }
 })
 
-// 반응형 데이터
-const currentValue = ref(0)
-const maxValue = ref(0)
-const minValue = ref(0)
-const avgValue = ref(0)
-const previousValue = ref(0)
-const lastUpdateTime = ref(new Date().toLocaleTimeString())
-let updateInterval = null
+// 위젯 데이터 관리
+const { widgetData, hasData, lastUpdated } = useWidgetData(props.instanceId)
 
-// 샘플 데이터 생성
-const generateSampleData = () => {
-  // 실제로는 API에서 데이터를 가져올 것
-  const baseValue = 850
-  const variation = 50
-  const newValue = baseValue + (Math.random() - 0.5) * variation
+// 현재 데이터 - 실시간 데이터를 우선 사용
+const currentData = computed(() => {
+  const realtimeData = widgetData.value
+  const fallbackData = props.data
   
-  previousValue.value = currentValue.value
-  currentValue.value = Math.round(newValue * 10) / 10
+  if (realtimeData && Object.keys(realtimeData).length > 0) {
+    return realtimeData
+  }
   
-  // 최대/최소/평균값 업데이트 (시뮬레이션)
-  maxValue.value = Math.max(maxValue.value, currentValue.value)
-  minValue.value = minValue.value === 0 ? currentValue.value : Math.min(minValue.value, currentValue.value)
-  avgValue.value = (maxValue.value + minValue.value) / 2
+  if (fallbackData && Object.keys(fallbackData).length > 0) {
+    return fallbackData
+  }
   
-  lastUpdateTime.value = new Date().toLocaleTimeString()
-}
-
+  // 기본 데이터
+  return {
+    value: 0,
+    unit: props.config.unit || '',
+    trend: 'stable',
+    percentage: 0
+  }
+})
 // 포맷된 값들
 const formattedValue = computed(() => {
-  return currentValue.value.toLocaleString()
+  const value = currentData.value.value || 0
+  return typeof value === 'number' ? value.toLocaleString() : value
 })
 
 const formattedMaxValue = computed(() => {
-  return maxValue.value.toLocaleString()
+  const value = currentData.value.maxValue || currentData.value.value || 0
+  return typeof value === 'number' ? value.toLocaleString() : value
 })
 
 const formattedMinValue = computed(() => {
-  return minValue.value.toLocaleString()
+  const value = currentData.value.minValue || currentData.value.value || 0
+  return typeof value === 'number' ? value.toLocaleString() : value
 })
 
 const formattedAvgValue = computed(() => {
-  return Math.round(avgValue.value * 10) / 10
-})
-
-// 상태 계산
-const statusClass = computed(() => {
-  const value = currentValue.value
-  const thresholds = props.config.thresholds
-  
-  if (value >= thresholds.critical) return 'critical'
-  if (value >= thresholds.warning) return 'warning'
-  return 'normal'
-})
-
-const statusText = computed(() => {
-  switch (statusClass.value) {
-    case 'critical': return '위험'
-    case 'warning': return '주의'
-    default: return '정상'
-  }
+  const value = currentData.value.avgValue || currentData.value.value || 0
+  return typeof value === 'number' ? value.toLocaleString() : value
 })
 
 // 변화량 계산
-const changeValue = computed(() => {
-  return currentValue.value - previousValue.value
-})
-
 const changeClass = computed(() => {
-  if (changeValue.value > 0) return 'increase'
-  if (changeValue.value < 0) return 'decrease'
-  return 'stable'
+  const trend = currentData.value.trend
+  const percentage = currentData.value.percentage || 0
+  
+  if (trend === 'up' || percentage > 0) return 'positive'
+  if (trend === 'down' || percentage < 0) return 'negative'
+  return 'neutral'
 })
 
 const changeIcon = computed(() => {
-  if (changeValue.value > 0) return '↑'
-  if (changeValue.value < 0) return '↓'
+  const trend = currentData.value.trend
+  const percentage = currentData.value.percentage || 0
+  
+  if (trend === 'up' || percentage > 0) return '↗'
+  if (trend === 'down' || percentage < 0) return '↘'
   return '→'
 })
 
 const changeText = computed(() => {
-  const absChange = Math.abs(changeValue.value)
-  if (absChange === 0) return '변화없음'
+  const percentage = currentData.value.percentage || 0
+  const abs = Math.abs(percentage)
   
-  const direction = changeValue.value > 0 ? '증가' : '감소'
-  return `${absChange.toFixed(1)} ${direction}`
+  if (abs === 0) return '변화 없음'
+  
+  const direction = percentage > 0 ? '증가' : '감소'
+  return `${direction} ${abs}%`
 })
 
-// 라이프사이클
-onMounted(() => {
-  // 초기 데이터 로드
-  generateSampleData()
+// 상태 관련
+const statusClass = computed(() => {
+  const value = currentData.value.value || 0
+  const thresholds = props.config.thresholds || {}
   
-  // 주기적 업데이트 (실제로는 config에서 설정된 주기 사용)
-  updateInterval = setInterval(() => {
-    if (!props.isEditMode) {
-      generateSampleData()
-    }
-  }, 5000) // 5초마다 업데이트
+  if (value >= (thresholds.critical || 95)) return 'critical'
+  if (value >= (thresholds.warning || 80)) return 'warning'
+  return 'normal'
 })
 
-onUnmounted(() => {
-  if (updateInterval) {
-    clearInterval(updateInterval)
+const statusText = computed(() => {
+  const status = statusClass.value
+  switch (status) {
+    case 'critical': return '위험'
+    case 'warning': return '경고'
+    default: return '정상'
   }
+})
+
+const lastUpdateTime = computed(() => {
+  return currentData.value.lastUpdated || new Date().toLocaleTimeString()
 })
 </script>
 

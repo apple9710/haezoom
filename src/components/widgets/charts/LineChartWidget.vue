@@ -14,6 +14,12 @@
       </div>
     </div>
 
+    <!-- 실시간 업데이트 표시 -->
+    <div v-if="!isEditMode && lastUpdated" class="update-indicator">
+      <span class="update-time">최근 업데이트: {{ lastUpdated }}</span>
+      <div class="status-dot" :class="{ active: hasData }"></div>
+    </div>
+
     <!-- 날짜 선택 컨트롤 -->
     <div class="date-controls">
       <button @click="previousDay" class="nav-btn">◀ 이전</button>
@@ -30,7 +36,7 @@
     <div class="chart-container">
       <LineChart 
         :data="chartData"
-        :config="chartConfig"
+        :config="currentChartOptions"
         @hover="onChartHover"
       />
     </div>
@@ -60,6 +66,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useChartWidget } from '@/composables/useWidgetData'
 import LineChart from '../charts/LineChart.vue'
 
 const props = defineProps({
@@ -78,8 +85,15 @@ const props = defineProps({
   isEditMode: {
     type: Boolean,
     default: false
+  },
+  instanceId: {
+    type: [String, Number],
+    default: null
   }
 })
+
+// 위젯 데이터 관리
+const { widgetData, chartOptions, expandedChartOptions, hasData, lastUpdated } = useChartWidget(props.instanceId)
 
 // 반응형 데이터
 const selectedPeriod = ref('1day')
@@ -87,62 +101,58 @@ const selectedDate = ref(new Date().toISOString().split('T')[0])
 const hoveredData = ref(null)
 const tooltipPosition = ref({ left: '0px', top: '0px' })
 
-// 샘플 데이터 (실제로는 API에서 가져올 데이터)
-const rawData = ref([
-  { time: '00:00', powerUsage: 120, solarGeneration: 0, solarPrediction: 0 },
-  { time: '06:00', powerUsage: 150, solarGeneration: 20, solarPrediction: 25 },
-  { time: '12:00', powerUsage: 200, solarGeneration: 180, solarPrediction: 170 },
-  { time: '18:00', powerUsage: 250, solarGeneration: 50, solarPrediction: 55 },
-  { time: '23:59', powerUsage: 130, solarGeneration: 0, solarPrediction: 0 }
-])
-
-// 차트 설정
-const chartConfig = computed(() => ({
-  responsive: true,
-  scales: {
-    x: {
-      title: {
-        display: true,
-        text: '시간'
-      }
-    },
-    y: {
-      title: {
-        display: true,
-        text: `전력량 ${props.config.unit}`
-      }
-    }
+// 차트 데이터 - 실시간 스토어에서 가져오거나 기본 데이터 사용
+const chartData = computed(() => {
+  // 실시간 데이터가 있으면 사용, 없으면 props.data 또는 기본 데이터 사용
+  const realtimeData = widgetData.value
+  const fallbackData = props.data
+  
+  if (realtimeData && realtimeData.labels && realtimeData.datasets) {
+    return realtimeData
   }
-}))
-
-// 차트 데이터
-const chartData = computed(() => ({
-  labels: rawData.value.map(item => item.time),
-  datasets: [
-    {
+  
+  if (fallbackData && fallbackData.labels && fallbackData.datasets) {
+    return fallbackData
+  }
+  
+  // 기본 샘플 데이터
+  return {
+    labels: ['00:00', '06:00', '12:00', '18:00', '23:59'],
+    datasets: [{
       label: '전력 사용량',
-      data: rawData.value.map(item => item.powerUsage),
+      data: [120, 150, 200, 250, 130],
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       tension: 0.4
-    },
-    {
-      label: '태양광 발전량',
-      data: rawData.value.map(item => item.solarGeneration),
-      borderColor: '#10b981',
-      backgroundColor: 'rgba(16, 185, 129, 0.1)',
-      tension: 0.4
-    },
-    {
-      label: '태양광 예측량',
-      data: rawData.value.map(item => item.solarPrediction),
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245, 158, 11, 0.1)',
-      borderDash: [5, 5],
-      tension: 0.4
+    }]
+  }
+})
+
+// 차트 설정 - 확대 모드에 따라 다른 옵션 사용
+const currentChartOptions = computed(() => {
+  const baseOptions = props.config.isExpanded ? expandedChartOptions : chartOptions
+  
+  return {
+    ...baseOptions.value,
+    scales: {
+      ...baseOptions.value.scales,
+      x: {
+        ...baseOptions.value.scales?.x,
+        title: {
+          display: true,
+          text: '시간'
+        }
+      },
+      y: {
+        ...baseOptions.value.scales?.y,
+        title: {
+          display: true,
+          text: `전력량 ${props.config.unit || '[kWh]'}`
+        }
+      }
     }
-  ]
-}))
+  }
+})
 
 // 범례 데이터
 const legendItems = computed(() => [
@@ -214,21 +224,31 @@ watch([selectedDate, selectedPeriod], () => {
   padding: 24px;
   border-radius: 0;
   background: #fafafa;
+  height: 100%;
+  min-height: 500px;
 }
 
 .line-chart-widget[data-expanded="true"] .chart-container {
   min-height: 400px;
+  height: calc(100% - 100px);
 }
 
-.line-chart-widget[data-expanded="true"] .widget-title {
-  font-size: 24px;
+.line-chart-widget[data-expanded="true"] .date-controls {
+  padding: 16px 0;
 }
 
 .line-chart-widget[data-expanded="true"] .chart-legend {
   margin-top: 20px;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
+  gap: 24px;
+}
+
+.line-chart-widget[data-expanded="true"] .legend-item {
+  font-size: 16px;
+}
+
+.line-chart-widget[data-expanded="true"] .legend-color {
+  width: 16px;
+  height: 16px;
 }
 
 .widget-header {
@@ -341,5 +361,46 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* 실시간 업데이트 표시 */
+.update-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.update-time {
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  transition: all 0.3s ease;
+}
+
+.status-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>
