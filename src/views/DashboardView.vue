@@ -359,7 +359,7 @@
             >
               <input
                 type="radio"
-                name="cycle"
+                name="dataType"
                 :value="option"
                 :id="`data-${index}`"
               />
