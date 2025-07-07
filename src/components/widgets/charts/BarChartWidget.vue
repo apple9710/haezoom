@@ -4,7 +4,7 @@
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '막대 시계열 그래프' }}</h3>
       <div class="widget-controls">
-        <select v-model="selectedPeriod" @change="updateData" class="period-selector">
+        <select v-model="selectedPeriod" @click.stop @change.stop="updateData" class="period-selector">
           <option value="1min">1분</option>
           <option value="15min">15분</option>
           <option value="1hour">1시간</option>
@@ -18,9 +18,11 @@
     <div class="date-controls">
       <button @click="previousDay" class="nav-btn"><img src="@/assets/images/prev_arrow_circle.png" alt="전날">전날</button>
       <input 
+
         type="date" 
         v-model="selectedDate" 
-        @change="updateData"
+        @click.stop
+        @change.stop="updateData"
         class="date-picker"
       />
       <button @click="nextDay" class="nav-btn">다음날 <img src="@/assets/images/next_arrow_circle.png" alt=""></button>
@@ -172,8 +174,8 @@ const nextDay = (e) => {
   selectedDate.value = date.toISOString().split('T')[0]
 }
 
-const updateData = async (e) => {
-  e.stopPropagation();
+const updateData = async () => {
+
   console.log('데이터 업데이트:', {
     date: selectedDate.value,
     period: selectedPeriod.value
@@ -279,8 +281,10 @@ watch([selectedDate, selectedPeriod], () => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
 }
+
+
 
 .nav-btn {
   display: flex;
