@@ -12,7 +12,7 @@
             <div class="data-description">실시간 전력 사용량 모니터링</div>
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 사용량')">
-                <span class="widget-icon">📈</span>
+                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt=""></span>
                 <span class="widget-name">전력 사용량 위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
@@ -27,7 +27,7 @@
                 class="widget-item"
                 @click="showWidgetSelector('solar_generation', '태양광 발전량')"
               >
-                <span class="widget-icon">📈</span>
+                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt=""></span>
                 <span class="widget-name">태양광 위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
@@ -350,7 +350,7 @@
         </div>
 
         <div class="modal-actions">
-          <button @click="addWidget(widgetOptions.other)" class="cancel-btn">등록</button>
+          <button @click="addWidget(widgetOptions.other)" class="apply-btn">등록</button>
           <button @click="closeWidgetSelector" class="cancel-btn">취소</button>
         </div>
       </div>
@@ -617,7 +617,7 @@ const widgetsData = {
     {
       id: 'power-line-chart',
       name: '선 시계열 그래프',
-      icon: '📈',
+      icon: '@/assets/images/icon/1.png',
       type: 'line-chart',
       description: '시간에 따른 전력 사용량 변화를 선그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -625,7 +625,7 @@ const widgetsData = {
     {
       id: 'power-bar-chart',
       name: '막대 시계열 그래프',
-      icon: '📊',
+      icon: '@/assets/images/icon/2.png',
       type: 'bar-chart',
       description: '시간에 따른 전력 사용량 변화를 막대그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -633,7 +633,7 @@ const widgetsData = {
     {
       id: 'power-pie-chart',
       name: '원 그래프',
-      icon: '🍰',
+      icon: '@/assets/images/icon/3.png',
       type: 'pie-chart',
       description: '전력 사용량 비율을 원형 차트로 표시',
       updateCycle: [1, 2, 3],
@@ -641,7 +641,7 @@ const widgetsData = {
     {
       id: 'power-box-widget',
       name: '박스 위젯',
-      icon: '📦',
+      icon: '@/assets/images/icon/4.png',
       type: 'box-widget',
       description: '현재 전력량을 숫자로 표시',
       updateCycle: [0],
@@ -651,7 +651,7 @@ const widgetsData = {
     {
       id: 'solar-line-chart',
       name: '선 시계열 그래프',
-      icon: '📈',
+      icon: '@/assets/images/icon/1.png',
       type: 'line-chart',
       description: '태양광 발전량과 예측량을 선그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -659,7 +659,7 @@ const widgetsData = {
     {
       id: 'solar-bar-chart',
       name: '막대 시계열 그래프',
-      icon: '📊',
+      icon: '@/assets/images/icon/2.png',
       type: 'bar-chart',
       description: '태양광 발전량과 예측량을 막대그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -667,7 +667,7 @@ const widgetsData = {
     {
       id: 'solar-box-widget',
       name: '박스 위젯',
-      icon: '📦',
+      icon: '@/assets/images/icon/4.png',
       type: 'box-widget',
       description: '현재 발전량을 숫자로 표시',
       updateCycle: [0],
@@ -677,7 +677,7 @@ const widgetsData = {
     {
       id: 'temp-bar-widget',
       name: '막대(온도) 위젯',
-      icon: '🌡️',
+      icon: '@/assets/images/icon/5.png',
       type: 'bar-gauge-widget',
       description: '온도를 막대 게이지로 표시',
       updateCycle: [0, 1],
@@ -685,7 +685,7 @@ const widgetsData = {
     {
       id: 'humidity-bar-widget',
       name: '막대(습도) 위젯',
-      icon: '💧',
+      icon: '@/assets/images/icon/5.png',
       type: 'bar-gauge-widget',
       description: '습도를 퍼센트 막대로 표시',
       updateCycle: [0, 1],
@@ -693,7 +693,7 @@ const widgetsData = {
     {
       id: 'pressure-box-widget',
       name: '박스 위젯',
-      icon: '📦',
+      icon: '@/assets/images/icon/4.png',
       type: 'box-widget',
       description: '압력값을 숫자로 표시',
       updateCycle: [0, 1],
@@ -703,7 +703,7 @@ const widgetsData = {
     {
       id: 'on-off-control',
       name: '제어(ON/OFF) 위젯',
-      icon: '🔘',
+      icon: '@/assets/images/icon/7.png',
       type: 'on-off-control',
       description: '설비 ON/OFF 제어 및 현재 상태 표시',
       updateCycle: '실시간',
@@ -711,7 +711,7 @@ const widgetsData = {
     {
       id: 'up-down-control',
       name: '제어(UP/DOWN) 위젯',
-      icon: '🔼',
+      icon: '@/assets/images/icon/8.png',
       type: 'up-down-control',
       description: '온도/압력/조도 등 수치 제어',
       updateCycle: '실시간',
@@ -719,7 +719,7 @@ const widgetsData = {
     {
       id: 'status-widget',
       name: '상태표시 위젯',
-      icon: '🟢',
+      icon: '@/assets/images/icon/12.png',
       type: 'status-widget',
       description: '현재 상태를 색상으로 표시',
       updateCycle: '실시간',
@@ -729,7 +729,7 @@ const widgetsData = {
     {
       id: 'alarm-widget',
       name: '알람 위젯',
-      icon: '🚨',
+      icon: '@/assets/images/icon/10.png',
       type: 'alarm-widget',
       description: '통신 또는 설비 알람 표시',
       updateCycle: '실시간',
@@ -737,7 +737,7 @@ const widgetsData = {
     {
       id: 'energy-report',
       name: '에너지 진단보고서',
-      icon: '📋',
+      icon: '@/assets/images/icon/9.png',
       type: 'energy-report',
       description: 'PDF 진단보고서 분석 결과',
       updateCycle: [3],
@@ -747,7 +747,7 @@ const widgetsData = {
     {
       id: 'page-link',
       name: '페이지 링크 위젯',
-      icon: '🔗',
+      icon: '@/assets/images/icon/6.png',
       type: 'page-link',
       description: 'URL 링크 표시 및 이동',
       updateCycle: '정적',
@@ -755,7 +755,7 @@ const widgetsData = {
     {
       id: 'image-widget',
       name: '그림삽입 위젯',
-      icon: '🖼️',
+      icon: '@/assets/images/icon/11.png',
       type: 'image-widget',
       description: '이미지 파일 표시',
       updateCycle: '정적',

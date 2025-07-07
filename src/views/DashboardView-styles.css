@@ -158,7 +158,8 @@
   border-radius: 24px 0 0 0;
   position: fixed;
   right: 0;
-  top: 114px;
+  /* top: 114px; */
+  bottom: 0;
   height: calc(100vh - 114px);
   transition: transform 0.3s ease;
   z-index: 100;
@@ -175,6 +176,12 @@
   color: var(--color-font-primary);
   margin: 0 0 32px 0;
   text-align: center;
+}
+
+.widget-categories{
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  column-gap: 20px;
 }
 
 .category-section {
@@ -247,6 +254,13 @@
 .widget-icon {
   font-size: 20px;
   flex-shrink: 0;
+  display: none;
+}
+
+.widget-icon img{
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 .widget-name {
@@ -719,6 +733,13 @@ background-color: var(--color-bg-white);
   margin-bottom: 16px;
 }
 
+.widget-type-icon img{
+  width: 48px;
+  height: 48px;
+  display: block;
+  margin: 0 auto;
+}
+
 .widget-type-name {
   font-size: 18px;
   font-weight: 600;
@@ -803,9 +824,8 @@ background-color: var(--color-bg-white);
 }
 
 .apply-btn {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background:var(--color-primary);
   color: var(--color-font-white);
-  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
 }
 
 .cancel-btn:hover {
@@ -814,9 +834,8 @@ background-color: var(--color-bg-white);
 }
 
 .apply-btn:hover {
-  background: linear-gradient(135deg, #d45740 0%, #e8a89a 100%);
+  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(225, 99, 73, 0.4);
 }
 
 
@@ -824,9 +843,6 @@ background-color: var(--color-bg-white);
 
 /* 반응형 디자인 */
 @media (max-width: 1400px) {
-  .widget-sidebar {
-    width: 340px;
-  }
   .dashboard-main.sidebar-open {
     /* margin-right: 340px; */
   }
@@ -836,9 +852,7 @@ background-color: var(--color-bg-white);
 }
 
 @media (max-width: 1024px) {
-  .widget-sidebar {
-    width: 300px;
-  }
+
   .dashboard-main.sidebar-open {
     /* margin-right: 300px; */
   }
@@ -921,7 +935,7 @@ background-color: var(--color-bg-white);
     grid-template-columns: repeat(16, 1fr);
   }
   .widget-sidebar {
-    width: 420px;
+    width: 680px;
   }
   .dashboard-main.sidebar-open {
     /* margin-right: 420px; */
@@ -1058,6 +1072,7 @@ background-color: var(--color-bg-white);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 0;
 }
 
 .modal-header {
@@ -1091,18 +1106,23 @@ background-color: var(--color-bg-white);
 }
 
 .close-btn {
-  background: none;
+  background: var(--color-bg-gray);
   border: none;
   font-size: 20px;
-  color: #6b7280;
+  color: var(--color-font-primary);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 99px;
   transition: background-color 0.2s;
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
+  background:var(--color-primary);
   color: #374151;
 }
 
@@ -1133,6 +1153,7 @@ background-color: var(--color-bg-white);
 .widget-info-panel {
   flex: 1;
   overflow-y: auto;
+  display: none;
 }
 
 .info-section {
@@ -1201,7 +1222,7 @@ background-color: var(--color-bg-white);
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #3b82f6;
+  background:#000;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -1210,18 +1231,20 @@ background-color: var(--color-bg-white);
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s;
+  display: none;
 }
 
 .settings-btn:hover {
-  background: #2563eb;
+  background: var(--color-primary);
 }
 
 .close-modal-btn {
-  background: #6b7280;
+  display: none;
+  background: var(--color-font-secondary);
   color: white;
   border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 10px 24px;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
