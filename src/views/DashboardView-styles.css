@@ -461,18 +461,55 @@ background-color: var(--color-bg-white);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   transform: translateY(-4px);
 }
+.widget_modal_btn {
+  position:absolute;
+  bottom:1%;
+  left:1%;
+  width:32px;
+  height:32px;
+  cursor:pointer;
+  opacity:0;
 
+    transition: all 0.3s ease;
+}
+.widget_drag_btn{
+    position:absolute;
+  bottom:1%;
+  right:1%;
+  width:32px;
+  height:32px;
+  cursor:pointer;
+  opacity:0;
+    transition: all 0.3s ease;
+}
+.widget-container:hover .widget_drag_btn,
+.widget-container:hover .widget_modal_btn {
+  opacity:1;
+
+
+}
+
+.widget_modal_btn button{
+  background-color : unset;
+  width:100%;
+  height:100%;
+}
+.widget_modal_btn svg{
+  width:100%;
+  height:100%;
+}
 .widget-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 8px;
+  /* padding: 8px; */
   background: linear-gradient(135deg, var(--color-bg-light) 0%, var(--color-gray-lightest) 100%);
   border-bottom: 1px solid var(--color-gray-lightest);
 }
 
 .widget-title-section {
   flex: 1;
+  display:none;
 }
 
 .widget-category {
@@ -982,6 +1019,7 @@ background-color: var(--color-bg-white);
 
 .widget-inner {
   height:100%;
+  position: relative;
 }
 .widget-options p {
   text-align: center;
@@ -1196,4 +1234,138 @@ background-color: var(--color-bg-white);
 
 .btn-icon {
   font-size: 14px;
+}
+
+/* 위젯 편집 모드 컨트롤 */
+.widget-edit-controls {
+  position: absolute;
+  bottom:1%;
+  right:1%;
+
+}
+
+/* 크기 조절 핸들 컨테이너 */
+.resize-handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 크기 조절 핸들 기본 스타일 */
+.resize-handle {
+  position: absolute;
+
+
+
+
+  pointer-events: auto;
+  cursor: nw-resize;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 15;
+
+}
+
+/* 위젯 호버 시 핸들 표시 */
+.widget-container:hover .resize-handle {
+  opacity: 1;
+}
+
+/* 크기 조절 중일 때 핸들 강조 */
+.widget-container.resizing .resize-handle {
+  opacity: 1;
+  /* background: #ef4444; */
+  transform: scale(1.2);
+}
+
+/* 각 방향별 핸들 위치 및 커서 */
+.resize-handle-se {
+  bottom: 0px;
+  right: 6px;
+  cursor: se-resize;
+}
+
+.resize-handle-sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: sw-resize;
+}
+
+.resize-handle-ne {
+  top: -6px;
+  right: -6px;
+  cursor: ne-resize;
+}
+
+.resize-handle-nw {
+  top: -6px;
+  left: -6px;
+  cursor: nw-resize;
+}
+
+/* 드래그 버튼 위치 조정 */
+.widget_drag_btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.widget-container:hover .widget_drag_btn {
+  opacity: 1;
+}
+
+/* 크기 조절 중일 때 스타일 */
+.widget-container.resizing {
+  border: 2px dashed #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.widget-container.resizing .widget-content {
+  opacity: 0.7;
+}
+
+/* 크기 조절 불가능 상태 */
+.widget-container.resize-invalid {
+  border: 2px dashed #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.widget-container.resize-invalid .resize-handle {
+  background: #ef4444;
+}
+
+/* 모바일 대응 - 핸들 크기 확대 */
+@media (max-width: 768px) {
+  .resize-handle {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .resize-handle-se {
+    bottom: -8px;
+    right: -8px;
+  }
+  
+  .resize-handle-sw {
+    bottom: -8px;
+    left: -8px;
+  }
+  
+  .resize-handle-ne {
+    top: -8px;
+    right: -8px;
+  }
+  
+  .resize-handle-nw {
+    top: -8px;
+    left: -8px;
+  }
 }

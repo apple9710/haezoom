@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-      <AppHeader />
+    <AppHeader />
     <div class="dashboard-content">
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
@@ -116,7 +116,10 @@
 
           <div class="dashboard-right">
             <div class="welcome-text">
-              <span class="user-name"><b>{{ authStore.user?.name || 'ADMIN' }}님</b> <span>반가워요 <span class="hand_icon">👋</span></span></span> 
+              <span class="user-name"
+                ><b>{{ authStore.user?.name || 'ADMIN' }}님</b>
+                <span>반가워요 <span class="hand_icon">👋</span></span></span
+              >
               <span>무엇을 도와드릴까요?</span>
             </div>
           </div>
@@ -125,7 +128,9 @@
         <div v-if="isEditMode" class="dashboard-toolbar">
           <div class="toolbar-right">
             <button @click="clearDashboard" class="clear-btn">
-              <span class="btn-icon"><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"></span>
+              <span class="btn-icon"
+                ><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"
+              /></span>
               <span class="sound_only">모든 위젯 삭제</span>
             </button>
           </div>
@@ -184,11 +189,16 @@
             v-for="element in dashboardWidgets"
             :key="element.instanceId"
             class="widget-container"
-            :class="{ dragging: dragState.dragElement === element, clickable: !isEditMode }"
+            :class="{ 
+              dragging: dragState.dragElement === element, 
+              clickable: !isEditMode,
+              resizing: widgetResizeState.isResizing && widgetResizeState.resizingWidget === element,
+              'resize-invalid': widgetResizeState.isResizing && widgetResizeState.resizingWidget === element && !canPlaceWidget(element.position, element.gridSize, element)
+            }"
             :draggable="isEditMode"
             @dragstart="isEditMode ? handleDragStart(element, $event) : null"
             @dragend="handleDragEnd"
-            @click="!isEditMode ? openWidgetModal(element) : null"
+
             :style="{
               gridColumn: element.position
                 ? `${element.position.x + 1} / span ${element.gridSize.width}`
@@ -210,7 +220,7 @@
                   <button @click="configureWidget(element)" class="control-btn" title="설정">
                     ⚙️
                   </button>
-                  <button @click="resizeWidget(element)" class="control-btn" title="크기 조절">
+                  <button @click="resizeWidget()" class="control-btn" title="크기 조절">
                     ⛶
                   </button>
                   <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
@@ -227,6 +237,53 @@
                   :config="element.config || {}"
                   :isEditMode="isEditMode"
                 />
+              </div>
+              <!-- 위젯 모달 버튼 (일반 모드) -->
+              <div v-if="!isEditMode" class="widget_modal_btn">
+                <button @click="openWidgetModal(element)">
+                  <DetailIcon />
+                </button>
+              </div>
+              
+              <!-- 편집 모드에서의 컨트롤 요소들 -->
+              <div v-if="isEditMode" class="widget-edit-controls">
+                <!-- 드래그 아이콘 -->
+                <!-- <div class="widget_drag_btn">
+                  <DragIcon />
+                </div> -->
+                
+                <!-- 크기 조절 핸들들 -->
+                <div class="resize-handles">
+                  <!-- 남동쪽 핸들 (오른쪽 아래) -->
+                  <div 
+                    class="resize-handle resize-handle-se"
+                    @mousedown="handleResizeStart(element, $event, 'se')"
+                    title="크기 조절"
+                  >
+                <DragIcon />
+                </div>
+                  
+                  <!-- 남서쪽 핸들 (왼쪽 아래) -->
+                  <!-- <div 
+                    class="resize-handle resize-handle-sw"
+                    @mousedown="handleResizeStart(element, $event, 'sw')"
+                    title="크기 조절"
+                  ></div> -->
+                  
+                  <!-- 북동쪽 핸들 (오른쪽 위) -->
+                  <!-- <div 
+                    class="resize-handle resize-handle-ne"
+                    @mousedown="handleResizeStart(element, $event, 'ne')"
+                    title="크기 조절"
+                  ></div> -->
+                  
+                  <!-- 북서쪽 핸들 (왼쪽 위) -->
+                  <!-- <div 
+                    class="resize-handle resize-handle-nw"
+                    @mousedown="handleResizeStart(element, $event, 'nw')"
+                    title="크기 조절"
+                  ></div> -->
+                </div>
               </div>
             </div>
           </div>
@@ -336,7 +393,8 @@
       <div class="modal-content exit-confirm-modal" @click.stop>
         <h3 class="modal-title">편집 내용을 저장하시겠습니까?</h3>
         <p class="modal-description">
-          변경된 내용이 있습니다.<br> 저장하지 않으면 변경사항이 손실될 수 있습니다.
+          변경된 내용이 있습니다.<br />
+          저장하지 않으면 변경사항이 손실될 수 있습니다.
         </p>
 
         <div class="modal-actions exit-confirm-actions">
@@ -387,14 +445,19 @@
                   </div>
                   <div class="info-item">
                     <span class="info-label">크기:</span>
-                    <span class="info-value">{{ widgetModal.widget.gridSize.width }} × {{ widgetModal.widget.gridSize.height }}</span>
+                    <span class="info-value"
+                      >{{ widgetModal.widget.gridSize.width }} ×
+                      {{ widgetModal.widget.gridSize.height }}</span
+                    >
                   </div>
                   <div class="info-item">
                     <span class="info-label">업데이트 주기:</span>
                     <span class="info-value">
-                      {{ Array.isArray(widgetModal.widget.updateCycle) 
-                          ? widgetModal.widget.updateCycle.map(c => widgetChar(c)).join(', ')
-                          : widgetModal.widget.updateCycle }}
+                      {{
+                        Array.isArray(widgetModal.widget.updateCycle)
+                          ? widgetModal.widget.updateCycle.map((c) => widgetChar(c)).join(', ')
+                          : widgetModal.widget.updateCycle
+                      }}
                     </span>
                   </div>
                 </div>
@@ -402,14 +465,20 @@
 
               <div class="info-section">
                 <h4>설명</h4>
-                <p class="widget-description">{{ widgetModal.widget.description || '위젯에 대한 설명이 없습니다.' }}</p>
+                <p class="widget-description">
+                  {{ widgetModal.widget.description || '위젯에 대한 설명이 없습니다.' }}
+                </p>
               </div>
 
               <!-- 위젯별 추가 정보 -->
               <div v-if="widgetModal.additionalInfo" class="info-section">
                 <h4>추가 정보</h4>
                 <div class="additional-info">
-                  <div v-for="(value, key) in widgetModal.additionalInfo" :key="key" class="info-item">
+                  <div
+                    v-for="(value, key) in widgetModal.additionalInfo"
+                    :key="key"
+                    class="info-item"
+                  >
                     <span class="info-label">{{ key }}:</span>
                     <span class="info-value">{{ value }}</span>
                   </div>
@@ -436,6 +505,8 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import WidgetFactory from '@/components/widgets/WidgetFactory.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import DetailIcon from '@/components/icons/DetailIcon.vue'
+import DragIcon from '@/components/icons/DragIcon.vue'
 
 const authStore = useAuthStore()
 
@@ -445,7 +516,7 @@ const dragState = reactive({
   dragElement: null,
   showDropGuide: false,
   dropGuideStyle: {},
-  dropPosition: null
+  dropPosition: null,
 })
 
 // 크기 조절 모달 상태
@@ -453,7 +524,7 @@ const resizeModal = reactive({
   show: false,
   widget: null,
   width: 2,
-  height: 2
+  height: 2,
 })
 
 // 위젯 선택 모달 상태
@@ -475,12 +546,12 @@ const widgetOptions = reactive({
 const widgetModal = reactive({
   show: false,
   widget: null,
-  additionalInfo: null
+  additionalInfo: null,
 })
 
 // 나가기 확인 모달 상태
 const exitConfirmModal = reactive({
-  show: false
+  show: false,
 })
 
 // 대시보드 상태
@@ -490,7 +561,7 @@ const dashboardGrid = ref(null)
 // 그리드 설정
 const gridConfig = reactive({
   cols: 16,
-  rows: 6
+  rows: 6,
 })
 
 // 사이드바 상태
@@ -819,6 +890,8 @@ const resetDragState = () => {
 const handleDragOver = (event) => {
   if (!isEditMode.value || !dragState.dragElement) return
 
+
+
   event.preventDefault()
   event.dataTransfer.dropEffect = 'move'
 
@@ -897,7 +970,7 @@ const showDropGuide = () => {
   const canPlace = canPlaceWidget(
     dragState.dropPosition,
     dragState.dragElement.gridSize,
-    dragState.dragElement
+    dragState.dragElement,
   )
 
   dragState.showDropGuide = true
@@ -931,7 +1004,9 @@ const closeWidgetSelector = () => {
 const changeShowWidget = (widget) => {
   widgetOptions.show = true
   widgetOptions.cycle = widget.updateCycle
-  widgetOptions.selectedCycle = Array.isArray(widget.updateCycle) ? widget.updateCycle[0] : widget.updateCycle
+  widgetOptions.selectedCycle = Array.isArray(widget.updateCycle)
+    ? widget.updateCycle[0]
+    : widget.updateCycle
   widgetOptions.keyword = []
   widgetOptions.unit = ''
   widgetOptions.other = widget
@@ -940,7 +1015,7 @@ const changeShowWidget = (widget) => {
 // 위젯 제거
 const removeWidget = (widget) => {
   if (confirm('이 위젯을 삭제하시겠습니까?')) {
-    const index = dashboardWidgets.value.findIndex(w => w.instanceId === widget.instanceId)
+    const index = dashboardWidgets.value.findIndex((w) => w.instanceId === widget.instanceId)
     if (index !== -1) {
       dashboardWidgets.value.splice(index, 1)
       saveDashboard()
@@ -949,11 +1024,8 @@ const removeWidget = (widget) => {
 }
 
 // 위젯 크기 조절 모달 열기
-const resizeWidget = (widget) => {
-  resizeModal.widget = widget
-  resizeModal.width = widget.gridSize.width
-  resizeModal.height = widget.gridSize.height
-  resizeModal.show = true
+const resizeWidget = () => {
+  alert('위젯의 모서리를 드래그하여 크기를 조절할 수 있습니다.')
 }
 
 // 위젯 크기 조절 모달 닫기
@@ -966,7 +1038,7 @@ const closeResizeModal = () => {
 const applyResize = () => {
   if (resizeModal.widget) {
     const newSize = { width: resizeModal.width, height: resizeModal.height }
-    
+
     // 새로운 크기로 배치 가능한지 확인
     if (canPlaceWidget(resizeModal.widget.position, newSize, resizeModal.widget)) {
       resizeModal.widget.gridSize = newSize
@@ -982,10 +1054,10 @@ const applyResize = () => {
 const openWidgetModal = (widget) => {
   widgetModal.widget = widget
   widgetModal.additionalInfo = {
-    '업데이트 주기': Array.isArray(widget.updateCycle) 
-      ? widget.updateCycle.map(c => widgetChar(c)).join(', ')
+    '업데이트 주기': Array.isArray(widget.updateCycle)
+      ? widget.updateCycle.map((c) => widgetChar(c)).join(', ')
       : widget.updateCycle,
-    '생성 시간': new Date(widget.instanceId).toLocaleString()
+    '생성 시간': new Date(widget.instanceId).toLocaleString(),
   }
   widgetModal.show = true
 }
@@ -1002,6 +1074,137 @@ const openWidgetSettings = () => {
   console.log('위젯 설정 열기:', widgetModal.widget)
   // TODO: 위젯별 설정 모달 구현
   alert('위젯 설정 기능은 추후 구현 예정입니다.')
+}
+
+const widgetResizeState = reactive({
+  isResizing: false,
+  resizingWidget: null,
+  startX: null,
+  startY: null,
+  startWidth: null,
+  startHeight: null,
+  resizeHandle: null, // 'se' (남동쪽), 'sw' (남서쪽), 'ne' (북동쪽), 'nw' (북서쪽)
+})
+
+const resetWidgetResizeState = () => {
+  widgetResizeState.isResizing = false
+  widgetResizeState.resizingWidget = null
+  widgetResizeState.startX = null
+  widgetResizeState.startY = null
+  widgetResizeState.startWidth = null
+  widgetResizeState.startHeight = null
+  widgetResizeState.resizeHandle = null
+}
+
+// 위젯 크기 조절 시작
+const handleResizeStart = (widget, event, handle = 'se') => {
+  event.stopPropagation()
+  event.preventDefault()
+  
+  widgetResizeState.isResizing = true
+  widgetResizeState.resizingWidget = widget
+  widgetResizeState.startX = event.clientX
+  widgetResizeState.startY = event.clientY
+  widgetResizeState.startWidth = widget.gridSize.width
+  widgetResizeState.startHeight = widget.gridSize.height
+  widgetResizeState.resizeHandle = handle
+  
+  // 마우스 이벤트 리스너 등록
+  document.addEventListener('mousemove', handleResizeMove)
+  document.addEventListener('mouseup', handleResizeEnd)
+  
+  console.log('크기 조절 시작:', widget.name, handle)
+}
+
+// 위젯 크기 조절 중
+const handleResizeMove = (event) => {
+  if (!widgetResizeState.isResizing || !widgetResizeState.resizingWidget) return
+  
+  event.preventDefault()
+  
+  const deltaX = event.clientX - widgetResizeState.startX
+  const deltaY = event.clientY - widgetResizeState.startY
+  
+  // 그리드 셀 크기 계산
+  const gridRect = dashboardGrid.value.getBoundingClientRect()
+  const cellWidth = (gridRect.width - 48) / gridConfig.cols
+  const cellHeight = (gridRect.height - 48) / gridConfig.rows
+  
+  // 델타를 그리드 단위로 변환
+  const gridDeltaX = Math.round(deltaX / cellWidth)
+  const gridDeltaY = Math.round(deltaY / cellHeight)
+  
+  // 새로운 크기 계산
+  let newWidth = widgetResizeState.startWidth
+  let newHeight = widgetResizeState.startHeight
+  
+  switch (widgetResizeState.resizeHandle) {
+    case 'se': // 남동쪽 (오른쪽 아래)
+      newWidth = Math.max(1, widgetResizeState.startWidth + gridDeltaX)
+      newHeight = Math.max(1, widgetResizeState.startHeight + gridDeltaY)
+      break
+    case 'sw': // 남서쪽 (왼쪽 아래)
+      newWidth = Math.max(1, widgetResizeState.startWidth - gridDeltaX)
+      newHeight = Math.max(1, widgetResizeState.startHeight + gridDeltaY)
+      break
+    case 'ne': // 북동쪽 (오른쪽 위)
+      newWidth = Math.max(1, widgetResizeState.startWidth + gridDeltaX)
+      newHeight = Math.max(1, widgetResizeState.startHeight - gridDeltaY)
+      break
+    case 'nw': // 북서쪽 (왼쪽 위)
+      newWidth = Math.max(1, widgetResizeState.startWidth - gridDeltaX)
+      newHeight = Math.max(1, widgetResizeState.startHeight - gridDeltaY)
+      break
+  }
+  
+  // 그리드 범위 제한
+  const widget = widgetResizeState.resizingWidget
+  const maxWidth = gridConfig.cols - widget.position.x
+  const maxHeight = gridConfig.rows - widget.position.y
+  
+  newWidth = Math.min(newWidth, maxWidth)
+  newHeight = Math.min(newHeight, maxHeight)
+  
+  // 다른 위젯과 겹치는지 확인
+  const newSize = { width: newWidth, height: newHeight }
+  const canResize = canPlaceWidget(widget.position, newSize, widget)
+  
+  // 임시로 크기 업데이트 (시각적 피드백)
+  widget.gridSize.width = newWidth
+  widget.gridSize.height = newHeight
+  
+  // 겹침 상태에 따라 시각적 피드백 제공
+  if (!canResize) {
+    // 겹치는 경우 빨간색 테두리로 표시
+    console.log('크기 조절 중 겹침 감지:', widget.name, newSize)
+  }
+}
+
+// 위젯 크기 조절 완료
+const handleResizeEnd = (event) => {
+  if (!widgetResizeState.isResizing) return
+  
+  event.preventDefault()
+  
+  // 마우스 이벤트 리스너 제거
+  document.removeEventListener('mousemove', handleResizeMove)
+  document.removeEventListener('mouseup', handleResizeEnd)
+  
+  // 최종 크기 확인 및 저장
+  const widget = widgetResizeState.resizingWidget
+  const finalSize = { width: widget.gridSize.width, height: widget.gridSize.height }
+  
+  if (canPlaceWidget(widget.position, finalSize, widget)) {
+    saveDashboard()
+    console.log('크기 조절 완료:', widget.name, finalSize)
+  } else {
+    // 크기 조절 실패 시 원래 크기로 복원
+    widget.gridSize.width = widgetResizeState.startWidth
+    widget.gridSize.height = widgetResizeState.startHeight
+    console.log('크기 조절 실패 - 원래 크기로 복원')
+  }
+  
+  resetWidgetResizeState()
 }
 
 onMounted(() => {
