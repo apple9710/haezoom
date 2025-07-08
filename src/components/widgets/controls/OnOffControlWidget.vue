@@ -137,7 +137,7 @@ const currentData = computed(() => {
   return {
     isOn: false,
     label: '설비 상태',
-    lastToggled: new Date().toLocaleTimeString()
+    lastToggled: new Date().toLocaleTimeString(),
   }
 })
 
@@ -146,7 +146,25 @@ const currentState = computed(() => currentData.value.isOn ? 'on' : 'off')
 const isConnected = ref(true)
 const isTransitioning = ref(false)
 const lastStateChange = computed(() => currentData.value.lastToggled || '알 수 없음')
-const lastUpdateTime = computed(() => currentData.value.lastUpdated || new Date().toLocaleTimeString())
+
+const lastUpdateTime = computed(() => 
+{
+  const timestamp = currentData.value.lastUpdated;
+
+if(timestamp){
+  if(typeof timestamp === 'number'){
+    return new Date(timestamp).toLocaleTimeString();
+  }
+
+  return timestamp
+}
+
+return new Date().toLocaleDateString();
+
+}
+
+
+)
 
 // 로그 데이터
 const controlLogs = ref([])
@@ -610,7 +628,7 @@ onUnmounted(() => {
   color: #3b82f6;
 }
 
-.update-time {
+.update-time:not(:first-child) {
   margin-top: 16px;
   text-align: center;
   font-size: 12px;
