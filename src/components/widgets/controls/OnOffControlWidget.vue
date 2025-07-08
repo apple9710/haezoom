@@ -18,7 +18,17 @@
     <!-- 현재 상태 표시 -->
     <div class="current-status">
       <div class="status-indicator" :class="statusClass">
-        <div class="status-icon">{{ statusIcon }}</div>
+        <div class="status-icon">
+
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="mask0_2260_9556" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
+          <rect width="48" height="48" fill="#D9D9D9"/>
+          </mask>
+          <g mask="url(#mask0_2260_9556)">
+          <path d="M23.991 24.1C23.3303 24.1 22.775 23.8728 22.325 23.4185C21.875 22.9645 21.65 22.4083 21.65 21.75V4.9C21.65 4.24167 21.878 3.677 22.334 3.206C22.7897 2.73533 23.348 2.5 24.009 2.5C24.6697 2.5 25.225 2.73533 25.675 3.206C26.125 3.677 26.35 4.24167 26.35 4.9V21.75C26.35 22.4083 26.122 22.9645 25.666 23.4185C25.2103 23.8728 24.652 24.1 23.991 24.1ZM24 43.35C21.3333 43.35 18.8333 42.85 16.5 41.85C14.1667 40.85 12.125 39.475 10.375 37.725C8.625 35.975 7.25 33.9333 6.25 31.6C5.25 29.2667 4.75 26.7667 4.75 24.1C4.75 21.9667 5.08333 19.9167 5.75 17.95C6.41667 15.9833 7.41667 14.1833 8.75 12.55C9.18333 11.9833 9.75 11.675 10.45 11.625C11.15 11.575 11.7625 11.7792 12.2875 12.2375C12.7292 12.6792 12.95 13.225 12.95 13.875C12.95 14.525 12.7667 15.1167 12.4 15.65C11.4333 16.85 10.7 18.179 10.2 19.637C9.7 21.0947 9.45 22.5823 9.45 24.1C9.45 28.1453 10.8637 31.5817 13.691 34.409C16.5183 37.2363 19.9547 38.65 24 38.65C28.0453 38.65 31.4817 37.2363 34.309 34.409C37.1363 31.5817 38.55 28.1453 38.55 24.1C38.55 22.5333 38.3 21.0417 37.8 19.625C37.3 18.2083 36.5833 16.8833 35.65 15.65C35.239 15.0817 35.0278 14.4897 35.0165 13.874C35.0055 13.258 35.2333 12.7167 35.7 12.25C36.2667 11.75 36.9167 11.5333 37.65 11.6C38.3833 11.6667 38.9833 12 39.45 12.6C40.75 14.2333 41.7167 16.0333 42.35 18C42.9833 19.9667 43.3 22 43.3 24.1C43.3 26.7667 42.7917 29.2667 41.775 31.6C40.7583 33.9333 39.375 35.975 37.625 37.725C35.875 39.475 33.8333 40.85 31.5 41.85C29.1667 42.85 26.6667 43.35 24 43.35Z" :fill="svgIconColor"/>
+          </g>
+          </svg>
+        </div>
         <div class="status-pulse" v-if="isTransitioning"></div>
       </div>
       <div class="status-text">
@@ -35,8 +45,8 @@
         :disabled="!isConnected || isTransitioning"
         @click="turnOn"
       >
-        <span class="btn-icon">⚡</span>
-        <span class="btn-text">켜기</span>
+        <!-- <span class="btn-icon">⚡</span> -->
+        <span class="btn-text">ON</span>
       </button>
       
       <button 
@@ -45,8 +55,8 @@
         :disabled="!isConnected || isTransitioning"
         @click="turnOff"
       >
-        <span class="btn-icon">⏸</span>
-        <span class="btn-text">끄기</span>
+        <!-- <span class="btn-icon">⏸</span> -->
+        <span class="btn-text">OFF</span>
       </button>
     </div>
 
@@ -82,7 +92,7 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div class="update-time">
+    <div class="update-time lasttime">
       마지막 업데이트: {{ lastUpdateTime }}
     </div>
   </div>
@@ -175,6 +185,13 @@ let statusInterval = null
 const connectionClass = computed(() => isConnected.value ? 'connected' : 'disconnected')
 const connectionText = computed(() => isConnected.value ? '연결됨' : '연결 끊김')
 
+// SVG 아이콘 색상
+const svgIconColor = computed(() => {
+  if (!isConnected.value) return '#991b1b'
+  if (isTransitioning.value) return ''
+  return currentState.value === 'on' ? '#fff' : '#7f7f7f'
+})
+
 // 현재 상태
 const statusClass = computed(() => {
   if (!isConnected.value) return 'status-disconnected'
@@ -184,14 +201,14 @@ const statusClass = computed(() => {
 
 const statusIcon = computed(() => {
   if (!isConnected.value) return '❌'
-  if (isTransitioning.value) return '⏳'
+  if (isTransitioning.value) return ''
   return currentState.value === 'on' ? '🟢' : '🔴'
 })
 
 const statusTitle = computed(() => {
   if (!isConnected.value) return '연결 끊김'
   if (isTransitioning.value) return '처리 중'
-  return currentState.value === 'on' ? '켜짐' : '꺼짐'
+  return currentState.value === 'on' ? 'ON' : 'OFF'
 })
 
 const statusDescription = computed(() => {
@@ -323,13 +340,12 @@ onUnmounted(() => {
 
 <style scoped>
 .on-off-control-widget {
-  background: white;
   border-radius: 12px;
   padding: 20px;
+  width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* display: flex;
+  flex-direction: column; */
 }
 
 .widget-header {
@@ -379,22 +395,22 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding: 8px 12px;
-  background: #f8fafc;
+  background: #fff;
   border-radius: 8px;
   font-size: 12px;
-  color: #64748b;
+  color: #424242;
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: #991b1b;
   transition: background-color 0.3s ease;
 }
 
 .status-dot.active {
-  background: #10b981;
+  background: #E16349;
 }
 
 .current-status {
@@ -403,7 +419,7 @@ onUnmounted(() => {
   gap: 16px;
   margin-bottom: 24px;
   padding: 20px;
-  background: #f9fafb;
+  background: #fff;
   border-radius: 12px;
 }
 
@@ -419,13 +435,13 @@ onUnmounted(() => {
 }
 
 .status-on {
-  background: #dcfce7;
-  border: 3px solid #10b981;
+  background: #E16349;
+  border: 3px solid #E16349;
 }
 
 .status-off {
   background: #f3f4f6;
-  border: 3px solid #6b7280;
+  border: 3px solid #7f7f7f;
 }
 
 .status-disconnected {
@@ -434,12 +450,17 @@ onUnmounted(() => {
 }
 
 .status-transitioning {
-  background: #fef3c7;
-  border: 3px solid #f59e0b;
+  background: #F7EBEB;
+  border: 3px solid #F0BBB1;
 }
 
 .status-icon {
-  font-size: 24px;
+  width: 32px;
+  height: 32px;
+}
+.status-icon svg{
+  width: 100%;
+  height: 100%;
 }
 
 .status-pulse {
@@ -447,7 +468,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 2px solid #f59e0b;
+  border: 10px solid #F0BBB1;
   animation: pulse 1.5s infinite;
 }
 
@@ -507,9 +528,9 @@ onUnmounted(() => {
 }
 
 .control-btn.active {
-  border-color: #10b981;
-  background: #dcfce7;
-  color: #166534;
+  border-color: #E16349;
+  background: #F7EBEB;
+  color: #E16349;
 }
 
 .control-btn.disabled {
@@ -518,15 +539,15 @@ onUnmounted(() => {
 }
 
 .on-btn.active {
-  border-color: #10b981;
-  background: #dcfce7;
-  color: #166534;
+  border-color: #E16349;
+  background: #E16349;
+  color: #fff;
 }
 
 .off-btn.active {
-  border-color: #6b7280;
-  background: #f3f4f6;
-  color: #374151;
+  border-color: #000;
+  background: #000;
+  color: #fff;
 }
 
 .btn-icon {
@@ -538,10 +559,10 @@ onUnmounted(() => {
 }
 
 .device-info {
-  background: #f8fafc;
+  background: #fff;
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .info-row {
@@ -576,14 +597,14 @@ onUnmounted(() => {
 .log-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
+  color: #424242;
   margin-bottom: 12px;
 }
 
 .log-list {
   flex: 1;
-  background: #f8fafc;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 20px;
   padding: 8px;
   overflow-y: auto;
   max-height: 150px;
@@ -595,13 +616,14 @@ onUnmounted(() => {
   align-items: center;
   padding: 8px 12px;
   margin-bottom: 4px;
-  background: white;
-  border-radius: 6px;
+  /* background: #f8f8f8;
+  border: 1px solid #e4e4e4; */
+  border-radius: 20px;
   font-size: 12px;
 }
 
 .log-time {
-  color: #64748b;
+  color: #424242;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -613,7 +635,7 @@ onUnmounted(() => {
 }
 
 .action-on {
-  color: #10b981;
+  color: #E16349;
 }
 
 .action-off {
@@ -621,11 +643,11 @@ onUnmounted(() => {
 }
 
 .action-error {
-  color: #ef4444;
+  color: #991b1b;
 }
 
 .action-info {
-  color: #3b82f6;
+  color: #424242;
 }
 
 .update-time:not(:first-child) {
@@ -634,5 +656,8 @@ onUnmounted(() => {
   font-size: 12px;
   color: #64748b;
   font-weight: 500;
+}
+.update-time.lasttime{
+  font-size: 0;
 }
 </style>
