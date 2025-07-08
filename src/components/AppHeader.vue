@@ -103,7 +103,7 @@ const isEditMode = ref(false) // 편집모드 상태
 // 편집모드 진입
 const enterEditMode = () => {
   isEditMode.value = true
-  // sidebarOpen.value = true
+  sidebarOpen.value = false // 편집모드 진입 시에는 사이드바 닫힌 상태로 시작
   // 대시보드에 편집모드 알림
   window.dispatchEvent(
     new CustomEvent('edit-mode-change', {
@@ -580,7 +580,7 @@ span.sound_only{
   font-size:20px; */
 }
 .top-menu  li .top-menu-item:hover{
-  background: #e4e4e4;
+  background: #dcdcdc;
 }
 .top-menu li.active .top-menu-item{
     color:#fff;

@@ -1,7 +1,15 @@
 <template>
   <div class="dashboard-container">
+    
     <AppHeader />
+              <div class="edit-mode-ing"
+          v-if="isEditMode"
+          >
+          <span class="left-circle"></span>
+          <span>대시보드 수정중</span>
+          </div>
     <div class="dashboard-content">
+
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
         <h3 class="sidebar-title">위젯 추가</h3>
@@ -849,6 +857,12 @@ const addWidget = (widget) => {
 
   // 위젯 추가 후 사이드바 닫기
   sidebarOpen.value = false
+  // 헤더에 사이드바 상태 변경 알림
+  window.dispatchEvent(
+    new CustomEvent('sidebar-state-change', {
+      detail: { isOpen: false }
+    })
+  )
 }
 
 // 빈 공간 찾기
