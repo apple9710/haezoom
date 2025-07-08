@@ -580,7 +580,7 @@ span.sound_only{
   font-size:20px; */
 }
 .top-menu  li .top-menu-item:hover{
-  background: #dcdcdc;
+  background: #e4e4e4;
 }
 .top-menu li.active .top-menu-item{
     color:#fff;
