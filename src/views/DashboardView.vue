@@ -227,9 +227,9 @@
                   <button @click="configureWidget(element)" class="control-btn" title="설정">
                     <img src="@/assets/images/settings.svg" alt="">
                   </button>
-                  <button @click="resizeWidget()" class="control-btn" title="크기 조절">
+                  <!-- <button @click="resizeWidget()" class="control-btn" title="크기 조절">
                     ⛶
-                  </button>
+                  </button> -->
                   <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
                     ✕
                   </button>
