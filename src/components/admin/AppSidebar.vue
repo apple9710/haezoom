@@ -30,11 +30,15 @@
             class="menu-link"
             :title="collapsed ? item.name : ''"
           >
-            <i :class="item.icon" class="menu-icon"></i>
+            <img :src="item.icon" :alt="item.name" class="menu-icon" />
             <span v-if="!collapsed" class="menu-text">{{ item.name }}</span>
           </button>
         </li>
       </ul>
+      <button class="admin_logout" @click="handleLogout">
+        <img src="@/assets/images/logout.svg" alt="로그아웃" />
+        <h2 v-if="!collapsed">로그아웃</h2>
+      </button>
     </nav>
   </aside>
 </template>
@@ -42,6 +46,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   collapsed: {
@@ -54,25 +59,26 @@ const emit = defineEmits(['toggle'])
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 메뉴 항목 정의
 const menuItems = computed(() => [
   {
     id: 'adminBuilding',
     name: '실증지 관리',
-    icon: '🏢',
+    icon: new URL('@/assets/images/domain_icon.png', import.meta.url).href,
     component: 'adminBuilding'
   },
   {
     id: 'adminUsers',
     name: '사용자 관리',
-    icon: '👥',
+    icon: new URL('@/assets/images/account_user.png', import.meta.url).href,
     component: 'adminUsers'
   },
   {
     id: 'adminDR',
     name: 'DR 관리',
-    icon: '⚡',
+    icon: new URL('@/assets/images/dr_icon.png', import.meta.url).href,
     component: 'adminDR'
   }
 ])
@@ -100,6 +106,22 @@ const navigateToPage = (pageId) => {
     router.push(route)
   }
 }
+
+// 로그아웃 처리 함수
+const handleLogout = async () => {
+  if (confirm('로그아웃 하시겠습니까?')) {
+    try {
+      // 로그아웃 처리
+      await authStore.logout()
+      
+      // 로그인 페이지로 이동
+      router.push('/login')
+    } catch (error) {
+      console.error('로그아웃 실패:', error)
+      alert('로그아웃 중 오류가 발생했습니다.')
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -109,7 +131,7 @@ const navigateToPage = (pageId) => {
   color: white;
   transition: width 0.3s ease;
   overflow-x: hidden;
-  width: 280px;
+  width: 285px;
 }
 
 .sidebar-header {
@@ -117,7 +139,6 @@ const navigateToPage = (pageId) => {
   align-items: center;
   justify-content: space-between;
   padding:32px;
-  border-bottom: 1px solid #34495e;
 }
 
 .logo {
@@ -138,6 +159,7 @@ const navigateToPage = (pageId) => {
 }
 
 .toggle-btn {
+  display: none;
   background: none;
   border: none;
   color: #ecf0f1;
@@ -153,7 +175,7 @@ const navigateToPage = (pageId) => {
 }
 
 .sidebar-nav {
-  padding: 20px 0;
+  padding: 18px 32px;
 }
 
 .menu-list {
@@ -164,6 +186,7 @@ const navigateToPage = (pageId) => {
 
 .menu-item {
   margin-bottom: 5px;
+  border-radius: 8px;
 }
 
 .menu-link {
@@ -171,37 +194,73 @@ const navigateToPage = (pageId) => {
   align-items: center;
   width: 100%;
   padding: 15px 20px;
-  color: #bdc3c7;
+  color: #424242;
   text-decoration: none;
   border: none;
   background: none;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
+  border-radius: 8px;
 }
 
 .menu-link:hover {
-  background: #34495e;
-  color: #ecf0f1;
+  background: #e1e1e1;
+  color: #424242;
 }
 
 .menu-item.active .menu-link {
-  background: #3498db;
-  color: white;
+  background: #e1e1e1;
+  color: #424242;
 }
 
 .menu-link i,
 .menu-icon {
   margin-right: 15px;
-  font-size: 18px;
   width: 20px;
+  height: 20px;
   text-align: center;
   display: inline-block;
+}
+
+.menu-icon {
+  object-fit: contain;
 }
 
 .menu-text {
   font-size: 14px;
   font-weight: 500;
+  color: #424242;
+}
+
+.admin_logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 20px;
+  margin-top: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.admin_logout:hover {
+  background: #ffe6e6;
+}
+
+.admin_logout img {
+  width: 20px;
+  height: 20px;
+}
+
+.admin_logout h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e74c3c;
 }
 
 /* 축소 상태 */
@@ -221,5 +280,10 @@ const navigateToPage = (pageId) => {
 .sidebar.collapsed .menu-link i,
 .sidebar.collapsed .menu-icon {
   margin-right: 0;
+}
+
+.sidebar.collapsed .admin_logout {
+  justify-content: center;
+  padding: 15px 10px;
 }
 </style>
