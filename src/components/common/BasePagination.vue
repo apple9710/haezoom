@@ -154,4 +154,3 @@ const goToPage = (page) => {
   color: white;
 }
 </style>
-</style>
