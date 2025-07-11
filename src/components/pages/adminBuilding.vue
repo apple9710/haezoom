@@ -46,16 +46,17 @@
         :key="building.id"
         class="building-card"
       >
+        <div class="building-overlay">
+          <button @click="openBuildingModal(building)" class="edit-btn">
+            <img src="@/assets/images/settings.svg" alt="수정" />
+          </button>
+          <button @click="deleteBuildingConfirm(building)" class="delete-btn">
+            <img src="@/assets/images/close.svg" alt="삭제" />
+          </button>
+        </div>
+
         <div class="building-image">
           <img :src="getImagePath(building.id)" :alt="building.name" />
-          <div class="building-overlay">
-            <button @click="openBuildingModal(building)" class="edit-btn">
-              <img src="@/assets/images/settings.svg" alt="수정" />
-            </button>
-            <button @click="deleteBuildingConfirm(building)" class="delete-btn">
-              <img src="@/assets/images/close.svg" alt="삭제" />
-            </button>
-          </div>
         </div>
         
         <div class="building-info">
@@ -240,6 +241,8 @@ const paginatedBuildings = computed(() => {
 const totalPages = computed(() => 
   Math.ceil(filteredBuildings.value.length / itemsPerPage.value)
 )
+
+const totalItems = computed(() => filteredBuildings.value.length)
 
 // 메서드
 const openBuildingModal = (building = null) => {
@@ -438,17 +441,25 @@ img{
 
 .buildings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
+  padding: 40px;
+  background: #f8f8f8;
+  border-radius: 20px;
 }
 
 .building-card {
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #E4E4E4;
   transition: transform 0.2s;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  column-gap: 20px;
+  align-items: center;
 }
 
 .building-card:hover {
@@ -462,6 +473,7 @@ img{
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px;
 }
 
 .building-image img {
@@ -511,10 +523,6 @@ img{
 .delete-btn {
   background: rgba(231, 76, 60, 0.9);
   color: white;
-}
-
-.building-info {
-  padding: 15px;
 }
 
 .building-info h3 {
