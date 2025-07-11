@@ -1,53 +1,40 @@
 <!-- components/common/BasePagination.vue -->
 <template>
   <div class="pagination-container">
-    <div class="pagination-info">
-      {{ startItem }}-{{ endItem }} / {{ totalItems }}개
-    </div>
-    
     <div class="pagination-controls">
-      <button 
-        @click="goToPage(1)"
-        :disabled="currentPage === 1"
-        class="page-btn"
-      >
-        처음
-      </button>
-      
+      <!-- 이전 버튼 -->
       <button 
         @click="goToPage(currentPage - 1)"
         :disabled="currentPage === 1"
-        class="page-btn"
+        class="arrow-btn"
       >
-        이전
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
       
-      <span class="page-numbers">
+      <!-- 페이지 번호들 -->
+      <div class="page-numbers">
         <button
           v-for="page in visiblePages"
           :key="page"
           @click="goToPage(page)"
           :class="{ active: page === currentPage }"
-          class="page-btn"
+          class="page-number"
         >
           {{ page }}
         </button>
-      </span>
+      </div>
       
+      <!-- 다음 버튼 -->
       <button 
         @click="goToPage(currentPage + 1)"
         :disabled="currentPage === totalPages"
-        class="page-btn"
+        class="arrow-btn"
       >
-        다음
-      </button>
-      
-      <button 
-        @click="goToPage(totalPages)"
-        :disabled="currentPage === totalPages"
-        class="page-btn"
-      >
-        마지막
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </button>
     </div>
   </div>
@@ -79,8 +66,8 @@ const endItem = computed(() => Math.min(props.currentPage * props.itemsPerPage, 
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, props.currentPage - 2)
-  const end = Math.min(totalPages.value, props.currentPage + 2)
+  const start = Math.max(1, props.currentPage - 5)
+  const end = Math.min(totalPages.value, props.currentPage + 5)
   
   for (let i = start; i <= end; i++) {
     pages.push(i)
@@ -99,51 +86,72 @@ const goToPage = (page) => {
 <style scoped>
 .pagination-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
 }
 
 .pagination-controls {
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 8px;
 }
 
-.page-btn {
-  padding: 8px 12px;
-  border: 1px solid #dee2e6;
-  background: white;
+.arrow-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
   transition: all 0.2s;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: #f8f9fa;
+.arrow-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  color: #333;
 }
 
-.page-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.page-btn:disabled {
-  background: #f8f9fa;
-  color: #6c757d;
+.arrow-btn:disabled {
+  color: #ccc;
   cursor: not-allowed;
 }
 
 .page-numbers {
   display: flex;
-  gap: 2px;
+  align-items: center;
+  gap: 4px;
+  margin: 0 8px;
 }
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.page-number:hover:not(.active) {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.page-number.active {
+  background: #000;
+  color: white;
+}
+</style>
 </style>
