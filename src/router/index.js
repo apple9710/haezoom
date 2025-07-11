@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AdminLayout from '@/components/admin/AdminLayout.vue'
 
 const routes = [
   {
@@ -24,6 +25,36 @@ const routes = [
     name: 'Dashboard',
     component: () => import('@/views/DashboardView.vue'),
     meta: { requiresAuth: true } // 인증 필요
+  },
+   {
+  path: '/admin',
+    name: 'Admin',
+    component: AdminLayout,
+    meta: { 
+      requiresAuth: true,
+      isAdmin: true  // 관리자 페이지임을 표시
+    },
+    children: [
+      {
+        path: '',
+        redirect: '/admin/building'
+      },
+      {
+        path: 'building',
+        name: 'AdminBuilding',
+        component: () => import('@/components/pages/adminBuilding.vue')
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers', 
+        component: () => import('@/components/pages/adminUsers.vue')
+      },
+      {
+        path: 'dr',
+        name: 'AdminDR',
+        component: () => import('@/components/pages/adminDR.vue')
+      }
+    ]
   }
 ]
 
@@ -37,7 +68,12 @@ router.beforeEach((to, from, next) => {
   console.log('라우터 가드:', to.path, to.name)
   
   const authStore = useAuthStore()
-  
+    // /admin 경로 특별 처리 (임시)
+  if (to.path === '/admin') {
+    console.log('/admin 경로 감지 - 강제 통과')
+    next()
+    return
+  }
   // 인증이 필요한 페이지
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     console.log('인증 필요, 로그인으로 이동')
