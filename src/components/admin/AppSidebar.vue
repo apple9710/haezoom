@@ -36,7 +36,16 @@
         </li>
       </ul>
       <button class="admin_logout" @click="handleLogout">
-        <img src="@/assets/images/logout.svg" alt="로그아웃" />
+
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <mask id="mask0_2225_7477" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+        <rect width="24" height="24" fill="#D9D9D9"/>
+        </mask>
+        <g mask="url(#mask0_2225_7477)">
+        <path d="M5 21C4.45 21 3.97917 20.8042 3.5875 20.4125C3.19583 20.0208 3 19.55 3 19V5C3 4.45 3.19583 3.97917 3.5875 3.5875C3.97917 3.19583 4.45 3 5 3H12V5H5V19H12V21H5ZM16 17L14.625 15.55L17.175 13H9V11H17.175L14.625 8.45L16 7L21 12L16 17Z" fill="#1C1B1F"/>
+        </g>
+        </svg>
+
         <h2 v-if="!collapsed">로그아웃</h2>
       </button>
     </nav>
@@ -176,6 +185,10 @@ const handleLogout = async () => {
 
 .sidebar-nav {
   padding: 18px 32px;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
+  height: 80%;
 }
 
 .menu-list {
@@ -236,31 +249,39 @@ const handleLogout = async () => {
 .admin_logout {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 15px 20px;
-  margin-top: 20px;
-  background: none;
+  gap: 16px;
+  width: 132px;
+  padding: 10px 20px;
+  margin-top: auto;
+  background: #e4e4e4;
   border: none;
   cursor: pointer;
   border-radius: 8px;
   transition: background-color 0.2s;
 }
-
-.admin_logout:hover {
-  background: #ffe6e6;
-}
-
-.admin_logout img {
+.admin_logout svg {
+  fill: #424242;
   width: 20px;
   height: 20px;
 }
+
+.admin_logout:hover {
+  background: #e74c3c;
+}
+
+.admin_logout:hover h2{
+  color: #fff;
+}
+.admin_logout:hover svg path{
+  fill: white;
+}
+
 
 .admin_logout h2 {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #e74c3c;
+  color: #424242;
 }
 
 /* 축소 상태 */
