@@ -5,10 +5,19 @@
     <div class="page-header">
       <h1>DR 관리</h1>
       <div class="header-actions">
-        <button @click="openDRModal()" class="btn btn-primary">
+        <button @click="openDRModal()" class="btn">
+
           DR 추가
         </button>
         <button @click="deleteSelected" :disabled="selectedDRs.length === 0" class="btn btn-danger">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="mask0_2337_23821" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+          <rect width="20" height="20" fill="#D9D9D9"/>
+          </mask>
+          <g mask="url(#mask0_2337_23821)">
+          <path d="M5.78125 17.6693C5.25653 17.6693 4.80938 17.4845 4.43979 17.1149C4.07021 16.7453 3.88542 16.2982 3.88542 15.7734V5.05469H2.9375V3.15885H7.38813V2.21094H12.6073V3.15885H17.0679V5.05469H16.12V15.7734C16.12 16.2982 15.9352 16.7453 15.5656 17.1149C15.196 17.4845 14.7489 17.6693 14.2242 17.6693H5.78125ZM14.2242 5.05469H5.78125V15.7734H14.2242V5.05469ZM7.41313 14.1616H9.19438V6.66156H7.41313V14.1616ZM10.811 14.1616H12.5923V6.66156H10.811V14.1616Z" fill="#7F7F7F"/>
+          </g>
+          </svg>
           DR 삭제
         </button>
       </div>
@@ -265,17 +274,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-dr {
-  padding: 20px;
-}
+
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
 }
 
 .page-header h1 {
@@ -291,12 +296,18 @@ onMounted(() => {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: #000;
+  color: white;
 }
 
 .btn-primary {

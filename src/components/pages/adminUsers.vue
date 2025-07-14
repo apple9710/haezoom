@@ -5,10 +5,20 @@
     <div class="page-header">
       <h1>사용자 관리</h1>
       <div class="header-actions">
-        <button @click="openUserModal()" class="btn btn-primary">
+        <button @click="openUserModal()" class="btn">
+          <img src="@/assets/images/add.svg" alt="추가" class="btn-icon" />
+
           사용자 추가
         </button>
         <button @click="deleteSelected" :disabled="selectedUsers.length === 0" class="btn btn-danger">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="mask0_2337_23821" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+          <rect width="20" height="20" fill="#D9D9D9"/>
+          </mask>
+          <g mask="url(#mask0_2337_23821)">
+          <path d="M5.78125 17.6693C5.25653 17.6693 4.80938 17.4845 4.43979 17.1149C4.07021 16.7453 3.88542 16.2982 3.88542 15.7734V5.05469H2.9375V3.15885H7.38813V2.21094H12.6073V3.15885H17.0679V5.05469H16.12V15.7734C16.12 16.2982 15.9352 16.7453 15.5656 17.1149C15.196 17.4845 14.7489 17.6693 14.2242 17.6693H5.78125ZM14.2242 5.05469H5.78125V15.7734H14.2242V5.05469ZM7.41313 14.1616H9.19438V6.66156H7.41313V14.1616ZM10.811 14.1616H12.5923V6.66156H10.811V14.1616Z" fill="#7F7F7F"/>
+          </g>
+          </svg>
           사용자 삭제
         </button>
       </div>
@@ -288,17 +298,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-users {
-  padding: 20px;
-}
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
 }
 
 .page-header h1 {
@@ -314,12 +319,23 @@ onMounted(() => {
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 99px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: #000;
+  color: white;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .btn-primary {
@@ -327,8 +343,9 @@ onMounted(() => {
   color: white;
 }
 
-.btn-primary:hover {
-  background-color: #c0392b;
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
 }
 
 .btn-danger {
@@ -336,13 +353,15 @@ onMounted(() => {
   color: white;
 }
 
-.btn-danger:hover {
-  background-color: #c0392b;
+.btn-danger:disabled {
+  background-color: #f9f9f9;
+  border: 1px solid #E4E4E4;
+  cursor: not-allowed;
+  color: #7f7f7f;
 }
 
-.btn-danger:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
+.btn-danger:disabled .btn-icon {
+  filter: brightness(0) invert(0.7);
 }
 
 .table-container {
