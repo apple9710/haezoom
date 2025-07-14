@@ -46,22 +46,42 @@
         :key="building.id"
         class="building-card"
       >
-        <div class="building-overlay">
+        <!-- 호버 시 표시되는 오버레이 -->
+        <div class="building-hover-overlay">
+          <!-- 상세보기 버튼 (좌측) -->
+          <div class="detail-view-section">
+            <button @click="viewBuildingDetail(building)" class="detail-view-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="white"/>
+              </svg>
+              상세보기
+            </button>
+          </div>
+
+          <!-- 관리자 정보 (우측) -->
+          <div class="admin-info-section">
+            <div class="admin-info-title">연결된 실증지 사용자</div>
+            <div class="connected-users">
+              <div class="user-item" v-for="user in getConnectedUsers(building)" :key="user.id">
+                <span class="user-id">{{ user.username }}({{ user.displayName }})</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 액션 메뉴 (우측 상단) -->
           <div class="action-menu">
             <button class="action-menu-btn">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="4" cy="10" r="2" fill="black"/>
-                <circle cx="10" cy="10" r="2" fill="black"/>
-                <circle cx="16" cy="10" r="2" fill="black"/>
+                <circle cx="4" cy="10" r="2" fill="white"/>
+                <circle cx="10" cy="10" r="2" fill="white"/>
+                <circle cx="16" cy="10" r="2" fill="white"/>
               </svg>
             </button>
             <div class="action-dropdown">
               <button @click="openBuildingModal(building)" class="dropdown-item">
-                <!-- <img src="@/assets/images/settings.svg" alt="수정" class="dropdown-icon" /> -->
                 수정
               </button>
               <button @click="deleteBuildingConfirm(building)" class="dropdown-item">
-                <!-- <img src="@/assets/images/close.svg" alt="삭제" class="dropdown-icon" /> -->
                 삭제
               </button>
             </div>
@@ -90,12 +110,10 @@
           </div>
           
           <div class="building-actions">
-            <div class="actions-left">
               <div class="admin-info">
                 <img src="@/assets/images/account_icon.png" alt="관리자" class="admin-icon" />
                 {{ building.admin }} / 외 {{ building.memberCount }}명
               </div>
-            </div>
           </div>
         </div>
       </div>
@@ -341,10 +359,114 @@
         </div>
       </div>
     </BaseModal>
+
+    <!-- 실증지 상세보기 모달 -->
+    <BaseModal 
+      :is-open="showBuildingDetailModal" 
+      title="실증지 상세 정보"
+      @close="closeBuildingDetailModal"
+      :show-footer="false"
+    >
+      <div class="building-detail-form" v-if="selectedBuildingDetail">
+        <!-- 실증지 이미지 -->
+        <div class="detail-image-section">
+          <div class="detail-image">
+            <img :src="getImagePath(selectedBuildingDetail.id)" :alt="selectedBuildingDetail.name" />
+          </div>
+        </div>
+
+        <!-- 기본 정보 -->
+        <div class="detail-info-section">
+          <!-- <h3 class="detail-section-title">기본 정보</h3> -->
+          <div class="detail-info-grid">
+            <div class="detail-info-item">
+              <label>실증지 명</label>
+              <span>{{ selectedBuildingDetail.name }}</span>
+            </div>
+            <!-- <div class="detail-info-item">
+              <label>전화번호</label>
+              <span>{{ selectedBuildingDetail.phone }}</span>
+            </div> -->
+            <div class="detail-info-item">
+              <label>주소</label>
+              <span>{{ selectedBuildingDetail.address }}</span>
+            </div>
+            <div class="detail-info-item">
+              <label>비고란</label>
+              <span>{{ selectedBuildingDetail.description }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 관리자 정보 -->
+        <!-- <div class="detail-admin-section">
+          <h3 class="detail-section-title">관리자 정보</h3>
+          <div class="detail-admin-info">
+            <div class="admin-main-info">
+              <img src="@/assets/images/account_icon.png" alt="관리자" class="admin-detail-icon" />
+              <span>{{ selectedBuildingDetail.admin }} / 외 {{ selectedBuildingDetail.memberCount }}명</span>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- 연결된 사용자 -->
+        <div class="detail-users-section">
+          <h3 class="detail-section-title">연결된 사용자</h3>
+          <div class="detail-users-grid">
+            <div 
+              v-for="user in getConnectedUsers(selectedBuildingDetail)" 
+              :key="user.id"
+              class="detail-user-item"
+            >
+              <div class="user-info">
+                <span class="user-name">{{ user.displayName }}</span>
+                <span class="user-id-text">{{ user.username }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button @click="closeBuildingDetailModal" class="btn-cancel">닫기</button>
+          <button @click="editFromDetail(selectedBuildingDetail)" class="btn-save">수정</button>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
+/*
+백엔드 연결 시 예상 데이터 구조:
+
+Building 객체:
+{
+  id: number,
+  name: string,
+  phone: string,
+  address: string,
+  description: string,
+  admin: string,
+  memberCount: number,
+  connectedUsers: [
+    {
+      id: number,
+      username: string,
+      displayName: string,
+      role: string,
+      email?: string
+    }
+  ]
+}
+
+API 엔드포인트:
+- GET /api/buildings - 모든 실증지 목록 조회
+- GET /api/buildings/:id/users - 특정 실증지의 연결된 사용자 목록 조회
+- POST /api/buildings - 새 실증지 생성
+- PUT /api/buildings/:id - 실증지 정보 수정
+- DELETE /api/buildings/:id - 실증지 삭제
+*/
+
 import { ref, computed, onMounted } from 'vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
@@ -375,6 +497,9 @@ const buildings = ref([
   }
 ])
 
+// 백엔드 연결을 위한 사용자 데이터 추가
+const connectedUsers = ref([]) // 각 실증지별 연결된 사용자 목록
+
 // 상태 변수
 const searchQuery = ref('')
 const showFilter = ref(false)
@@ -384,7 +509,9 @@ const selectedBuildings = ref([])
 const showBuildingModal = ref(false)
 const showUserSelectModal = ref(false)
 const showElectricPlanModal = ref(false)
+const showBuildingDetailModal = ref(false)
 const isEditMode = ref(false)
+const selectedBuildingDetail = ref(null)
 
 // 전기요금제 선택 관련
 const selectedElectricPlan = ref('')
@@ -433,6 +560,35 @@ const totalPages = computed(() =>
 
 const totalItems = computed(() => filteredBuildings.value.length)
 
+// 백엔드 API 함수들
+const fetchBuildingUsers = async (buildingId) => {
+  try {
+    // 실제 API 호출
+    const response = await fetch(`/api/buildings/${buildingId}/users`)
+    const users = await response.json()
+    return users
+  } catch (error) {
+    console.error('사용자 데이터 조회 실패:', error)
+    return []
+  }
+}
+
+const fetchAllBuildings = async () => {
+  try {
+    const response = await fetch('/api/buildings')
+    const buildingsData = await response.json()
+    
+    // 각 실증지별 사용자 데이터도 함께 조회
+    for (let building of buildingsData) {
+      building.connectedUsers = await fetchBuildingUsers(building.id)
+    }
+    
+    buildings.value = buildingsData
+  } catch (error) {
+    console.error('실증지 데이터 조회 실패:', error)
+  }
+}
+
 // 메서드
 const openBuildingModal = (building = null) => {
   isEditMode.value = !!building
@@ -459,6 +615,23 @@ const openBuildingModal = (building = null) => {
 
 const closeBuildingModal = () => {
   showBuildingModal.value = false
+}
+
+// 상세보기 함수 수정
+const viewBuildingDetail = (building) => {
+  selectedBuildingDetail.value = building
+  showBuildingDetailModal.value = true
+}
+
+const closeBuildingDetailModal = () => {
+  showBuildingDetailModal.value = false
+  selectedBuildingDetail.value = null
+}
+
+// 상세보기에서 수정 버튼 클릭 시
+const editFromDetail = (building) => {
+  closeBuildingDetailModal()
+  openBuildingModal(building)
 }
 
 // 이미지 업로드 관련
@@ -549,8 +722,27 @@ const getImagePath = (buildingId) => {
   return `/src/assets/images/testimg.png`
 }
 
+// 연결된 사용자 목록 가져오기 (백엔드 연결 전까지 임시 데이터 반환)
+const getConnectedUsers = (building) => {
+  // 백엔드 연결 시 실제 데이터 사용
+  if (building.connectedUsers && building.connectedUsers.length > 0) {
+    return building.connectedUsers
+  }
+  
+  // 임시 하드코딩 데이터 (백엔드 연결 전까지 사용)
+  return [
+    { id: 1, username: 'haezoom', displayName: '해줌관리자' },
+    { id: 2, username: 'prodadmin', displayName: '슈퍼관리자' },
+    { id: 3, username: 'hzuser', displayName: '해줌사용자' },
+    { id: 4, username: 'lottemart', displayName: '김태훈' },
+    { id: 5, username: 'haezoom', displayName: '해줌관리자' },
+    { id: 6, username: 'prodadmin', displayName: '슈퍼관리자' }
+  ]
+}
+
 // 생성될 때 더 많은 데이터 생성
-onMounted(() => {
+onMounted(async () => {
+  // 임시 데이터 생성 (개발용)
   for (let i = 3; i <= 9; i++) {
     buildings.value.push({
       id: i,
@@ -564,15 +756,15 @@ onMounted(() => {
       status: '수정'
     })
   }
+  
+  // 백엔드 연결 시 주석 해제
+  // await fetchAllBuildings()
 })
 </script>
 
 <style scoped>
 img{
   width: 100%;
-}
-.admin-buildings {
-  padding: 20px;
 }
 
 .page-header {
@@ -675,7 +867,6 @@ img{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
   padding: 30px;
   background: #f8f8f8;
   border-radius: 20px;
@@ -692,6 +883,7 @@ img{
   grid-template-columns: 168px 1fr;
   column-gap: 20px;
   align-items: center;
+  position: relative;
 }
 
 .building-card:hover {
@@ -714,23 +906,123 @@ img{
   max-height: 100%;
   object-fit: cover;
   height: 100%;
-  
 }
 
-.building-overlay {
+/* 호버 오버레이 스타일 */
+.building-hover-overlay {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
   opacity: 0;
-  transition: opacity 0.2s;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 10;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 20px;
 }
 
-.building-card:hover .building-overlay {
+.building-card:hover .building-hover-overlay {
   opacity: 1;
+  visibility: visible;
 }
 
+/* 상세보기 버튼 영역 (좌측) */
+.detail-view-section {
+  width: 200px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.detail-view-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  padding: 12px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.detail-view-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 관리자 정보 영역 (우측) */
+.admin-info-section {
+  flex: 1;
+  color: white;
+  padding: 10px 0;
+}
+
+.admin-info-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.connected-users {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 스크롤바 스타일 */
+.connected-users::-webkit-scrollbar {
+  scrollbar-width: thin;
+  background: transparent;
+  width: 4px !important;
+}
+
+.connected-users::-webkit-scrollbar-track {
+  /* background: rgba(255, 255, 255, 0.1); */
+  border-radius: 2px;
+}
+
+.connected-users::-webkit-scrollbar-thumb {
+  background:#ffffff !important;
+  border-radius: 2px;
+}
+
+.connected-users::-webkit-scrollbar-thumb:hover {
+  background: #ffffff !important;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+
+}
+
+.user-id {
+  font-size: 14px;
+  color: white;
+}
+
+/* 액션 메뉴 (우측 상단) */
 .action-menu {
-  position: relative;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 20;
 }
 
 .action-menu-btn {
@@ -742,13 +1034,13 @@ img{
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f8f8;
-  border: 1px solid #e4e4e4;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: background 0.2s;
 }
 
 .action-menu-btn:hover {
-  background: #e4e4e4;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .action-dropdown {
@@ -766,7 +1058,7 @@ img{
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: 30;
 }
 
 .action-menu:hover .action-dropdown {
@@ -1026,9 +1318,7 @@ img{
   display: flex;
   justify-content: center;
   gap: 10px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-  margin-top: 20px;
+  padding-top: 10px;
 }
 
 .btn-cancel {
@@ -1164,5 +1454,150 @@ img{
 
 .form-input:focus {
   border-color: #007bff;
+}
+
+/* 실증지 상세보기 모달 스타일 */
+.building-detail-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-image-section {
+  text-align: center;
+}
+
+.detail-image {
+  width: 100%;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #424242;
+  padding-bottom: 8px;
+}
+
+.detail-info-item:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.detail-info-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+}
+
+.detail-info-item label {
+  font-weight: 500;
+  color: #666;
+  font-size: 14px;
+}
+
+.detail-info-item span {
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  color: #333;
+  font-size: 14px;
+}
+
+.detail-admin-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e4e4e4;
+}
+
+.admin-main-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.admin-detail-icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.detail-users-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e4e4e4;
+}
+
+.detail-users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.detail-user-item {
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e4e4e4;
+  transition: all 0.2s ease;
+}
+
+.detail-user-item:hover {
+  border-color: #e74c3c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  gap: 4px;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-id-text {
+  color: #666;
+  font-size: 12px;
+}
+
+/* 상세보기 사용자 목록 스크롤바 스타일 */
+.detail-users-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail-users-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.detail-users-grid::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.detail-users-grid::-webkit-scrollbar-thumb:hover {
+  background: #e16349;
 }
 </style>
