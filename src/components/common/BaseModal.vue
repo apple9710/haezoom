@@ -100,7 +100,7 @@ watch(() => props.isOpen, (newValue) => {
 .modal-container {
   background: white;
   border-radius: 8px;
-  max-width: 500px;
+  max-width: 600px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
