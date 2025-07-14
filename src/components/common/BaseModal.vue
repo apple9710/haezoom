@@ -99,7 +99,7 @@ watch(() => props.isOpen, (newValue) => {
 
 .modal-container {
   background: white;
-  border-radius: 8px;
+  border-radius: 20px;
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
@@ -111,8 +111,8 @@ watch(() => props.isOpen, (newValue) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #dee2e6;
+  padding: 20px 20px 0;
+  /* border-bottom: 1px solid #dee2e6; */
 }
 
 .modal-title {
