@@ -58,7 +58,7 @@ const layoutClasses = computed(() => ({
 .main-content {
   grid-area: content;
   overflow-y: auto;
-  padding: 20px;
+  padding: 20px 50px 20px;
   background: #fff;
 }
 
