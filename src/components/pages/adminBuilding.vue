@@ -173,12 +173,12 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>실증지 선택</label>
+            <label>사용자 선택</label>
             <select v-model="buildingForm.status" class="form-select" @click="openUserSelectModal">
-              <option value="">실증지 선택</option>
-              <option value="위험 설정">위험 설정</option>
+              <option value="">사용자 선택</option>
+              <!-- <option value="위험 설정">위험 설정</option>
               <option value="수정">수정</option>
-              <option value="삭제">삭제</option>
+              <option value="삭제">삭제</option> -->
             </select>
           </div>
         </div>
