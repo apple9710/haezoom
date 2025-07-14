@@ -410,7 +410,7 @@ const buildingForm = ref({
 
 // 페이지네이션
 const currentPage = ref(1)
-const itemsPerPage = ref(4)
+const itemsPerPage = ref(6)
 
 // 계산된 속성
 const filteredBuildings = computed(() => {
@@ -551,7 +551,7 @@ const getImagePath = (buildingId) => {
 
 // 생성될 때 더 많은 데이터 생성
 onMounted(() => {
-  for (let i = 3; i <= 6; i++) {
+  for (let i = 3; i <= 9; i++) {
     buildings.value.push({
       id: i,
       name: '롯데마트 금천점',
@@ -579,9 +579,7 @@ img{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
 }
 
 .page-header h1 {
@@ -678,7 +676,7 @@ img{
   grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
-  padding: 40px;
+  padding: 30px;
   background: #f8f8f8;
   border-radius: 20px;
 }
