@@ -349,6 +349,7 @@ onMounted(() => {
   text-align: center;
   border-bottom: 1px solid #eee;
   font-size: 14px;
+  color: #424242;
 }
 
 .checkbox-column {
