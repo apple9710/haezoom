@@ -21,7 +21,7 @@
             </div>
           </button>
         </div>
-        <button @click="openBuildingModal()" class="btn">
+        <button @click="openBuildingModal()" class="btn" id="add-building-btn">
           <img src="@/assets/images/add.svg" alt="추가" class="btn-icon" />
           실증지 추가
         </button>
@@ -106,59 +106,230 @@
     <!-- 실증지 추가/수정 모달 -->
     <BaseModal 
       :is-open="showBuildingModal" 
-      :title="isEditMode ? '실증지 수정' : '실증지 추가'"
+      title="실증지 정보"
       @close="closeBuildingModal"
-      @confirm="saveBuilding"
+      :show-footer="false"
     >
       <div class="building-form">
-        <div class="form-group">
-          <label for="buildingName">건물유형</label>
-          <input 
-            id="buildingName"
-            v-model="buildingForm.name" 
-            type="text" 
-            placeholder="실증지 이름"
-          />
+        <!-- 이미지 업로드 영역 -->
+        <div class="image-upload-area">
+          <div v-if="buildingForm.imagePreview" class="image-preview">
+            <img :src="buildingForm.imagePreview" alt="미리보기" />
+            <button @click="removeImage" class="remove-image-btn">×</button>
+          </div>
+          <div v-else class="upload-placeholder">
+            <div class="upload-text">
+              실증지 리스트에 사용할 이미지를 등록해 주세요<br>
+              <span class="upload-hint">※파일 이미지 사이즈 500X250</span>
+            </div>
+            <input 
+              ref="fileInput"
+              type="file" 
+              accept="image/*" 
+              @change="handleImageUpload"
+              style="display: none"
+            />
+            <button @click="$refs.fileInput.click()" class="upload-btn">파일 선택</button>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label for="buildingType">실증지명</label>
-          <input 
-            id="buildingType"
-            v-model="buildingForm.type" 
-            type="text" 
-            placeholder="롯데마트 금천점"
-          />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="buildingName">실증지 명 (*)</label>
+            <input 
+              id="buildingName"
+              v-model="buildingForm.name" 
+              type="text" 
+              placeholder="실증지 명을 입력해 주세요"
+            />
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label for="address">실증지 주소</label>
-          <input 
-            id="address"
-            v-model="buildingForm.address" 
-            type="text" 
-            placeholder="서울특별시 금천구 시흥대로 291"
-          />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="buildingAddress">실증지 주소 (*)</label>
+            <input 
+              id="buildingAddress"
+              v-model="buildingForm.address" 
+              type="text" 
+              placeholder="주소를 입력해 주세요"
+            />
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label for="phone">연락처</label>
-          <input 
-            id="phone"
-            v-model="buildingForm.phone" 
-            type="tel" 
-            placeholder="0269602550"
-          />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="buildingDescription">비고</label>
+            <textarea 
+              id="buildingDescription"
+              v-model="buildingForm.description" 
+              placeholder="기타 정보를 입력해주세요"
+              maxlength="60"
+              rows="3"
+            ></textarea>
+            <div class="char-count">{{ buildingForm.description?.length || 0 }} / 60 자</div>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label for="description">비고</label>
-          <textarea 
-            id="description"
-            v-model="buildingForm.description" 
-            placeholder="비고란"
-            rows="3"
-          ></textarea>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>실증지 선택</label>
+            <select v-model="buildingForm.status" class="form-select" @click="openUserSelectModal">
+              <option value="">실증지 선택</option>
+              <option value="위험 설정">위험 설정</option>
+              <option value="수정">수정</option>
+              <option value="삭제">삭제</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>전기요금제 선택</label>
+            <select v-model="buildingForm.electricPlan" class="form-select" @click="openElectricPlanModal">
+              <option value="">관리자</option>
+              <option value="plan1">요금제 1</option>
+              <option value="plan2">요금제 2</option>
+              <option value="plan3">요금제 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button @click="closeBuildingModal" class="btn-cancel">취소</button>
+          <button @click="saveBuilding" class="btn-save">추가</button>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- 사용자 선택 모달 -->
+    <BaseModal 
+      :is-open="showUserSelectModal" 
+      title="실증지검색"
+      @close="closeUserSelectModal"
+      :show-footer="false"
+    >
+      <div class="user-select-form">
+        <div class="search-section">
+          <div class="search-info">사용자 실증지 정보</div>
+          <div class="search-tag">
+            롯데마트(lottemart) ×
+          </div>
+          <div class="search-controls">
+            <select class="search-type">
+              <option>전체</option>
+              <option>ID</option>
+              <option>이름</option>
+            </select>
+            <input type="text" placeholder="검색어를 입력해주세요" class="search-input-modal" />
+            <button class="search-btn-modal">검색</button>
+          </div>
+        </div>
+
+        <div class="user-table">
+          <div class="table-header">
+            <div class="table-cell">
+              <input type="checkbox" />
+            </div>
+            <div class="table-cell">ID</div>
+            <div class="table-cell">이름</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              <input type="checkbox" />
+            </div>
+            <div class="table-cell">haezoom</div>
+            <div class="table-cell">해줌관리자</div>
+          </div>
+          <div class="table-row selected">
+            <div class="table-cell">
+              <input type="checkbox" checked />
+            </div>
+            <div class="table-cell">lottemart</div>
+            <div class="table-cell">롯데마트</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              <input type="checkbox" />
+            </div>
+            <div class="table-cell">bems</div>
+            <div class="table-cell">bems</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              <input type="checkbox" />
+            </div>
+            <div class="table-cell">test1234</div>
+            <div class="table-cell">test</div>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button @click="closeUserSelectModal" class="btn-cancel">취소</button>
+          <button @click="selectUsers" class="btn-save">선택완료</button>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- 전기요금제 선택 모달 -->
+    <BaseModal 
+      :is-open="showElectricPlanModal" 
+      title="전기요금제 선택"
+      @close="closeElectricPlanModal"
+      :show-footer="false"
+    >
+      <div class="electric-plan-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>전기요금제 선택</label>
+            <select v-model="selectedElectricPlan" class="form-select">
+              <option value="">전기요금제 선택</option>
+              <option value="general">일반용 선택</option>
+              <option value="commercial">상업용 선택</option>
+              <option value="industrial">산업용 선택</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>종료시간</label>
+            <select v-model="selectedEndTime" class="form-select">
+              <option value="">전력구분 선택</option>
+              <option value="peak">첨두구분</option>
+              <option value="middle">중간구분</option>
+              <option value="base">기저구분</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>감점임 임계</label>
+            <input 
+              v-model="reductionThreshold" 
+              type="number" 
+              placeholder="30"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>계약 전력</label>
+            <input 
+              v-model="contractPower" 
+              type="number" 
+              placeholder="200"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button @click="closeElectricPlanModal" class="btn-cancel">취소</button>
+          <button @click="saveElectricPlan" class="btn-save">설정완료</button>
         </div>
       </div>
     </BaseModal>
@@ -203,7 +374,15 @@ const selectedBuildings = ref([])
 
 // 모달 관련
 const showBuildingModal = ref(false)
+const showUserSelectModal = ref(false)
+const showElectricPlanModal = ref(false)
 const isEditMode = ref(false)
+
+// 전기요금제 선택 관련
+const selectedElectricPlan = ref('')
+const selectedEndTime = ref('')
+const reductionThreshold = ref('')
+const contractPower = ref('')
 
 // 실증지 폼 데이터
 const buildingForm = ref({
@@ -211,12 +390,14 @@ const buildingForm = ref({
   name: '',
   type: '',
   image: '',
+  imagePreview: '',
   phone: '',
   address: '',
   description: '',
   admin: '',
   memberCount: 0,
-  status: '수정'
+  status: '',
+  electricPlan: ''
 })
 
 // 페이지네이션
@@ -255,12 +436,14 @@ const openBuildingModal = (building = null) => {
       name: '',
       type: '',
       image: '',
+      imagePreview: '',
       phone: '',
       address: '',
       description: '',
       admin: 'Prodadmin(슈퍼관리자)',
       memberCount: 0,
-      status: '수정'
+      status: '',
+      electricPlan: ''
     }
   }
   showBuildingModal.value = true
@@ -268,6 +451,53 @@ const openBuildingModal = (building = null) => {
 
 const closeBuildingModal = () => {
   showBuildingModal.value = false
+}
+
+// 이미지 업로드 관련
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      buildingForm.value.imagePreview = e.target.result
+      buildingForm.value.image = file
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const removeImage = () => {
+  buildingForm.value.imagePreview = ''
+  buildingForm.value.image = ''
+}
+
+// 사용자 선택 모달
+const openUserSelectModal = () => {
+  showUserSelectModal.value = true
+}
+
+const closeUserSelectModal = () => {
+  showUserSelectModal.value = false
+}
+
+const selectUsers = () => {
+  // 선택된 사용자 처리 로직
+  closeUserSelectModal()
+}
+
+// 전기요금제 선택 모달
+const openElectricPlanModal = () => {
+  showElectricPlanModal.value = true
+}
+
+const closeElectricPlanModal = () => {
+  showElectricPlanModal.value = false
+}
+
+const saveElectricPlan = () => {
+  // 전기요금제 설정 저장 로직
+  buildingForm.value.electricPlan = selectedElectricPlan.value
+  closeElectricPlanModal()
 }
 
 const saveBuilding = () => {
@@ -581,33 +811,248 @@ img{
 .building-form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.image-upload-area {
+  width: 100%;
+  height: 200px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: #f9f9f9;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-placeholder {
+  text-align: center;
+}
+
+.upload-text {
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.upload-btn {
+  padding: 8px 20px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+}
+
+.form-row {
+  display: flex;
   gap: 15px;
 }
 
 .form-group {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .form-group label {
   font-weight: 500;
   color: #333;
+  font-size: 14px;
 }
 
 .form-group input,
 .form-group textarea,
-.form-group select {
-  padding: 8px 12px;
+.form-select {
+  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  outline: none;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
-.form-group select:focus {
+.form-select:focus {
+  border-color: #007bff;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  padding: 12px 30px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+}
+
+.btn-save {
+  padding: 12px 30px;
+  background: #e74c3c;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+}
+
+/* 사용자 선택 모달 스타일 */
+.user-select-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.search-info {
+  font-weight: 500;
+  color: #333;
+}
+
+.search-tag {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 14px;
+  color: #666;
+}
+
+.search-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-type {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.search-input-modal {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.search-btn-modal {
+  padding: 8px 16px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.user-table {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  background: #e74c3c;
+  color: white;
+  font-weight: 500;
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.table-row.selected {
+  background: #ffe6e6;
+}
+
+.table-cell {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 전기요금제 선택 모달 스타일 */
+.electric-plan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
   outline: none;
-  border-color: #e74c3c;
+}
+
+.form-input:focus {
+  border-color: #007bff;
 }
 </style>
