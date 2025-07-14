@@ -1540,15 +1540,15 @@ img{
 
 .detail-users-section {
   background: #f8f9fa;
-  padding: 20px;
+  padding: 16px;
   border-radius: 10px;
   border: 1px solid #e4e4e4;
 }
 
 .detail-users-grid {
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
+  gap: 12px; */
   max-height: 200px;
   overflow-y: auto;
 }
@@ -1560,6 +1560,9 @@ img{
   border: 1px solid #e4e4e4;
   transition: all 0.2s ease;
 }
+.detail-user-item:not(:last-child) {
+  margin-bottom: 8px;
+}
 
 .detail-user-item:hover {
   border-color: #e74c3c;
@@ -1568,13 +1571,14 @@ img{
 
 .user-info {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
 .user-name {
   font-weight: 500;
-  color: #333;
-  font-size: 14px;
+  color: #424242;
+  font-size: 13px;
 }
 
 .user-id-text {
