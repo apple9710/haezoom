@@ -187,7 +187,7 @@
           <div class="form-group">
             <label>전기요금제 선택</label>
             <select v-model="buildingForm.electricPlan" class="form-select" @click="openElectricPlanModal">
-              <option value="">관리자</option>
+              <option value="">전기요금제 선택</option>
               <option value="plan1">요금제 1</option>
               <option value="plan2">요금제 2</option>
               <option value="plan3">요금제 3</option>
