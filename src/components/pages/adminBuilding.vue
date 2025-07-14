@@ -47,12 +47,25 @@
         class="building-card"
       >
         <div class="building-overlay">
-          <button @click="openBuildingModal(building)" class="edit-btn">
-            <img src="@/assets/images/settings.svg" alt="수정" />
-          </button>
-          <button @click="deleteBuildingConfirm(building)" class="delete-btn">
-            <img src="@/assets/images/close.svg" alt="삭제" />
-          </button>
+          <div class="action-menu">
+            <button class="action-menu-btn">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="4" cy="10" r="2" fill="black"/>
+                <circle cx="10" cy="10" r="2" fill="black"/>
+                <circle cx="16" cy="10" r="2" fill="black"/>
+              </svg>
+            </button>
+            <div class="action-dropdown">
+              <button @click="openBuildingModal(building)" class="dropdown-item">
+                <!-- <img src="@/assets/images/settings.svg" alt="수정" class="dropdown-icon" /> -->
+                수정
+              </button>
+              <button @click="deleteBuildingConfirm(building)" class="dropdown-item">
+                <!-- <img src="@/assets/images/close.svg" alt="삭제" class="dropdown-icon" /> -->
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="building-image">
@@ -82,13 +95,6 @@
                 <img src="@/assets/images/account_icon.png" alt="관리자" class="admin-icon" />
                 {{ building.admin }} / 외 {{ building.memberCount }}명
               </div>
-            </div>
-            <div class="actions-right">
-              <select v-model="building.status" class="status-select">
-                <option value="위험 설정">위험 설정</option>
-                <option value="수정">수정</option>
-                <option value="삭제">삭제</option>
-              </select>
             </div>
           </div>
         </div>
@@ -158,7 +164,7 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
+          <div class="form-group desc">
             <label for="buildingDescription">비고</label>
             <div class="textarea-container">
               <textarea 
@@ -539,12 +545,8 @@ const handlePageChange = (page) => {
 
 // 이미지 경로 반환 함수
 const getImagePath = (buildingId) => {
-  try {
-    return new URL(`../../../assets/images/icon/${buildingId}.png`, import.meta.url).href
-  } catch {
-    // 기본 이미지
-    return new URL(`../../../assets/images/icon/1.png`, import.meta.url).href
-  }
+  // 임시 이미지 사용 - Vite의 정적 asset 처리 방식으로 변경
+  return `/src/assets/images/testimg.png`
 }
 
 // 생성될 때 더 많은 데이터 생성
@@ -700,32 +702,108 @@ img{
 
 .building-image {
   position: relative;
-  height: 200px;
+  height: 168px;
   background: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
+  overflow: hidden;
 }
 
 .building-image img {
   max-width: 100%;
   max-height: 100%;
   object-fit: cover;
+  height: 100%;
+  
 }
 
 .building-overlay {
   position: absolute;
   top: 10px;
   right: 10px;
-  display: flex;
-  gap: 5px;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
 .building-card:hover .building-overlay {
   opacity: 1;
+}
+
+.action-menu {
+  position: relative;
+}
+
+.action-menu-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f8f8;
+  border: 1px solid #e4e4e4;
+  transition: background 0.2s;
+}
+
+.action-menu-btn:hover {
+  background: #e4e4e4;
+}
+
+.action-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.action-menu:hover .action-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  color: #424242;
+  transition: background 0.2s;
+}
+
+.dropdown-item:first-child{
+  margin-bottom: 10px;
+}
+.dropdown-item:hover {
+  background: #E1E1E1;
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .edit-btn, .delete-btn {
@@ -760,18 +838,18 @@ img{
 .building-info h3 {
   margin: 0 0 10px 0;
   font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #000;
 }
 
 .building-details {
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .detail-item {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-size: 14px;
-  color: #666;
+  color: #7f7f7f;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -886,22 +964,33 @@ img{
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 8px;
+  align-items: center;
 }
-
+.form-group.desc {
+  align-items: flex-start;
+}
 .form-group label {
   font-weight: 500;
   color: #333;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-select {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 15px;
   outline: none;
+}
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e");
+    background-size: 20px;
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
 }
 
 .form-group textarea {
@@ -927,7 +1016,7 @@ img{
 .form-group input:focus,
 .form-group textarea:focus,
 .form-select:focus {
-  border-color: #007bff;
+  border-color: #e74c3c;
 }
 
 .modal-buttons {
@@ -993,10 +1082,16 @@ img{
 }
 
 .search-type {
-  padding: 8px 12px;
+  padding: 8px 25px 8px 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23374151'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e");
+  background-size: 20px;
+  background-position: right 5px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
 }
 
 .search-input-modal {
