@@ -160,14 +160,16 @@
         <div class="form-row">
           <div class="form-group">
             <label for="buildingDescription">비고</label>
-            <textarea 
-              id="buildingDescription"
-              v-model="buildingForm.description" 
-              placeholder="기타 정보를 입력해주세요"
-              maxlength="60"
-              rows="3"
-            ></textarea>
-            <div class="char-count">{{ buildingForm.description?.length || 0 }} / 60 자</div>
+            <div class="textarea-container">
+              <textarea 
+                id="buildingDescription"
+                v-model="buildingForm.description" 
+                placeholder="기타 정보를 입력해주세요"
+                maxlength="60"
+                rows="3"
+              ></textarea>
+              <div class="char-count">{{ buildingForm.description?.length || 0 }} / 60 자</div>
+            </div>
           </div>
         </div>
 
@@ -880,15 +882,9 @@ img{
   color: #666;
 }
 
-.form-row {
-  display: flex;
-  gap: 15px;
-}
-
 .form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 120px 1fr;
   gap: 8px;
 }
 
@@ -908,17 +904,30 @@ img{
   outline: none;
 }
 
+.form-group textarea {
+  resize: none;
+  width: 100%;
+}
+
+.textarea-container {
+  position: relative;
+}
+
+.char-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 12px;
+  color: #666;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-select:focus {
   border-color: #007bff;
-}
-
-.char-count {
-  font-size: 12px;
-  color: #666;
-  text-align: right;
-  margin-top: 5px;
 }
 
 .modal-buttons {
@@ -1018,7 +1027,9 @@ img{
   color: white;
   font-weight: 500;
 }
-
+.table-header .table-cell{
+  color: #fff;
+}
 .table-row {
   display: flex;
   border-bottom: 1px solid #eee;
@@ -1035,6 +1046,7 @@ img{
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #424242;
 }
 
 /* 전기요금제 선택 모달 스타일 */
