@@ -78,27 +78,38 @@ a {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(225, 99, 73, 0.3);
+  background: #F0BBB1 !important;
   border-radius: 4px;
   transition: all 0.3s ease;
+  border: none;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(225, 99, 73, 0.5);
+  background: #E16349 !important;
 }
 
-/* Firefox 스크롤바 */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(225, 99, 73, 0.3) rgba(0, 0, 0, 0.05);
+::-webkit-scrollbar-thumb:active {
+  background: #D53818 !important;
 }
+
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+
+/* 특정 브라우저 벤더 프리픽스 추가 */
+/* ::-webkit-scrollbar-thumb:vertical {
+  background: #F0BBB1 !important;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  background: #F0BBB1 !important;
+} */
 
 /* 선택 영역 스타일 */
 ::selection {
