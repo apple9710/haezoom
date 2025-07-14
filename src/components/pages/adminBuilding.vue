@@ -862,9 +862,13 @@ img{
 }
 
 .building-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin: 0 auto;
+  padding: 8px 0;
+  background: #f8f8f8;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  text-align: center;
+  
 }
 
 .admin-info {
@@ -872,6 +876,7 @@ img{
   color: #666;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
 }
 
