@@ -51,9 +51,10 @@
           <!-- 상세보기 버튼 (좌측) -->
           <div class="detail-view-section">
             <button @click="viewBuildingDetail(building)" class="detail-view-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <div class="img-mask"><img src="@/assets/images/manage_search.svg" alt=""></div>
+              <!-- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="white"/>
-              </svg>
+              </svg> -->
               상세보기
             </button>
           </div>
@@ -231,7 +232,7 @@
     <!-- 사용자 선택 모달 -->
     <BaseModal 
       :is-open="showUserSelectModal" 
-      title="실증지검색"
+      title="사용자 검색"
       @close="closeUserSelectModal"
       :show-footer="false"
     >
@@ -921,8 +922,11 @@ img{
   transition: all 0.3s ease;
   z-index: 10;
   border-radius: 10px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  justify-content: center;
   align-items: center;
+  backdrop-filter: blur(5px);
   padding: 20px;
 }
 
@@ -933,20 +937,26 @@ img{
 
 /* 상세보기 버튼 영역 (좌측) */
 .detail-view-section {
-  width: 200px;
+  width: 108px;
+  height: 108px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  margin-left: 14px;
 }
 
 .detail-view-btn {
-  background: rgba(255, 255, 255, 0.2);
+  width: 100%;
+  height: 100%;
+  background: #424242;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
+  border-radius: 100%;
   color: white;
   padding: 12px 20px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 8px;
   font-size: 14px;
@@ -960,11 +970,6 @@ img{
 }
 
 /* 관리자 정보 영역 (우측) */
-.admin-info-section {
-  flex: 1;
-  color: white;
-  padding: 10px 0;
-}
 
 .admin-info-title {
   font-size: 16px;
@@ -1316,7 +1321,7 @@ img{
 
 .modal-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   gap: 10px;
   padding-top: 10px;
 }
@@ -1486,7 +1491,7 @@ img{
 }
 
 .detail-section-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #424242;
   padding-bottom: 8px;
@@ -1505,16 +1510,16 @@ img{
 .detail-info-item label {
   font-weight: 500;
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .detail-info-item span {
-  padding: 12px;
+  padding: 8px 10px;
   background: #f8f9fa;
   border: 1px solid #e4e4e4;
   border-radius: 8px;
   color: #333;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .detail-admin-section {
@@ -1555,13 +1560,13 @@ img{
 
 .detail-user-item {
   background: white;
-  padding: 12px 15px;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #e4e4e4;
   transition: all 0.2s ease;
 }
 .detail-user-item:not(:last-child) {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .detail-user-item:hover {
@@ -1578,7 +1583,7 @@ img{
 .user-name {
   font-weight: 500;
   color: #424242;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .user-id-text {
