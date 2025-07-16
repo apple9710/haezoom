@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="header-center" v-if="!isEditMode" >
+      <div class="header-center" v-if="!isEditMode && selectedBuilding" >
         <ul class="top-menu" ref="topMenu" @mouseleave="handleMenuMouseLeave">
           <div class="menu-background" ref="menuBackground"></div>
           <li v-if="route.name ==='Dashboard'" class="active" @mouseenter="handleMenuItemHover" @click="handleMenuItemClick">
@@ -30,8 +30,8 @@
       <div class="header-right">
 
 
-        <!-- 대시보드 편집 관련 버튼들 -->
-        <div v-if="route.name === 'Dashboard'" class="dashboard-controls">
+        <!-- 대시보드 편집 관련 버튼들 (실증지가 선택된 경우에만) -->
+        <div v-if="route.name === 'Dashboard' && selectedBuilding" class="dashboard-controls">
           <div v-if="!isEditMode" class="view-mode-controls">
             <button @click="enterEditMode" class="edit-mode-btn user-btn">
               <span class="user-btn-icon">
@@ -92,6 +92,14 @@
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
+// Props 정의
+const props = defineProps({
+  selectedBuilding: {
+    type: Object,
+    default: null
+  }
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -279,6 +287,23 @@ watch(
       setTimeout(() => {
         initializeMenuBackground()
       }, 100)
+    }
+  }
+)
+
+// 실증지 선택 상태 변화 감지 (실증지가 변경되면 편집모드 종료)
+watch(
+  () => props.selectedBuilding,
+  (newBuilding, oldBuilding) => {
+    if (newBuilding !== oldBuilding && isEditMode.value) {
+      isEditMode.value = false
+      sidebarOpen.value = false
+      // 대시보드에 편집모드 종료 알림
+      window.dispatchEvent(
+        new CustomEvent('edit-mode-change', {
+          detail: { isEditMode: false, sidebarOpen: false },
+        }),
+      )
     }
   }
 )
