@@ -82,6 +82,9 @@
               <button @click="openBuildingModal(building)" class="dropdown-item">
                 수정
               </button>
+              <button @click="openWidgetSettings(building)" class="dropdown-item">
+                위젯 설정
+              </button>
               <button @click="deleteBuildingConfirm(building)" class="dropdown-item">
                 삭제
               </button>
@@ -433,6 +436,62 @@
         </div>
       </div>
     </BaseModal>
+
+    <!-- 위젯 설정 모달 -->
+    <BaseModal 
+      :is-open="showWidgetSettingsModal" 
+      title="위젯 설정 관리"
+      @close="closeWidgetSettingsModal"
+      :show-footer="false"
+    >
+      <div class="widget-settings-form" v-if="selectedBuildingForWidget">
+        <div class="building-info-header">
+          <h3>{{ selectedBuildingForWidget.name }} 위젯 설정</h3>
+          <p>테스트 데모 모달입니다.</p>
+        </div>
+
+        <div class="pages-section">
+          <div class="section-header">
+            <h4>대시보드 페이지 목록</h4>
+            <button @click="createNewPage" class="btn btn-sm">
+              <img src="@/assets/images/add.svg" alt="추가" class="btn-icon" />
+              새 페이지 추가
+            </button>
+          </div>
+
+          <div class="pages-list">
+            <!-- 기존 페이지 목록 (임시 데이터) -->
+            <div class="page-item">
+              <div class="page-info">
+                <span class="page-name">전력 모니터링</span>
+                <span class="page-meta">위젯 5개</span>
+              </div>
+              <div class="page-actions">
+                <button @click="editExistingPage({ id: 1, name: '전력 모니터링' })" class="btn btn-sm btn-edit">
+                  편집
+                </button>
+              </div>
+            </div>
+
+            <div class="page-item">
+              <div class="page-info">
+                <span class="page-name">에너지 효율성</span>
+                <span class="page-meta">위젯 3개</span>
+              </div>
+              <div class="page-actions">
+                <button @click="editExistingPage({ id: 2, name: '에너지 효율성' })" class="btn btn-sm btn-edit">
+                  편집
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button @click="closeWidgetSettingsModal" class="btn-cancel">닫기</button>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -511,8 +570,10 @@ const showBuildingModal = ref(false)
 const showUserSelectModal = ref(false)
 const showElectricPlanModal = ref(false)
 const showBuildingDetailModal = ref(false)
+const showWidgetSettingsModal = ref(false)
 const isEditMode = ref(false)
 const selectedBuildingDetail = ref(null)
+const selectedBuildingForWidget = ref(null)
 
 // 전기요금제 선택 관련
 const selectedElectricPlan = ref('')
@@ -588,6 +649,27 @@ const fetchAllBuildings = async () => {
   } catch (error) {
     console.error('실증지 데이터 조회 실패:', error)
   }
+}
+
+// 위젯 설정 관련 함수들
+const openWidgetSettings = (building) => {
+  selectedBuildingForWidget.value = building
+  showWidgetSettingsModal.value = true
+}
+
+const closeWidgetSettingsModal = () => {
+  showWidgetSettingsModal.value = false
+  selectedBuildingForWidget.value = null
+}
+
+const createNewPage = () => {
+  // 새 페이지 생성 로직 (다음 단계에서 구현)
+  console.log('새 페이지 생성:', selectedBuildingForWidget.value)
+}
+
+const editExistingPage = (page) => {
+  // 기존 페이지 편집 로직 (다음 단계에서 구현)
+  console.log('페이지 편집:', page)
 }
 
 // 메서드
@@ -1589,6 +1671,86 @@ img{
 .user-id-text {
   color: #666;
   font-size: 12px;
+}
+
+/* 위젯 설정 모달 스타일 */
+.widget-settings-form {
+  padding: 0;
+}
+
+.building-info-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.building-info-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.building-info-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.pages-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.pages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.page-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.page-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* 상세보기 사용자 목록 스크롤바 스타일 */
