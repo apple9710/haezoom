@@ -94,6 +94,7 @@ watch(() => props.isOpen, (newValue) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(5px);
   z-index: 1000;
 }
 
