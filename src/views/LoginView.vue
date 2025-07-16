@@ -37,7 +37,7 @@
               </div>
             </div>
             <div class="account-group">
-              <h4>사용자</h4>
+              <h4>알번 사용자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
                 <span class="credential-value">user1</span>
