@@ -7,7 +7,53 @@
       <div class="floating-element element-3"></div>
       <div class="floating-element element-4"></div>
     </div> -->
-
+      <div class="demo-info">
+        <div class="demo-overlay"></div>
+        <div class="demo-content">
+          <h3>테스트 계정</h3>
+          <div class="demo-accounts">
+            <div class="account-group">
+              <h4>관리자</h4>
+              <div class="credential-item">
+                <span class="credential-label">ID:</span>
+                <span class="credential-value">admin</span>
+                <span class="credential-label">PW:</span>
+                <span class="credential-value">password</span>
+              </div>
+            </div>
+            <div class="account-group">
+              <h4>매니저</h4>
+              <div class="credential-item">
+                <span class="credential-label">ID:</span>
+                <span class="credential-value">haezoom</span>
+                <span class="credential-label">PW:</span>
+                <span class="credential-value">123456</span>
+              </div>
+              <div class="credential-item">
+                <span class="credential-label">ID:</span>
+                <span class="credential-value">manager1</span>
+                <span class="credential-label">PW:</span>
+                <span class="credential-value">manager123</span>
+              </div>
+            </div>
+            <div class="account-group">
+              <h4>일반 사용자</h4>
+              <div class="credential-item">
+                <span class="credential-label">ID:</span>
+                <span class="credential-value">user1</span>
+                <span class="credential-label">PW:</span>
+                <span class="credential-value">user123</span>
+              </div>
+              <div class="credential-item">
+                <span class="credential-label">ID:</span>
+                <span class="credential-value">user2</span>
+                <span class="credential-label">PW:</span>
+                <span class="credential-value">user456</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     <div class="login-card">
       <div class="glass-overlay"></div>
       
@@ -86,24 +132,7 @@
           </div>
         </form>
 
-        <div class="login-footer">
-          <div class="demo-info">
-            <div class="demo-overlay"></div>
-            <div class="demo-content">
-              <h3>데모 계정</h3>
-              <div class="demo-credentials">
-                <div class="credential-item">
-                  <span class="credential-label">아이디:</span>
-                  <span class="credential-value">admin</span>
-                </div>
-                <div class="credential-item">
-                  <span class="credential-label">비밀번호:</span>
-                  <span class="credential-value">password</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
+        <div class="login-footer">      
           <div class="footer-links">
             <a href="#" class="footer-link">비밀번호 찾기</a>
             <div class="divider"></div>
