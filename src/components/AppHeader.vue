@@ -15,11 +15,12 @@
       </div>
 
       <div class="header-center" v-if="!isEditMode" >
-        <ul class="top-menu" >
-          <li v-if="route.name ==='Dashboard'" class="active">
+        <ul class="top-menu" ref="topMenu" @mouseleave="handleMenuMouseLeave">
+          <div class="menu-background" ref="menuBackground"></div>
+          <li v-if="route.name ==='Dashboard'" class="active" @mouseenter="handleMenuItemHover" @click="handleMenuItemClick">
             <a class="top-menu-item" href="#">대시보드</a>
           </li>
-          <li>
+          <li @mouseenter="handleMenuItemHover" @click="handleMenuItemClick">
             <a class="top-menu-item" href="#">에너지 진단보고서</a>
           </li>
 
@@ -88,7 +89,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -96,9 +97,88 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
+// 메뉴 애니메이션을 위한 ref들
+const topMenu = ref(null)
+const menuBackground = ref(null)
+
 // 사이드바 상태 관리
 const sidebarOpen = ref(false) // 기본적으로 닫혀있음
 const isEditMode = ref(false) // 편집모드 상태
+
+// 메뉴 애니메이션 함수들
+const initializeMenuBackground = async () => {
+  if (!topMenu.value || !menuBackground.value) return
+  
+  await nextTick()
+  
+  const activeItem = topMenu.value.querySelector('.active .top-menu-item')
+  if (activeItem) {
+    activeItem.classList.add('hovered')
+    updateMenuBackground(activeItem)
+  }
+}
+
+const updateMenuBackground = (targetElement) => {
+  if (!topMenu.value || !menuBackground.value || !targetElement) return
+  
+  const rect = targetElement.getBoundingClientRect()
+  const menuRect = topMenu.value.getBoundingClientRect()
+  
+  menuBackground.value.style.width = rect.width + 'px'
+  menuBackground.value.style.height = rect.height + 'px'
+  menuBackground.value.style.left = (rect.left - menuRect.left) + 'px'
+  menuBackground.value.style.top = (rect.top - menuRect.top) + 'px'
+}
+
+const handleMenuItemHover = (event) => {
+  const link = event.currentTarget.querySelector('.top-menu-item')
+  
+  // 모든 링크에서 hovered 클래스 제거
+  if (topMenu.value) {
+    topMenu.value.querySelectorAll('.top-menu-item').forEach(l => l.classList.remove('hovered'))
+  }
+  
+  // 현재 호버된 링크에 hovered 클래스 추가
+  link.classList.add('hovered')
+  updateMenuBackground(link)
+}
+
+const handleMenuMouseLeave = () => {
+  if (!topMenu.value) return
+  
+  const activeItem = topMenu.value.querySelector('.active .top-menu-item')
+  
+  // 모든 링크에서 hovered 클래스 제거
+  topMenu.value.querySelectorAll('.top-menu-item').forEach(l => l.classList.remove('hovered'))
+  
+  // 활성 메뉴에만 hovered 클래스 추가
+  if (activeItem) {
+    activeItem.classList.add('hovered')
+    updateMenuBackground(activeItem)
+  }
+}
+
+const handleMenuItemClick = (event) => {
+  event.preventDefault()
+  
+  if (!topMenu.value) return
+  
+  // 모든 아이템에서 active 클래스 제거
+  topMenu.value.querySelectorAll('li').forEach(i => i.classList.remove('active'))
+  
+  // 클릭한 아이템에 active 클래스 추가
+  event.currentTarget.classList.add('active')
+  
+  // 모든 링크에서 hovered 클래스 제거
+  topMenu.value.querySelectorAll('.top-menu-item').forEach(l => l.classList.remove('hovered'))
+  
+  // 새로운 활성 메뉴에 hovered 클래스 추가
+  const link = event.currentTarget.querySelector('.top-menu-item')
+  link.classList.add('hovered')
+  
+  // 배경 위치 업데이트
+  updateMenuBackground(link)
+}
 
 // 편집모드 진입
 const enterEditMode = () => {
@@ -227,10 +307,35 @@ const handleLogout = () => {
 // 라이프사이클
 onMounted(() => {
   setupEventListeners()
+  // 메뉴 배경 초기화
+  setTimeout(() => {
+    initializeMenuBackground()
+  }, 100)
 })
 
 onUnmounted(() => {
   cleanupEventListeners()
+})
+
+// 화면 크기 변경 시 메뉴 배경 재설정
+const handleResize = () => {
+  setTimeout(() => {
+    initializeMenuBackground()
+  }, 100)
+}
+
+// 윈도우 리사이즈 이벤트 리스너
+onMounted(() => {
+  setupEventListeners()
+  window.addEventListener('resize', handleResize)
+  setTimeout(() => {
+    initializeMenuBackground()
+  }, 100)
+})
+
+onUnmounted(() => {
+  cleanupEventListeners()
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -296,14 +401,14 @@ onUnmounted(() => {
 }
 
 .sidebar-toggle-btn:hover {
-  background: var(--color-primary);
-  color: #fff;
+  background: #fff;
+  color: #000;
   transform: translateY(-1px);
 }
 
 .sidebar-toggle-btn.active {
-  background: var(--color-primary);
-  color: #fff;
+  background: #fff;
+  color: #000;
 }
 
 .toggle-icon {
@@ -327,13 +432,13 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: rgba(225, 99, 73, 0.1);
-  border: 1px solid rgba(225, 99, 73, 0.2);
+  background: #fff;
+  border: 1px solid #000;
   border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-primary);
+  color: #000;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -341,10 +446,11 @@ onUnmounted(() => {
 }
 
 .back-btn:hover {
-  background: rgba(225, 99, 73, 0.15);
-  border-color: rgba(225, 99, 73, 0.3);
+  background: #000;
+  border-color: #000;
+  color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(225, 99, 73, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .back-icon {
@@ -361,26 +467,24 @@ onUnmounted(() => {
 }
 
 .logo-section {
-  /* display: flex;
-  align-items: center;
-  gap: 16px; */
+  display: block;
 }
 
 .header-logo {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(225, 99, 73, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
 
 .header-logo:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(225, 99, 73, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .logo-icon {
@@ -398,14 +502,9 @@ onUnmounted(() => {
 .header-title {
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-font-primary);
+  color: #000;
   margin: 0;
   line-height: 20px;
-  /* letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--color-font-primary) 0%, var(--color-gray) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text; */
 }
 
 .header-right {
@@ -445,13 +544,14 @@ onUnmounted(() => {
 
 .save-btn {
   color: #fff;
-  background: var(--color-primary);
+  background: #000;
 }
 
 .save-btn:hover {
-  background: #000;;
+  background: #fff;
+  color: #000;
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(88, 78, 73, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .exit-btn {
@@ -461,7 +561,8 @@ onUnmounted(() => {
 }
 
 .exit-btn:hover {
-  background: var(--color-primary);
+  background: #fff;
+  color: #000;
   transform: translateY(-1px);
 }
 
@@ -483,8 +584,6 @@ span.sound_only{
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  /* background: #fff; */
-  /* border: 1px solid var(--color-gray); */
   transition: all 0.3s ease;
 }
 
@@ -497,7 +596,7 @@ span.sound_only{
   width: 48px;
   height: 48px;
   border-radius: 100%;
-  background: var(--color-font-secondary);
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -514,14 +613,14 @@ span.sound_only{
 
 .user-name {
   font-weight: 600;
-  color: var(--color-font-primary);
+  color: #000;
   font-size: 14px;
   line-height: 1.2;
 }
 
 .user-role {
   font-size: 12px;
-  color: var(--color-font-secondary);
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
@@ -551,40 +650,48 @@ span.sound_only{
 /* top-menu */
 
 .top-menu {
-  display:flex;
-  align-items:center;
-  background-color:var(--color-bg-white);
-  border-radius:999px;
-  gap: 8px;
-}
-.top-menu  li {
-  list-style-type:none;
-  font-size:20px;
-}
-
-.top-menu  li .top-menu-item {
-  color:#000;
-  /* width:138px; */
-  padding: 10px 30px;
-  height:52px;
-  display:flex;
+  display: flex;
   align-items: center;
-  justify-content:center;
-  border-radius:999px;
+  background-color: #fff;
+  border-radius: 999px;
+  gap: 8px;
+  position: relative;
+  padding: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
 
-  /* display:block;
-  padding:20px 34px;
+.menu-background {
+  position: absolute;
   background-color: #000;
-  border-radius:999px;
-  color:#fff;
-  font-size:20px; */
+  border-radius: 999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
 }
-.top-menu  li .top-menu-item:hover{
-  background: #dcdcdc;
+
+.top-menu li {
+  list-style-type: none;
+  font-size: 20px;
+  position: relative;
+  z-index: 2;
 }
-.top-menu li.active .top-menu-item{
-    color:#fff;
-    background-color: #000;
+
+.top-menu li .top-menu-item {
+  color: #000;
+  padding: 10px 30px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.top-menu li .top-menu-item.hovered {
+  color: #fff;
 }
 
 /* 스크롤시 헤더 스타일 변경 (선택사항) */
