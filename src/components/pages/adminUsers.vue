@@ -43,7 +43,6 @@
             <th>E-mail</th>
             <th>실증지</th>
             <th>관리</th>
-            <th>대시보드</th>
           </tr>
         </thead>
         <tbody>
@@ -63,11 +62,6 @@
             <td>
               <button @click="openUserModal(user)" class="btn btn-sm btn-edit">
                 관리
-              </button>
-            </td>
-            <td>
-              <button @click="openDashboard(user)" class="btn btn-sm btn-dashboard">
-                대시보드
               </button>
             </td>
           </tr>
@@ -700,11 +694,6 @@ const handlePageChange = (page) => {
   selectedUsers.value = []
 }
 
-const openDashboard = (user) => {
-  // 대시보드 페이지로 이동
-  console.log('대시보드 열기:', user)
-}
-
 // 생성될 때 더 많은 데이터 생성
 onMounted(() => {
   for (let i = 3; i <= 10; i++) {
@@ -840,15 +829,6 @@ onMounted(() => {
 
 .btn-edit:hover {
   background-color: #2980b9;
-}
-
-.btn-dashboard {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-dashboard:hover {
-  background-color: #7f8c8d;
 }
 
 /* 사용자 폼 스타일 */
