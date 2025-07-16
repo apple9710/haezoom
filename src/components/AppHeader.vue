@@ -393,13 +393,13 @@ onUnmounted(() => {
   /* -webkit-backdrop-filter: blur(20px); */
   /* border-bottom: 1px solid rgba(225, 99, 73, 0.2); */
   /* box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); */
-  position: fixed;
   border-radius: 24px;
+  width: 95%;
+  position: fixed;
   top: 1%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  width: 95%;
   padding: 0 2.5%;
   /* max-width: 1200px; */
   transition: all 0.3s ease;
