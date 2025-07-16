@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     
-    <AppHeader />
+    <AppHeader :selected-building="selectedBuilding" />
               <div class="edit-mode-ing"
           v-if="isEditMode"
           >
@@ -12,9 +12,10 @@
 
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
+        <!-- ...existing sidebar code... -->
         <h3 class="sidebar-title">위젯 추가</h3>
         <div class="widget-categories">
-          <!-- 데이터 종류별로 구분 -->
+          <!-- ...existing widget categories... -->
           <div class="category-section">
             <h4 class="category-title">전력 사용량</h4>
             <div class="data-description">실시간 전력 사용량 모니터링</div>
@@ -96,9 +97,10 @@
       </aside>
 
       <main class="dashboard-main" :class="{ 'sidebar-open': sidebarOpen }">
+        <!-- dashboard-header는 항상 표시 -->
         <div class="dashboard-header">
           <div class="dashboard-date">
-            <div class="left_date">8</div>
+            <div class="left_date">16</div>
             <div class="right-day-month">
               <span>Tue,</span><br />
               <span>July</span>
@@ -106,17 +108,6 @@
             <div class="task">
               <button>
                 Green Energy Mode!
-                <!-- <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M8.293 2.29279C8.48053 2.10532 8.73484 2 9 2C9.26516 2 9.51947 2.10532 9.707 2.29279L14.207 6.79279C14.3945 6.98031 14.4998 7.23462 14.4998 7.49979C14.4998 7.76495 14.3945 8.01926 14.207 8.20679L9.707 12.7068C9.5184 12.8889 9.2658 12.9897 9.0036 12.9875C8.7414 12.9852 8.49059 12.88 8.30518 12.6946C8.11977 12.5092 8.0146 12.2584 8.01233 11.9962C8.01005 11.734 8.11084 11.4814 8.293 11.2928L11 8.49979H1.5C1.23478 8.49979 0.98043 8.39443 0.792893 8.20689C0.605357 8.01936 0.5 7.765 0.5 7.49979C0.5 7.23457 0.605357 6.98022 0.792893 6.79268C0.98043 6.60514 1.23478 6.49979 1.5 6.49979H11L8.293 3.70679C8.10553 3.51926 8.00021 3.26495 8.00021 2.99979C8.00021 2.73462 8.10553 2.48031 8.293 2.29279Z"
-                  />
-                </svg> -->
               </button>
             </div>
           </div>
@@ -127,181 +118,163 @@
                 ><b>{{ authStore.user?.name || 'ADMIN' }}님</b>
                 <span>반가워요 <span class="hand_icon">👋</span></span></span
               >
-              <span>오늘도 에너지 가득한 하루 되세요!</span>
+              <span v-if="!selectedBuilding">원하는 실증지를 선택해주세요!</span>
+              <span v-else>오늘도 에너지 가득한 하루 되세요!</span>
             </div>
           </div>
         </div>
 
-        <div v-if="isEditMode" class="dashboard-toolbar">
-          <div class="toolbar-right">
-            <button @click="clearDashboard" class="clear-btn">
-              <span class="btn-icon"
-                ><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"
-              /></span>
-              <span class="sound_only">모든 위젯 삭제</span>
-            </button>
-          </div>
+        <!-- 실증지 선택 화면 -->
+        <div v-if="!selectedBuilding" class="building-selector-container">
+          <BuildingSelector @building-selected="handleBuildingSelected" />
         </div>
 
-        <div
-          ref="dashboardGrid"
-          class="dashboard-grid"
-          :class="{ empty: dashboardWidgets.length === 0 }"
-          @dragover="handleDragOver"
-          @drop="handleDrop"
-          :style="{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
-            gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
-            gap: '16px',
-            padding: '24px',
-            position: 'relative',
-          }"
-        >
-          <div v-if="dashboardWidgets.length === 0" class="empty-state">
-            <div class="empty-icon">📈</div>
-            <h3 class="empty-title">대시보드가 비어있습니다</h3>
-            <p class="empty-description">
-              <span v-if="!isEditMode">
-                헤더의 '위젯 편집' 버튼을 눌러<br />
-                위젯을 추가해보세요.
-              </span>
-              <span v-else>
-                우측 사이드바에서 데이터 종류를 선택하고<br />
-                원하는 위젯을 추가해보세요.
-              </span>
-            </p>
-            <div class="empty-features">
-              <div class="feature-item">
-                <span class="feature-icon">📈</span>
-                <span>시계열 그래프</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">📊</span>
-                <span>막대 차트</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">🍰</span>
-                <span>원형 차트</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">🔘</span>
-                <span>제어 위젯</span>
-              </div>
+        <div v-if="selectedBuilding">
+          <!-- 대시보드 화면 -->
+
+          <div v-if="isEditMode" class="dashboard-toolbar">
+            <div class="toolbar-right">
+              <button @click="clearDashboard" class="clear-btn">
+                <span class="btn-icon"
+                  ><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"
+                /></span>
+                <span class="sound_only">모든 위젯 삭제</span>
+              </button>
             </div>
           </div>
 
-          <!-- 위젯들을 직접 dashboard-grid에 배치 -->
           <div
-            v-for="element in dashboardWidgets"
-            :key="element.instanceId"
-            class="widget-container"
-            :class="{ 
-              dragging: dragState.dragElement === element, 
-              clickable: !isEditMode,
-              resizing: widgetResizeState.isResizing && widgetResizeState.resizingWidget === element,
-              'resize-invalid': widgetResizeState.isResizing && widgetResizeState.resizingWidget === element && !canPlaceWidget(element.position, element.gridSize, element)
-            }"
-            :draggable="isEditMode"
-            @dragstart="isEditMode ? handleDragStart(element, $event) : null"
-            @dragend="handleDragEnd"
-
+            ref="dashboardGrid"
+            class="dashboard-grid"
+            :class="{ empty: dashboardWidgets.length === 0 }"
+            @dragover="handleDragOver"
+            @drop="handleDrop"
             :style="{
-              gridColumn: element.position
-                ? `${element.position.x + 1} / span ${element.gridSize.width}`
-                : `1 / span ${element.gridSize.width}`,
-              gridRow: element.position
-                ? `${element.position.y + 1} / span ${element.gridSize.height}`
-                : `auto / span ${element.gridSize.height}`,
-              cursor: isEditMode ? 'move' : 'pointer',
+              display: 'grid',
+              gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
+              gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
+              gap: '16px',
+              padding: '24px',
+              position: 'relative',
             }"
           >
-            <div class="widget-inner">
-              <!-- 편집모드에서만 위젯 헤더 표시 -->
-              <div v-if="isEditMode" class="widget-header">
-                <div class="widget-title-section">
-                  <span class="widget-category">{{ element.dataType }}</span>
-                  <span class="widget-title">{{ element.name }}</span>
+            <!-- ...existing dashboard grid content... -->
+            <div v-if="dashboardWidgets.length === 0" class="empty-state">
+              <div class="empty-icon">📈</div>
+              <h3 class="empty-title">대시보드가 비어있습니다</h3>
+              <p class="empty-description">
+                <span v-if="!isEditMode">
+                  헤더의 '위젯 편집' 버튼을 눌러<br />
+                  위젯을 추가해보세요.
+                </span>
+                <span v-else>
+                  우측 사이드바에서 데이터 종류를 선택하고<br />
+                  원하는 위젯을 추가해보세요.
+                </span>
+              </p>
+              <div class="empty-features">
+                <div class="feature-item">
+                  <span class="feature-icon">📈</span>
+                  <span>시계열 그래프</span>
                 </div>
-                <div class="widget-controls">
-                  <button @click="configureWidget(element)" class="control-btn" title="설정">
-                    <img src="@/assets/images/settings.svg" alt="">
-                  </button>
-                  <!-- <button @click="resizeWidget()" class="control-btn" title="크기 조절">
-                    ⛶
-                  </button> -->
-                  <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
-                    ✕
-                  </button>
+                <div class="feature-item">
+                  <span class="feature-icon">📊</span>
+                  <span>막대 차트</span>
                 </div>
-              </div>
-
-              <div class="widget-content" :class="{ 'no-header': !isEditMode }">
-                <!-- WidgetFactory를 사용하여 동적으로 위젯 렌더링 -->
-                <WidgetFactory
-                  :widgetType="element.type"
-                  :data="widgetDataStore.getWidgetData(element.instanceId)"
-                  :config="element.config || {}"
-                  :isEditMode="isEditMode"
-                  :instanceId="element.instanceId"
-                />
-              </div>
-              <!-- 위젯 모달 버튼 (일반 모드) -->
-              <div v-if="!isEditMode" class="widget_modal_btn">
-                <button @click="openWidgetModal(element)">
-                  <DetailIcon />
-                </button>
-              </div>
-              
-              <!-- 편집 모드에서의 컨트롤 요소들 -->
-              <div v-if="isEditMode" class="widget-edit-controls">
-                <!-- 드래그 아이콘 -->
-                <!-- <div class="widget_drag_btn">
-                  <DragIcon />
-                </div> -->
-                
-                <!-- 크기 조절 핸들들 -->
-                <div class="resize-handles">
-                  <!-- 남동쪽 핸들 (오른쪽 아래) -->
-                  <div 
-                    class="resize-handle resize-handle-se"
-                    @mousedown="handleResizeStart(element, $event, 'se')"
-                    title="크기 조절"
-                  >
-                <DragIcon />
+                <div class="feature-item">
+                  <span class="feature-icon">🍰</span>
+                  <span>원형 차트</span>
                 </div>
-                  
-                  <!-- 남서쪽 핸들 (왼쪽 아래) -->
-                  <!-- <div 
-                    class="resize-handle resize-handle-sw"
-                    @mousedown="handleResizeStart(element, $event, 'sw')"
-                    title="크기 조절"
-                  ></div> -->
-                  
-                  <!-- 북동쪽 핸들 (오른쪽 위) -->
-                  <!-- <div 
-                    class="resize-handle resize-handle-ne"
-                    @mousedown="handleResizeStart(element, $event, 'ne')"
-                    title="크기 조절"
-                  ></div> -->
-                  
-                  <!-- 북서쪽 핸들 (왼쪽 위) -->
-                  <!-- <div 
-                    class="resize-handle resize-handle-nw"
-                    @mousedown="handleResizeStart(element, $event, 'nw')"
-                    title="크기 조절"
-                  ></div> -->
+                <div class="feature-item">
+                  <span class="feature-icon">🔘</span>
+                  <span>제어 위젯</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- 드롭 가이드 -->
-          <div
-            v-if="dragState.showDropGuide"
-            class="drop-guide"
-            :style="dragState.dropGuideStyle"
-          ></div>
+            <!-- 위젯들을 직접 dashboard-grid에 배치 -->
+            <div
+              v-for="element in dashboardWidgets"
+              :key="element.instanceId"
+              class="widget-container"
+              :class="{ 
+                dragging: dragState.dragElement === element, 
+                clickable: !isEditMode,
+                resizing: widgetResizeState.isResizing && widgetResizeState.resizingWidget === element,
+                'resize-invalid': widgetResizeState.isResizing && widgetResizeState.resizingWidget === element && !canPlaceWidget(element.position, element.gridSize, element)
+              }"
+              :draggable="isEditMode"
+              @dragstart="isEditMode ? handleDragStart(element, $event) : null"
+              @dragend="handleDragEnd"
+
+              :style="{
+                gridColumn: element.position
+                  ? `${element.position.x + 1} / span ${element.gridSize.width}`
+                  : `1 / span ${element.gridSize.width}`,
+                gridRow: element.position
+                  ? `${element.position.y + 1} / span ${element.gridSize.height}`
+                  : `auto / span ${element.gridSize.height}`,
+                cursor: isEditMode ? 'move' : 'pointer',
+              }"
+            >
+              <div class="widget-inner">
+                <!-- 편집모드에서만 위젯 헤더 표시 -->
+                <div v-if="isEditMode" class="widget-header">
+                  <div class="widget-title-section">
+                    <span class="widget-category">{{ element.dataType }}</span>
+                    <span class="widget-title">{{ element.name }}</span>
+                  </div>
+                  <div class="widget-controls">
+                    <button @click="configureWidget(element)" class="control-btn" title="설정">
+                      <img src="@/assets/images/settings.svg" alt="">
+                    </button>
+                    <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div class="widget-content" :class="{ 'no-header': !isEditMode }">
+                  <!-- WidgetFactory를 사용하여 동적으로 위젯 렌더링 -->
+                  <WidgetFactory
+                    :widgetType="element.type"
+                    :data="widgetDataStore.getWidgetData(element.instanceId)"
+                    :config="element.config || {}"
+                    :isEditMode="isEditMode"
+                    :instanceId="element.instanceId"
+                  />
+                </div>
+                <!-- 위젯 모달 버튼 (일반 모드) -->
+                <div v-if="!isEditMode" class="widget_modal_btn">
+                  <button @click="openWidgetModal(element)">
+                    <DetailIcon />
+                  </button>
+                </div>
+                
+                <!-- 편집 모드에서의 컨트롤 요소들 -->
+                <div v-if="isEditMode" class="widget-edit-controls">
+                  <!-- 크기 조절 핸들들 -->
+                  <div class="resize-handles">
+                    <!-- 남동쪽 핸들 (오른쪽 아래) -->
+                    <div 
+                      class="resize-handle resize-handle-se"
+                      @mousedown="handleResizeStart(element, $event, 'se')"
+                      title="크기 조절"
+                    >
+                  <DragIcon />
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 드롭 가이드 -->
+            <div
+              v-if="dragState.showDropGuide"
+              class="drop-guide"
+              :style="dragState.dropGuideStyle"
+            ></div>
+          </div>
         </div>
       </main>
     </div>
@@ -535,8 +508,44 @@ import WidgetFactory from '@/components/widgets/WidgetFactory.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import DetailIcon from '@/components/icons/DetailIcon.vue'
 import DragIcon from '@/components/icons/DragIcon.vue'
+import BuildingSelector from '@/components/BuildingSelector.vue'
 
 const authStore = useAuthStore()
+
+// 실증지 선택 상태
+const selectedBuilding = ref(null)
+
+// 실증지 선택 핸들러
+const handleBuildingSelected = (building) => {
+  selectedBuilding.value = building
+  // 실증지별 대시보드 데이터 로드
+  loadDashboardForBuilding(building.id)
+}
+
+// 실증지별 대시보드 로드
+const loadDashboardForBuilding = (buildingId) => {
+  const savedKey = `dashboard-widgets-building-${buildingId}`
+  const saved = localStorage.getItem(savedKey)
+  if (saved) {
+    dashboardWidgets.value = JSON.parse(saved)
+    
+    // 저장된 위젯들의 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
+    dashboardWidgets.value.forEach(widget => {
+      const isControlWidget = widget.type.includes('control')
+      if (!isControlWidget) {
+        realtimeUpdateManager.startUpdate(
+          widget.instanceId,
+          widget.type,
+          widget.dataType,
+          5000
+        )
+      }
+    })
+  } else {
+    // 실증지에 대한 저장된 대시보드가 없으면 빈 상태로 시작
+    dashboardWidgets.value = []
+  }
+}
 
 // 드래그 앤 드롭 상태
 const dragState = reactive({
@@ -920,28 +929,16 @@ const clearDashboard = () => {
 }
 
 const saveDashboard = () => {
-  localStorage.setItem('dashboard-widgets', JSON.stringify(dashboardWidgets.value))
-  console.log('대시보드 저장됨')
+  if (!selectedBuilding.value) return
+  
+  const savedKey = `dashboard-widgets-building-${selectedBuilding.value.id}`
+  localStorage.setItem(savedKey, JSON.stringify(dashboardWidgets.value))
+  console.log(`대시보드 저장됨 - 실증지: ${selectedBuilding.value.name}`)
 }
 
 const loadDashboard = () => {
-  const saved = localStorage.getItem('dashboard-widgets')
-  if (saved) {
-    dashboardWidgets.value = JSON.parse(saved)
-    
-    // 저장된 위젯들의 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
-    dashboardWidgets.value.forEach(widget => {
-      const isControlWidget = widget.type.includes('control')
-      if (!isControlWidget) {
-        realtimeUpdateManager.startUpdate(
-          widget.instanceId,
-          widget.type,
-          widget.dataType,
-          5000
-        )
-      }
-    })
-  }
+  // 실증지가 선택되지 않은 상태에서는 기본적으로 빈 상태
+  dashboardWidgets.value = []
 }
 
 // 드래그 앤 드롭 관련 함수들
@@ -1314,8 +1311,6 @@ onUnmounted(() => {
   window.removeEventListener('save-dashboard', handleSaveDashboard)
   window.removeEventListener('confirm-exit-edit-mode', handleConfirmExitEditMode)
 })
-
-// 위젯 추가
 </script>
 
 <style scoped>
