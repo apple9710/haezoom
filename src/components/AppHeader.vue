@@ -690,6 +690,9 @@ span.sound_only{
   z-index: 2;
 }
 
+.top-menu li .top-menu-item:hover {
+  background: none;
+}
 .top-menu li .top-menu-item.hovered {
   color: #fff;
 }
