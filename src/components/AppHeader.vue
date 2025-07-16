@@ -111,6 +111,10 @@ const initializeMenuBackground = async () => {
   
   await nextTick()
   
+  // 모든 메뉴 아이템에서 hovered 클래스 제거
+  topMenu.value.querySelectorAll('.top-menu-item').forEach(l => l.classList.remove('hovered'))
+  
+  // 활성 메뉴 아이템 찾기
   const activeItem = topMenu.value.querySelector('.active .top-menu-item')
   if (activeItem) {
     activeItem.classList.add('hovered')
@@ -219,6 +223,11 @@ const forceExitEditMode = () => {
       detail: { isEditMode: false, sidebarOpen: false },
     }),
   )
+  
+  // 편집모드 종료 후 메뉴 배경 재초기화
+  setTimeout(() => {
+    initializeMenuBackground()
+  }, 100)
 }
 
 // 대시보드에서 호출되는 이벤트 리스너
@@ -259,6 +268,19 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// 편집모드 상태 변화 감지
+watch(
+  isEditMode,
+  (newValue, oldValue) => {
+    // 편집모드에서 일반모드로 전환될 때 메뉴 배경 재초기화
+    if (oldValue === true && newValue === false) {
+      setTimeout(() => {
+        initializeMenuBackground()
+      }, 100)
+    }
+  }
 )
 
 // 헤더를 보여줄지 결정
@@ -401,14 +423,14 @@ onUnmounted(() => {
 }
 
 .sidebar-toggle-btn:hover {
-  background: #fff;
-  color: #000;
+  background: var(--color-primary);
+  color: #fff;
   transform: translateY(-1px);
 }
 
 .sidebar-toggle-btn.active {
-  background: #fff;
-  color: #000;
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .toggle-icon {
@@ -544,14 +566,14 @@ onUnmounted(() => {
 
 .save-btn {
   color: #fff;
-  background: #000;
+  background: var(--color-primary);
 }
 
 .save-btn:hover {
-  background: #fff;
-  color: #000;
+  background: #000;
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(88, 78, 73, 0.4);
+
 }
 
 .exit-btn {
@@ -561,8 +583,8 @@ onUnmounted(() => {
 }
 
 .exit-btn:hover {
-  background: #fff;
-  color: #000;
+  background: var(--color-primary);
+  color: #fff;
   transform: translateY(-1px);
 }
 
@@ -596,7 +618,7 @@ span.sound_only{
   width: 48px;
   height: 48px;
   border-radius: 100%;
-  background: #000;
+  background: var(--color-font-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
