@@ -13,7 +13,7 @@
           <h3>테스트 계정</h3>
           <div class="demo-accounts">
             <div class="account-group">
-              <h4>관리자</h4>
+              <h4>최고 관리자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
                 <span class="credential-value">admin</span>
@@ -22,7 +22,7 @@
               </div>
             </div>
             <div class="account-group">
-              <h4>매니저</h4>
+              <h4>관리자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
                 <span class="credential-value">haezoom</span>
@@ -37,7 +37,7 @@
               </div>
             </div>
             <div class="account-group">
-              <h4>일반 사용자</h4>
+              <h4>사용자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
                 <span class="credential-value">user1</span>
