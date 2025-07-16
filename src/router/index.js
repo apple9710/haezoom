@@ -24,7 +24,10 @@ const routes = [
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/DashboardView.vue'),
-    meta: { requiresAuth: true } // 인증 필요
+    meta: { 
+      requiresAuth: true,
+      isUserOnly: true  // 일반 사용자만 접근 가능
+    }
   },
    {
   path: '/admin',
@@ -68,12 +71,7 @@ router.beforeEach((to, from, next) => {
   console.log('라우터 가드:', to.path, to.name)
   
   const authStore = useAuthStore()
-    // /admin 경로 특별 처리 (임시)
-  if (to.path === '/admin') {
-    console.log('/admin 경로 감지 - 강제 통과')
-    next()
-    return
-  }
+  
   // 인증이 필요한 페이지
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     console.log('인증 필요, 로그인으로 이동')
@@ -83,9 +81,49 @@ router.beforeEach((to, from, next) => {
   
   // 게스트만 접근 가능한 페이지 (로그인 상태에서는 접근 불가)
   if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    console.log('이미 로그인됨, 대시보드로 이동')
-    next('/dashboard')
+    console.log('이미 로그인됨')
+    
+    // 역할에 따른 리다이렉트
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+      console.log('관리자/매니저 - admin 페이지로 이동')
+      next('/admin')
+    } else {
+      console.log('일반 사용자 - 대시보드로 이동')
+      next('/dashboard')
+    }
     return
+  }
+  
+  // 홈 경로(/) 접근 시 역할에 따른 리다이렉트
+  if (to.path === '/' && authStore.isAuthenticated) {
+    console.log('홈 경로 접근 - 역할에 따른 리다이렉트')
+    
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+      console.log('관리자/매니저 - admin 페이지로 이동')
+      next('/admin')
+    } else {
+      console.log('일반 사용자 - 대시보드로 이동')
+      next('/dashboard')
+    }
+    return
+  }
+  
+  // admin 페이지 접근 권한 확인
+  if (to.meta.isAdmin && authStore.isAuthenticated) {
+    if (authStore.user?.role !== 'admin' && authStore.user?.role !== 'manager') {
+      console.log('admin 페이지 접근 권한 없음, 대시보드로 이동')
+      next('/dashboard')
+      return
+    }
+  }
+  
+  // dashboard 페이지 접근 권한 확인 (일반 사용자만)
+  if (to.meta.isUserOnly && authStore.isAuthenticated) {
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+      console.log('관리자는 dashboard 접근 불가, admin 페이지로 이동')
+      next('/admin')
+      return
+    }
   }
   
   console.log('정상 라우팅:', to.path)
