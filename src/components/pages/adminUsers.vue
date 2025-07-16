@@ -294,13 +294,13 @@ import BasePagination from '@/components/common/BasePagination.vue'
 const users = ref([
   {
     id: 1,
-    username: 'haezoom',
-    name: '해줌관리자',
+    username: 'admin',
+    name: '관리자',
     phone: '01012345678',
-    email: 'lab@haezoom.com',
-    building: '롯데마트 대전점 / 발전량 예측 api + ems / 롯데마트 금천점 / 워스테이브렐 / 시룩과학기술대학교과학원 / 전기업 / 롯데마트 VIC 영등포점...',
+    email: 'admin@haezoom.com',
+    building: '해줌 본사',
     userType: 'admin',
-    buildings: ['서울특별시 금천구 시흥대로 291', '롯데마트 금천점', '롯데마트 대전점']
+    buildings: ['해줌 본사']
   },
   {
     id: 2,
@@ -308,11 +308,50 @@ const users = ref([
     name: '해줌관리자',
     phone: '01012345678',
     email: 'lab@haezoom.com',
-    building: '롯데마트 대전점',
-    userType: 'admin',
-    buildings: ['서울특별시 금천구 시흥대로 291']
+    building: '롯데마트 대전점 / 발전량 예측 api + ems / 롯데마트 금천점 / 워스테이브렐 / 시흥과학기술대학교과학원 / 전기업 / 롯데마트 VIC 영등포점...',
+    userType: 'manager',
+    buildings: ['서울특별시 금천구 시흥대로 291', '롯데마트 금천점', '롯데마트 대전점']
   },
-  // ...더 많은 사용자 데이터
+  {
+    id: 3,
+    username: 'user1',
+    name: '김철수',
+    phone: '01098765432',
+    email: 'user1@example.com',
+    building: '롯데마트 금천점',
+    userType: 'user',
+    buildings: ['롯데마트 금천점']
+  },
+  {
+    id: 4,
+    username: 'user2',
+    name: '이영희',
+    phone: '01087654321',
+    email: 'user2@example.com',
+    building: '시흥과학기술대학교',
+    userType: 'user',
+    buildings: ['시흥과학기술대학교']
+  },
+  {
+    id: 5,
+    username: 'manager1',
+    name: '박관리',
+    phone: '01076543210',
+    email: 'manager1@example.com',
+    building: '롯데마트 VIC 영등포점',
+    userType: 'manager',
+    buildings: ['롯데마트 VIC 영등포점']
+  },
+  {
+    id: 6,
+    username: 'testuser',
+    name: '테스트사용자',
+    phone: '01065432109',
+    email: 'test@example.com',
+    building: '롯데마트 대전점',
+    userType: 'user',
+    buildings: ['롯데마트 대전점']
+  }
 ])
 
 // 모달 관련
