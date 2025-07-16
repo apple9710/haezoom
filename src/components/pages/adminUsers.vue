@@ -91,17 +91,6 @@
       :show-footer="false"
     >
       <div class="user-form">
-        <div class="form-group">
-          <label for="username">ID</label>
-          <input 
-            id="username"
-            v-model="userForm.username" 
-            type="text" 
-            :disabled="isEditMode"
-            placeholder="haezoom"
-            class="form-input"
-          />
-        </div>
         
         <div class="form-group">
           <label for="name">이름</label>
@@ -109,7 +98,7 @@
             id="name"
             v-model="userForm.name" 
             type="text" 
-            placeholder="해줌관리자"
+            placeholder="이름을 입력해 주세요"
             class="form-input"
           />
         </div>
@@ -120,7 +109,19 @@
             id="email"
             v-model="userForm.email" 
             type="email" 
-            placeholder="lab@haezoom.com"
+            placeholder="ex@naver.com"
+            class="form-input"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label for="username">ID</label>
+          <input 
+            id="username"
+            v-model="userForm.username" 
+            type="text" 
+            :disabled="isEditMode"
+            placeholder="아이디를 입력해 주세요"
             class="form-input"
           />
         </div>
