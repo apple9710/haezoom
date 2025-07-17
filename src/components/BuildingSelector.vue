@@ -157,7 +157,7 @@ onMounted(() => {
 
 .search-section {
   display: flex;
-  justify-content: center;
+  justify-content: end;
   margin-bottom: 10px;
 }
 
@@ -174,7 +174,7 @@ onMounted(() => {
   outline: none;
   font-size: 14px;
   border-radius: 99px;
-  width: 300px;
+  width: 375px;
 }
 
 .search-btn {
