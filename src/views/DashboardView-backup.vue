@@ -1,7 +1,6 @@
 <template>
   <div class="dashboard-container">
     <AppHeader :selected-building="selectedBuilding" />
-    
     <div class="edit-mode-ing" v-if="isEditMode">
       <span class="left-circle"></span>
       <span>대시보드 수정중</span>
