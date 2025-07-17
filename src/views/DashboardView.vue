@@ -129,12 +129,12 @@
           <BuildingSelector @building-selected="handleBuildingSelected" />
         </div>
 
-        <div v-if="selectedBuilding">
+        <div v-if="selectedBuilding" class="dashboard-content-inner">
           <!-- 대시보드 화면 -->
 
           <!-- 실증지 변경 버튼 (고정 위치) -->
           <div class="building-change-btn">
-            <button @click="goBackToBuildingList" class="change-building-btn" title="실증지 변경">
+            <button @click="goBackToBuildingList" class="change-building-btn" title="실증지 변경" :data-tooltip="`실증지 변경`">
               <span class="change-icon">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <mask id="mask0_2391_10537" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="40">
@@ -151,7 +151,7 @@
 
           <div v-if="isEditMode" class="dashboard-toolbar">
             <div class="toolbar-right">
-              <button @click="clearDashboard" class="clear-btn">
+              <button @click="clearDashboard" class="clear-btn" :data-tooltip="`모든 위젯 삭제`">
                 <span class="btn-icon"
                   ><img src="@/assets/images/delete.svg" alt="모든위젯삭제" class="btn-icon_img"
                 /></span>
