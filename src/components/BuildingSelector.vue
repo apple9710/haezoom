@@ -130,12 +130,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.building-selector-container{
-    background: #fff;
-}
+
 .building-selector {
   padding: 20px;
-  max-width: 1200px;
+  max-width: 1540px;
   margin: 0 auto;
 }
 
@@ -160,7 +158,7 @@ onMounted(() => {
 .search-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .search-box {
@@ -203,7 +201,6 @@ onMounted(() => {
   padding: 30px;
   background: #f8f8f8;
   border-radius: 20px;
-  margin-bottom: 30px;
 }
 
 .building-card {
