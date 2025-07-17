@@ -79,11 +79,11 @@
               </svg>
             </button>
             <div class="action-dropdown">
-              <button @click="openBuildingModal(building)" class="dropdown-item">
-                수정
-              </button>
               <button @click="openWidgetSettings(building)" class="dropdown-item">
                 위젯 설정
+              </button>
+              <button @click="openBuildingModal(building)" class="dropdown-item">
+                수정
               </button>
               <button @click="deleteBuildingConfirm(building)" class="dropdown-item">
                 삭제
