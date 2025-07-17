@@ -100,10 +100,10 @@
         <!-- dashboard-header는 항상 표시 -->
         <div class="dashboard-header">
           <div class="dashboard-date">
-            <div class="left_date">16</div>
+            <div class="left_date">{{ currentDate.day }}</div>
             <div class="right-day-month">
-              <span>Tue,</span><br />
-              <span>July</span>
+              <span>{{ currentDate.dayOfWeek }},</span><br />
+              <span>{{ currentDate.month }}</span>
             </div>
             <div class="task">
               <button>
@@ -131,6 +131,23 @@
 
         <div v-if="selectedBuilding">
           <!-- 대시보드 화면 -->
+
+          <!-- 실증지 변경 버튼 (고정 위치) -->
+          <div class="building-change-btn">
+            <button @click="goBackToBuildingList" class="change-building-btn" title="실증지 변경">
+              <span class="change-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <mask id="mask0_2391_10537" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="40">
+                <rect width="40" height="40" fill="#D9D9D9"/>
+                </mask>
+                <g mask="url(#mask0_2391_10537)">
+                <path d="M27.0846 36.6673L10.418 20.0007L27.0846 3.33398L29.6263 5.90357L15.5292 20.0007L29.6263 34.0977L27.0846 36.6673Z" fill="white"/>
+                </g>
+                </svg>
+              </span>
+              <span class="building-name">실증지 변경</span>
+            </button>
+          </div>
 
           <div v-if="isEditMode" class="dashboard-toolbar">
             <div class="toolbar-right">
@@ -512,6 +529,32 @@ import BuildingSelector from '@/components/BuildingSelector.vue'
 
 const authStore = useAuthStore()
 
+// 현재 날짜 정보
+const currentDate = ref({
+  day: '',
+  dayOfWeek: '',
+  month: ''
+})
+
+// 현재 날짜 업데이트 함수
+const updateCurrentDate = () => {
+  const now = new Date()
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+  
+  currentDate.value = {
+    day: now.getDate().toString(),
+    dayOfWeek: dayNames[now.getDay()],
+    month: monthNames[now.getMonth()]
+  }
+}
+
+// 날짜 업데이트 타이머
+let dateUpdateInterval = null
+
 // 실증지 선택 상태
 const selectedBuilding = ref(null)
 
@@ -520,6 +563,31 @@ const handleBuildingSelected = (building) => {
   selectedBuilding.value = building
   // 실증지별 대시보드 데이터 로드
   loadDashboardForBuilding(building.id)
+}
+
+// 실증지 리스트로 돌아가기
+const goBackToBuildingList = () => {
+  if (confirm('실증지를 변경하시겠습니까? 편집 중인 내용이 있다면 저장하시기 바랍니다.')) {
+    // 편집모드 종료
+    if (isEditMode.value) {
+      isEditMode.value = false
+      sidebarOpen.value = false
+      window.dispatchEvent(
+        new CustomEvent('edit-mode-change', {
+          detail: { isEditMode: false, sidebarOpen: false },
+        }),
+      )
+    }
+    
+    // 모든 실시간 업데이트 중지
+    realtimeUpdateManager.stopAllUpdates()
+    
+    // 선택된 실증지 초기화
+    selectedBuilding.value = null
+    
+    // 위젯 데이터 초기화
+    dashboardWidgets.value = []
+  }
 }
 
 // 실증지별 대시보드 로드
@@ -1291,6 +1359,12 @@ const handleResizeEnd = (event) => {
 }
 
 onMounted(() => {
+  // 초기 날짜 설정
+  updateCurrentDate()
+  
+  // 매 분마다 날짜 업데이트 (날짜가 바뀔 수 있으므로)
+  dateUpdateInterval = setInterval(updateCurrentDate, 60000) // 1분마다
+  
   loadDashboard()
   // 헤더에서 오는 이벤트 리스너 등록
   window.addEventListener('edit-mode-change', handleEditModeChange)
@@ -1302,6 +1376,11 @@ onMounted(() => {
 // onUnmounted() 이전에 위치
 
 onUnmounted(() => {
+  // 날짜 업데이트 타이머 정리
+  if (dateUpdateInterval) {
+    clearInterval(dateUpdateInterval)
+  }
+  
   // 모든 실시간 업데이트 중지
   realtimeUpdateManager.stopAllUpdates()
   
