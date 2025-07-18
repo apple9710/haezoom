@@ -447,7 +447,7 @@
       <div class="widget-settings-form" v-if="selectedBuildingForWidget">
         <div class="building-info-header">
           <h3>{{ selectedBuildingForWidget.name }} 위젯 설정</h3>
-          <p>테스트 데모 모달입니다.</p>
+          <p>테스트 데모 모달입니다. 실제 사용자 대시보드로 보여질 예정</p>
         </div>
 
         <div class="pages-section">
