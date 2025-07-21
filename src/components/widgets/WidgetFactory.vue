@@ -1,6 +1,6 @@
 <template>
-  <component 
-    :is="getWidgetComponent(widgetType)" 
+  <component
+    :is="getWidgetComponent(widgetType)"
     v-bind="widgetProps"
     @update="$emit('update', $event)"
   />
@@ -34,28 +34,32 @@ import ImageWidget from './misc/ImageWidget.vue'
 const props = defineProps({
   widgetType: {
     type: String,
-    required: true
+    required: true,
   },
   data: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   widgetData: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   config: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   isEditMode: {
     type: Boolean,
-    default: false
+    default: false,
   },
   instanceId: {
     type: [String, Number],
-    default: null
-  }
+    default: null,
+  },
+  initSize: {
+    type: Object,
+    default: () => ({ width: null, height: null }),
+  },
 })
 
 // defineEmits(['update']) // 필요시 사용
@@ -66,23 +70,23 @@ const widgetComponents = {
   'line-chart': LineChartWidget,
   'bar-chart': BarChartWidget,
   'pie-chart': PieChartWidget,
-  
+
   // Control 위젯들
   'on-off-control': OnOffControlWidget,
   'up-down-control': UpDownControlWidget,
-  
+
   // Display 위젯들
   'box-widget': BoxWidget,
   'bar-gauge-widget': BarGaugeWidget,
   'status-widget': StatusWidget,
-  
+
   // System 위젯들
   'alarm-widget': AlarmWidget,
   'energy-report': EnergyReportWidget,
-  
+
   // Misc 위젯들
   'page-link': PageLinkWidget,
-  'image-widget': ImageWidget
+  'image-widget': ImageWidget,
 }
 
 // 위젯 컴포넌트 가져오기
@@ -95,10 +99,11 @@ const widgetProps = computed(() => ({
   data: props.data || props.widgetData || {},
   config: {
     ...props.config,
-    isExpanded: props.config?.isExpanded || false
+    isExpanded: props.config?.isExpanded || false,
   },
   isEditMode: props.isEditMode,
-  instanceId: props.instanceId
+  instanceId: props.instanceId,
+  initSize: props.initSize,
 }))
 </script>
 

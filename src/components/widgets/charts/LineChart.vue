@@ -1,11 +1,6 @@
 <template>
   <div class="line-chart">
-    <Line 
-      :data="chartData" 
-      :options="chartOptions" 
-      @chart:hover="handleHover"
-      ref="chartRef"
-    />
+    <Line :data="chartData" :options="chartOptions" @chart:hover="handleHover" ref="chartRef" />
   </div>
 </template>
 
@@ -21,7 +16,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js'
 
 // Chart.js 구성 요소 등록
@@ -33,18 +28,18 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 )
 
 const props = defineProps({
   data: {
     type: Object,
-    required: true
+    required: true,
   },
   config: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits(['hover'])
@@ -54,10 +49,10 @@ const chartRef = ref(null)
 // Chart.js 형식으로 데이터 변환
 const chartData = computed(() => {
   if (!props.data || !props.data.datasets) return { labels: [], datasets: [] }
-  
+
   return {
     labels: props.data.labels,
-    datasets: props.data.datasets.map(dataset => ({
+    datasets: props.data.datasets.map((dataset) => ({
       ...dataset,
       fill: false,
       tension: 0.4,
@@ -67,8 +62,8 @@ const chartData = computed(() => {
       pointHoverBorderColor: '#ffffff',
       pointHoverBorderWidth: 2,
       pointRadius: 3,
-      pointHoverRadius: 6
-    }))
+      pointHoverRadius: 6,
+    })),
   }
 })
 
@@ -78,7 +73,7 @@ const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   interaction: {
     mode: 'index',
-    intersect: false
+    intersect: false,
   },
   plugins: {
     legend: {
@@ -87,9 +82,9 @@ const chartOptions = computed(() => ({
         usePointStyle: true,
         padding: 20,
         font: {
-          size: 12
-        }
-      }
+          size: 12,
+        },
+      },
     },
     tooltip: {
       mode: 'index',
@@ -101,76 +96,76 @@ const chartOptions = computed(() => ({
       borderWidth: 1,
       cornerRadius: 6,
       callbacks: {
-        afterLabel: function(context) {
+        afterLabel: function (context) {
           return ` ${props.config.unit || ''}`
-        }
-      }
-    }
+        },
+      },
+    },
   },
   scales: {
     x: {
       display: true,
       grid: {
         color: 'rgba(0, 0, 0, 0.1)',
-        lineWidth: 1
+        lineWidth: 1,
       },
       ticks: {
         font: {
-          size: 11
+          size: 11,
         },
-        color: '#666'
-      }
+        color: '#666',
+      },
     },
     y: {
       display: true,
       grid: {
         color: 'rgba(0, 0, 0, 0.1)',
-        lineWidth: 1
+        lineWidth: 1,
       },
       ticks: {
         font: {
-          size: 11
+          size: 11,
         },
         color: '#666',
-        callback: function(value) {
+        callback: function (value) {
           return value + (props.config.unit || '')
-        }
-      }
-    }
+        },
+      },
+    },
   },
   elements: {
     line: {
-      borderWidth: 2
+      borderWidth: 2,
     },
     point: {
       radius: 3,
-      hoverRadius: 6
-    }
+      hoverRadius: 6,
+    },
   },
   animation: {
     duration: 750,
-    easing: 'easeInOutQuart'
+    easing: 'easeInOutQuart',
   },
   onHover: (event, activeElements) => {
     handleHover(event, activeElements)
   },
-  ...props.config
+  ...props.config,
 }))
 
 const handleHover = (event, activeElements) => {
   if (activeElements && activeElements.length > 0) {
     const dataIndex = activeElements[0].index
     const datasets = chartData.value.datasets
-    
+
     const hoveredData = {
       time: chartData.value.labels[dataIndex],
-      values: datasets.map(dataset => ({
+      values: datasets.map((dataset) => ({
         name: dataset.label,
         value: dataset.data[dataIndex],
-        color: dataset.borderColor
-      }))
+        color: dataset.borderColor,
+      })),
     }
-    
+
     emit('hover', event, hoveredData)
   } else {
     emit('hover', event, null)
@@ -191,7 +186,11 @@ const handleHover = (event, activeElements) => {
 }
 
 @keyframes chartjs-render-animation {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

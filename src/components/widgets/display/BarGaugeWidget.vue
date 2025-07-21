@@ -18,15 +18,11 @@
     <!-- 바 게이지 -->
     <div class="gauge-container">
       <div class="gauge-track">
-        <div 
-          class="gauge-fill" 
-          :class="gaugeClass"
-          :style="{ width: `${percentage}%` }"
-        ></div>
-        
+        <div class="gauge-fill" :class="gaugeClass" :style="{ width: `${percentage}%` }"></div>
+
         <!-- 임계값 마커들 -->
-        <div 
-          v-for="threshold in thresholdMarkers" 
+        <div
+          v-for="threshold in thresholdMarkers"
           :key="threshold.name"
           class="threshold-marker"
           :style="{ left: `${threshold.position}%` }"
@@ -36,7 +32,7 @@
           <div class="marker-label">{{ threshold.value }}</div>
         </div>
       </div>
-      
+
       <!-- 범위 라벨 -->
       <div class="gauge-labels">
         <span class="label-min">{{ config.min || 0 }}</span>
@@ -60,13 +56,13 @@
     <div class="history-chart">
       <div class="history-title">최근 변화</div>
       <div class="history-bars">
-        <div 
-          v-for="(value, index) in historyData" 
+        <div
+          v-for="(value, index) in historyData"
           :key="index"
           class="history-bar"
-          :style="{ 
+          :style="{
             height: `${(value / (config.max || 100)) * 100}%`,
-            backgroundColor: getHistoryColor(value)
+            backgroundColor: getHistoryColor(value),
           }"
           :title="`${value}${config.unit}`"
         ></div>
@@ -74,9 +70,7 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div class="update-time">
-      마지막 업데이트: {{ lastUpdateTime }}
-    </div>
+    <div class="update-time">마지막 업데이트: {{ lastUpdateTime }}</div>
   </div>
 </template>
 
@@ -86,7 +80,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   config: {
     type: Object,
@@ -97,15 +91,15 @@ const props = defineProps({
       max: 100,
       thresholds: {
         warning: 70,
-        critical: 90
+        critical: 90,
       },
-      dataSource: 'api/sensor-data'
-    })
+      dataSource: 'api/sensor-data',
+    }),
   },
   isEditMode: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 // 반응형 데이터
@@ -119,20 +113,20 @@ const generateSampleData = () => {
   const min = props.config.min || 0
   const max = props.config.max || 100
   const range = max - min
-  
+
   // 현재값 생성 (점진적 변화)
   const change = (Math.random() - 0.5) * (range * 0.1)
   let newValue = currentValue.value + change
   newValue = Math.max(min, Math.min(max, newValue))
-  
+
   currentValue.value = Math.round(newValue * 10) / 10
-  
+
   // 히스토리 업데이트
   historyData.value.push(currentValue.value)
   if (historyData.value.length > 20) {
     historyData.value.shift()
   }
-  
+
   lastUpdateTime.value = new Date().toLocaleTimeString()
 }
 
@@ -153,7 +147,7 @@ const percentage = computed(() => {
 const statusClass = computed(() => {
   const value = currentValue.value
   const thresholds = props.config.thresholds
-  
+
   if (value >= thresholds.critical) return 'critical'
   if (value >= thresholds.warning) return 'warning'
   return 'normal'
@@ -161,9 +155,12 @@ const statusClass = computed(() => {
 
 const statusText = computed(() => {
   switch (statusClass.value) {
-    case 'critical': return '위험'
-    case 'warning': return '주의'
-    default: return '정상'
+    case 'critical':
+      return '위험'
+    case 'warning':
+      return '주의'
+    default:
+      return '정상'
   }
 })
 
@@ -178,20 +175,20 @@ const thresholdMarkers = computed(() => {
   const max = props.config.max || 100
   const range = max - min
   const thresholds = props.config.thresholds
-  
+
   return [
     {
       name: '주의',
       value: thresholds.warning,
       type: 'warning',
-      position: ((thresholds.warning - min) / range) * 100
+      position: ((thresholds.warning - min) / range) * 100,
     },
     {
       name: '위험',
       value: thresholds.critical,
       type: 'critical',
-      position: ((thresholds.critical - min) / range) * 100
-    }
+      position: ((thresholds.critical - min) / range) * 100,
+    },
   ]
 })
 
@@ -209,12 +206,12 @@ onMounted(() => {
   const min = props.config.min || 0
   const max = props.config.max || 100
   currentValue.value = min + (max - min) * 0.3 // 30% 지점에서 시작
-  
+
   // 초기 히스토리 생성
   for (let i = 0; i < 10; i++) {
     generateSampleData()
   }
-  
+
   // 주기적 업데이트
   updateInterval = setInterval(() => {
     if (!props.isEditMode) {
@@ -232,7 +229,10 @@ onUnmounted(() => {
 
 <style scoped>
 .bar-gauge-widget {
+  container-name: bar-gauge-container;
+  container-type: size;
   background: white;
+  width: 100%;
   border-radius: 12px;
   padding: 20px;
   height: 100%;
@@ -443,5 +443,19 @@ onUnmounted(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+}
+
+@container bar-gauge-container (max-width: 200px) {
+  .history-chart {
+    display: none;
+  }
+}
+@container bar-gauge-container (max-height:200px) {
+  .status-info {
+    display: none;
+  }
+  .value-number {
+    font-size: 1.25rem;
+  }
 }
 </style>

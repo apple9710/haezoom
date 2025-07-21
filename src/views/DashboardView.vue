@@ -1,15 +1,11 @@
 <template>
   <div class="dashboard-container">
-    
     <AppHeader :selected-building="selectedBuilding" />
-          <div class="edit-mode-ing"
-          v-if="isEditMode"
-          >
-            <span class="left-circle"></span>
-            <span>대시보드 수정중</span>
-          </div>
+    <div class="edit-mode-ing" v-if="isEditMode">
+      <span class="left-circle"></span>
+      <span>대시보드 수정중</span>
+    </div>
     <div class="dashboard-content">
-
       <!-- 우측 사이드바 (편집모드에서만) -->
       <aside v-if="isEditMode" class="widget-sidebar" :class="{ 'sidebar-hidden': !sidebarOpen }">
         <!-- ...existing sidebar code... -->
@@ -21,7 +17,7 @@
             <div class="data-description">실시간 전력 사용량 모니터링</div>
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 사용량')">
-                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt=""></span>
+                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt="" /></span>
                 <span class="widget-name">전력 사용량 위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
@@ -36,7 +32,7 @@
                 class="widget-item"
                 @click="showWidgetSelector('solar_generation', '태양광 발전량')"
               >
-                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt=""></span>
+                <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt="" /></span>
                 <span class="widget-name">태양광 위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
@@ -106,9 +102,7 @@
               <span>{{ currentDate.month }}</span>
             </div>
             <div class="task">
-              <button>
-                Green Energy Mode!
-              </button>
+              <button>Green Energy Mode!</button>
             </div>
           </div>
 
@@ -134,15 +128,37 @@
 
           <!-- 실증지 변경 버튼 (고정 위치) -->
           <div class="building-change-btn">
-            <button @click="goBackToBuildingList" class="change-building-btn" title="실증지 변경" :data-tooltip="`실증지 변경`">
+            <button
+              @click="goBackToBuildingList"
+              class="change-building-btn"
+              title="실증지 변경"
+              :data-tooltip="`실증지 변경`"
+            >
               <span class="change-icon">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <mask id="mask0_2391_10537" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="40">
-                <rect width="40" height="40" fill="#D9D9D9"/>
-                </mask>
-                <g mask="url(#mask0_2391_10537)">
-                <path d="M27.0846 36.6673L10.418 20.0007L27.0846 3.33398L29.6263 5.90357L15.5292 20.0007L29.6263 34.0977L27.0846 36.6673Z" fill="white"/>
-                </g>
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 40 40"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <mask
+                    id="mask0_2391_10537"
+                    style="mask-type: alpha"
+                    maskUnits="userSpaceOnUse"
+                    x="0"
+                    y="0"
+                    width="40"
+                    height="40"
+                  >
+                    <rect width="40" height="40" fill="#D9D9D9" />
+                  </mask>
+                  <g mask="url(#mask0_2391_10537)">
+                    <path
+                      d="M27.0846 36.6673L10.418 20.0007L27.0846 3.33398L29.6263 5.90357L15.5292 20.0007L29.6263 34.0977L27.0846 36.6673Z"
+                      fill="white"
+                    />
+                  </g>
                 </svg>
               </span>
               <span class="building-name">실증지 변경</span>
@@ -214,16 +230,19 @@
               v-for="element in dashboardWidgets"
               :key="element.instanceId"
               class="widget-container"
-              :class="{ 
-                dragging: dragState.dragElement === element, 
+              :class="{
+                dragging: dragState.dragElement === element,
                 clickable: !isEditMode,
-                resizing: widgetResizeState.isResizing && widgetResizeState.resizingWidget === element,
-                'resize-invalid': widgetResizeState.isResizing && widgetResizeState.resizingWidget === element && !canPlaceWidget(element.position, element.gridSize, element)
+                resizing:
+                  widgetResizeState.isResizing && widgetResizeState.resizingWidget === element,
+                'resize-invalid':
+                  widgetResizeState.isResizing &&
+                  widgetResizeState.resizingWidget === element &&
+                  !canPlaceWidget(element.position, element.gridSize, element),
               }"
               :draggable="isEditMode"
               @dragstart="isEditMode ? handleDragStart(element, $event) : null"
               @dragend="handleDragEnd"
-
               :style="{
                 gridColumn: element.position
                   ? `${element.position.x + 1} / span ${element.gridSize.width}`
@@ -243,7 +262,7 @@
                   </div>
                   <div class="widget-controls">
                     <button @click="configureWidget(element)" class="control-btn" title="설정">
-                      <img src="@/assets/images/settings.svg" alt="">
+                      <img src="@/assets/images/settings.svg" alt="" />
                     </button>
                     <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
                       ✕
@@ -267,19 +286,19 @@
                     <DetailIcon />
                   </button>
                 </div>
-                
+
                 <!-- 편집 모드에서의 컨트롤 요소들 -->
                 <div v-if="isEditMode" class="widget-edit-controls">
                   <!-- 크기 조절 핸들들 -->
                   <div class="resize-handles">
                     <!-- 남동쪽 핸들 (오른쪽 아래) -->
-                    <div 
+                    <div
                       class="resize-handle resize-handle-se"
                       @mousedown="handleResizeStart(element, $event, 'se')"
                       title="크기 조절"
                     >
-                  <DragIcon />
-                  </div>
+                      <DragIcon />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -330,6 +349,31 @@
           </div>
         </div>
         <div v-else-if="widgetOptions.show" class="widget-options">
+          <p>명칭</p>
+          <div class="input-box">
+            <input
+              type="text"
+              v-model="widgetOptions.widgetName"
+              placeholder="위젯 명칭을 입력하세요"
+              class="widget-input"
+            />
+          </div>
+
+          <p>단위</p>
+          <div class="input-box">
+            <input
+              type="text"
+              v-model="widgetOptions.widgetUnit"
+              placeholder="단위를 입력하세요 (예: kWh, °C, %)"
+              class="widget-input"
+            />
+          </div>
+
+          <p>기간조회</p>
+          <div class="input-box">
+            <input type="date" v-model="widgetOptions.periodQuery" class="widget-input" />
+          </div>
+
           <p>업데이트 주기</p>
           <div class="input-box">
             <div
@@ -349,18 +393,9 @@
           </div>
           <p>데이터 종류</p>
           <div class="input-box">
-            <div
-              v-for="(option, index) in dumyData"
-              :key="index"
-              class="widget-option-item"
-            >
-              <input
-                type="radio"
-                name="dataType"
-                :value="option"
-                :id="`data-${index}`"
-              />
-              <label :for="`cycle-${index}`">{{option}}</label>
+            <div v-for="(option, index) in dumyData" :key="index" class="widget-option-item">
+              <input type="radio" name="dataType" :value="option" :id="`data-${index}`" />
+              <label :for="`cycle-${index}`">{{ option }}</label>
             </div>
           </div>
         </div>
@@ -529,11 +564,22 @@ import BuildingSelector from '@/components/BuildingSelector.vue'
 
 const authStore = useAuthStore()
 
+const widgetMinGridSizes = {
+  'line-chart': { width: 3, height: 3 },
+  'bar-chart': { width: 2, height: 2 },
+  'pie-chart': { width: 2, height: 2 },
+  'box-widget': { width: 1, height: 1 },
+  'bar-gauge-widget': { width: 2, height: 1 },
+  'status-widget': { width: 2, height: 1 },
+  'on-off-control': { width: 1, height: 1 },
+  'up-down-control': { width: 1, height: 1 },
+}
+
 // 현재 날짜 정보
 const currentDate = ref({
   day: '',
   dayOfWeek: '',
-  month: ''
+  month: '',
 })
 
 // 현재 날짜 업데이트 함수
@@ -541,14 +587,24 @@ const updateCurrentDate = () => {
   const now = new Date()
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ]
-  
+
   currentDate.value = {
     day: now.getDate().toString(),
     dayOfWeek: dayNames[now.getDay()],
-    month: monthNames[now.getMonth()]
+    month: monthNames[now.getMonth()],
   }
 }
 
@@ -578,13 +634,13 @@ const goBackToBuildingList = () => {
         }),
       )
     }
-    
+
     // 모든 실시간 업데이트 중지
     realtimeUpdateManager.stopAllUpdates()
-    
+
     // 선택된 실증지 초기화
     selectedBuilding.value = null
-    
+
     // 위젯 데이터 초기화
     dashboardWidgets.value = []
   }
@@ -596,17 +652,12 @@ const loadDashboardForBuilding = (buildingId) => {
   const saved = localStorage.getItem(savedKey)
   if (saved) {
     dashboardWidgets.value = JSON.parse(saved)
-    
+
     // 저장된 위젯들의 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
-    dashboardWidgets.value.forEach(widget => {
+    dashboardWidgets.value.forEach((widget) => {
       const isControlWidget = widget.type.includes('control')
       if (!isControlWidget) {
-        realtimeUpdateManager.startUpdate(
-          widget.instanceId,
-          widget.type,
-          widget.dataType,
-          5000
-        )
+        realtimeUpdateManager.startUpdate(widget.instanceId, widget.type, widget.dataType, 5000)
       }
     })
   } else {
@@ -645,6 +696,9 @@ const widgetOptions = reactive({
   cycle: [],
   unit: '',
   selectedCycle: '',
+  widgetName: '',
+  widgetUnit: '',
+  periodQuery: '',
 })
 
 // 위젯 상세보기 모달 상태
@@ -723,9 +777,7 @@ const getIconPath = (iconName) => {
   }
 }
 
-const dumyData = [
-  'AH', 'AQ', 'CBL', 'EL', 'EM', 'MP', 'MW', 'PMV', 'RE', 'SC'
-]
+const dumyData = ['AH', 'AQ', 'CBL', 'EL', 'EM', 'MP', 'MW', 'PMV', 'RE', 'SC']
 // 데이터 종류별 사용 가능한 위젯 정의
 const widgetsData = {
   power_usage: [
@@ -736,7 +788,6 @@ const widgetsData = {
       type: 'line-chart',
       description: '시간에 따른 전력 사용량 변화를 선그래프로 표시',
       updateCycle: [0, 1, 2, 3],
-
     },
     {
       id: 'power-bar-chart',
@@ -749,7 +800,7 @@ const widgetsData = {
     {
       id: 'power-pie-chart',
       name: '원 그래프',
-      icon:  getIconPath('3.png'),
+      icon: getIconPath('3.png'),
       type: 'pie-chart',
       description: '전력 사용량 비율을 원형 차트로 표시',
       updateCycle: [1, 2, 3],
@@ -757,7 +808,7 @@ const widgetsData = {
     {
       id: 'power-box-widget',
       name: '박스 위젯',
-      icon:  getIconPath('4.png'),
+      icon: getIconPath('4.png'),
       type: 'box-widget',
       description: '현재 전력량을 숫자로 표시',
       updateCycle: [0],
@@ -767,7 +818,7 @@ const widgetsData = {
     {
       id: 'solar-line-chart',
       name: '선 시계열 그래프',
-      icon:  getIconPath('1.png'),
+      icon: getIconPath('1.png'),
       type: 'line-chart',
       description: '태양광 발전량과 예측량을 선그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -775,7 +826,7 @@ const widgetsData = {
     {
       id: 'solar-bar-chart',
       name: '막대 시계열 그래프',
-      icon:  getIconPath('2.png'),
+      icon: getIconPath('2.png'),
       type: 'bar-chart',
       description: '태양광 발전량과 예측량을 막대그래프로 표시',
       updateCycle: [0, 1, 2, 3],
@@ -783,7 +834,7 @@ const widgetsData = {
     {
       id: 'solar-box-widget',
       name: '박스 위젯',
-      icon:  getIconPath('4.png'),
+      icon: getIconPath('4.png'),
       type: 'box-widget',
       description: '현재 발전량을 숫자로 표시',
       updateCycle: [0],
@@ -793,7 +844,7 @@ const widgetsData = {
     {
       id: 'temp-bar-widget',
       name: '막대(온도) 위젯',
-      icon:  getIconPath('5.png'),
+      icon: getIconPath('5.png'),
       type: 'bar-gauge-widget',
       description: '온도를 막대 게이지로 표시',
       updateCycle: [0, 1],
@@ -801,7 +852,7 @@ const widgetsData = {
     {
       id: 'humidity-bar-widget',
       name: '막대(습도) 위젯',
-      icon:  getIconPath('5.png'),
+      icon: getIconPath('5.png'),
       type: 'bar-gauge-widget',
       description: '습도를 퍼센트 막대로 표시',
       updateCycle: [0, 1],
@@ -809,7 +860,7 @@ const widgetsData = {
     {
       id: 'pressure-box-widget',
       name: '박스 위젯',
-      icon:  getIconPath('4.png'),
+      icon: getIconPath('4.png'),
       type: 'box-widget',
       description: '압력값을 숫자로 표시',
       updateCycle: [0, 1],
@@ -819,7 +870,7 @@ const widgetsData = {
     {
       id: 'on-off-control',
       name: '제어(ON/OFF) 위젯',
-      icon:  getIconPath('7.png'),
+      icon: getIconPath('7.png'),
       type: 'on-off-control',
       description: '설비 ON/OFF 제어 및 현재 상태 표시',
       updateCycle: '실시간',
@@ -827,7 +878,7 @@ const widgetsData = {
     {
       id: 'up-down-control',
       name: '제어(UP/DOWN) 위젯',
-      icon:  getIconPath('8.png'),
+      icon: getIconPath('8.png'),
       type: 'up-down-control',
       description: '온도/압력/조도 등 수치 제어',
       updateCycle: '실시간',
@@ -835,7 +886,7 @@ const widgetsData = {
     {
       id: 'status-widget',
       name: '상태표시 위젯',
-      icon:  getIconPath('12.png'),
+      icon: getIconPath('12.png'),
       type: 'status-widget',
       description: '현재 상태를 색상으로 표시',
       updateCycle: '실시간',
@@ -845,7 +896,7 @@ const widgetsData = {
     {
       id: 'alarm-widget',
       name: '알람 위젯',
-      icon:  getIconPath('10.png'),
+      icon: getIconPath('10.png'),
       type: 'alarm-widget',
       description: '통신 또는 설비 알람 표시',
       updateCycle: '실시간',
@@ -853,7 +904,7 @@ const widgetsData = {
     {
       id: 'energy-report',
       name: '에너지 진단보고서',
-      icon:  getIconPath('9.png'),
+      icon: getIconPath('9.png'),
       type: 'energy-report',
       description: 'PDF 진단보고서 분석 결과',
       updateCycle: [3],
@@ -863,7 +914,7 @@ const widgetsData = {
     {
       id: 'page-link',
       name: '페이지 링크 위젯',
-      icon:  getIconPath('6.png'),
+      icon: getIconPath('6.png'),
       type: 'page-link',
       description: 'URL 링크 표시 및 이동',
       updateCycle: '정적',
@@ -871,7 +922,7 @@ const widgetsData = {
     {
       id: 'image-widget',
       name: '그림삽입 위젯',
-      icon:  getIconPath('11.png'),
+      icon: getIconPath('11.png'),
       type: 'image-widget',
       description: '이미지 파일 표시',
       updateCycle: '정적',
@@ -897,7 +948,47 @@ const widgetChar = (ele) => {
 // 위젯 추가
 const addWidget = (widget) => {
   // 빈 공간 찾기
-  const emptyPosition = findEmptyPosition({ width: 2, height: 2 })
+  const minSize = widgetMinGridSizes[widget.type] || { width: 2, height: 2 }
+  const emptyPosition = findEmptyPosition(
+    widgetMinGridSizes[widget.type] || { width: 2, height: 2 },
+  )
+  if (emptyPosition === null) {
+    alert(
+      `대시보드에 빈 공간이 없습니다. 해당 위젯을 추가하려면 최소 가로 ${minSize.width}칸, 세로 ${minSize.height}칸의 공간을 확보해주세요.`,
+    )
+    return
+  }
+
+  // 위젯 타입별 기본 설정
+  const getDefaultConfig = (widgetType) => {
+    const baseConfig = {
+      updateCycle: widget.updateCycle,
+      dataSource: '',
+      customSettings: {},
+    }
+
+    if (widgetType === 'bar-gauge-widget') {
+      return {
+        ...baseConfig,
+        title: widgetOptions.widgetName || '게이지',
+        unit: widgetOptions.widgetUnit || '%',
+        min: 0,
+        max: 100,
+        thresholds: {
+          warning: 70,
+          critical: 90,
+        },
+        periodQuery: widgetOptions.periodQuery || '',
+      }
+    }
+
+    return {
+      ...baseConfig,
+      title: widgetOptions.widgetName || baseConfig.title,
+      unit: widgetOptions.widgetUnit || baseConfig.unit,
+      periodQuery: widgetOptions.periodQuery || '',
+    }
+  }
 
   const newWidget = {
     ...widget,
@@ -907,29 +998,28 @@ const addWidget = (widget) => {
     keyword: widgetOptions.keyword,
     unit: widgetOptions.unit,
     dataType: widgetSelector.dataType,
-    gridSize: { width: 2, height: 2 },
+    name: widgetOptions.widgetName || widget.name,
+    customUnit: widgetOptions.widgetUnit,
+    periodQuery: widgetOptions.periodQuery,
+    gridSize: { width: Math.max(minSize.width, 2), height: Math.max(minSize.height, 2) },
     position: emptyPosition,
     data: {},
-    config: {
-      updateCycle: widget.updateCycle,
-      dataSource: '',
-      customSettings: {},
-    },
+    config: getDefaultConfig(widget.type),
   }
-  
+
   dashboardWidgets.value.push(newWidget)
-  
+
   // 실시간 데이터 업데이트 시작 (컨트롤 위젯은 제외)
   const isControlWidget = newWidget.type.includes('control')
   if (!isControlWidget) {
     realtimeUpdateManager.startUpdate(
-      newWidget.instanceId, 
-      newWidget.type, 
+      newWidget.instanceId,
+      newWidget.type,
       newWidget.dataType,
-      5000 // 5초마다 업데이트
+      5000, // 5초마다 업데이트
     )
   }
-  
+
   closeWidgetSelector()
 
   // 위젯 추가 후 사이드바 닫기
@@ -937,8 +1027,8 @@ const addWidget = (widget) => {
   // 헤더에 사이드바 상태 변경 알림
   window.dispatchEvent(
     new CustomEvent('sidebar-state-change', {
-      detail: { isOpen: false }
-    })
+      detail: { isOpen: false },
+    }),
   )
 }
 
@@ -951,7 +1041,7 @@ const findEmptyPosition = (size) => {
       }
     }
   }
-  return { x: 0, y: 0 }
+  return null
 }
 
 // 위치가 비어있는지 확인
@@ -998,7 +1088,7 @@ const clearDashboard = () => {
 
 const saveDashboard = () => {
   if (!selectedBuilding.value) return
-  
+
   const savedKey = `dashboard-widgets-building-${selectedBuilding.value.id}`
   localStorage.setItem(savedKey, JSON.stringify(dashboardWidgets.value))
   console.log(`대시보드 저장됨 - 실증지: ${selectedBuilding.value.name}`)
@@ -1031,8 +1121,6 @@ const resetDragState = () => {
 
 const handleDragOver = (event) => {
   if (!isEditMode.value || !dragState.dragElement) return
-
-
 
   event.preventDefault()
   event.dataTransfer.dropEffect = 'move'
@@ -1151,6 +1239,9 @@ const changeShowWidget = (widget) => {
     : widget.updateCycle
   widgetOptions.keyword = []
   widgetOptions.unit = ''
+  widgetOptions.widgetName = widget.name || ''
+  widgetOptions.widgetUnit = ''
+  widgetOptions.periodQuery = ''
   widgetOptions.other = widget
 }
 
@@ -1200,9 +1291,9 @@ const applyResize = () => {
 
 // 위젯 상세보기 모달 열기
 const openWidgetModal = (widget) => {
-  console.log('모달 열기 - 위젯:', widget);
-  console.log('모달 열기 - 현재 스토어 데이터:', widgetDataStore.getWidgetData(widget.instanceId));
-  
+  console.log('모달 열기 - 위젯:', widget)
+  console.log('모달 열기 - 현재 스토어 데이터:', widgetDataStore.getWidgetData(widget.instanceId))
+
   widgetModal.widget = widget
   widgetModal.additionalInfo = {
     '업데이트 주기': Array.isArray(widget.updateCycle)
@@ -1251,7 +1342,7 @@ const resetWidgetResizeState = () => {
 const handleResizeStart = (widget, event, handle = 'se') => {
   event.stopPropagation()
   event.preventDefault()
-  
+
   widgetResizeState.isResizing = true
   widgetResizeState.resizingWidget = widget
   widgetResizeState.startX = event.clientX
@@ -1259,40 +1350,43 @@ const handleResizeStart = (widget, event, handle = 'se') => {
   widgetResizeState.startWidth = widget.gridSize.width
   widgetResizeState.startHeight = widget.gridSize.height
   widgetResizeState.resizeHandle = handle
-  
+
   // 마우스 이벤트 리스너 등록
   document.addEventListener('mousemove', handleResizeMove)
   document.addEventListener('mouseup', handleResizeEnd)
-  
+
   console.log('크기 조절 시작:', widget.name, handle)
 }
 
 // 위젯 크기 조절 중
 const handleResizeMove = (event) => {
   if (!widgetResizeState.isResizing || !widgetResizeState.resizingWidget) return
-  
+
   event.preventDefault()
-  
+
   const deltaX = event.clientX - widgetResizeState.startX
   const deltaY = event.clientY - widgetResizeState.startY
-  
+
   // 그리드 셀 크기 계산
   const gridRect = dashboardGrid.value.getBoundingClientRect()
   const cellWidth = (gridRect.width - 48) / gridConfig.cols
   const cellHeight = (gridRect.height - 48) / gridConfig.rows
-  
+
   // 델타를 그리드 단위로 변환
   const gridDeltaX = Math.round(deltaX / cellWidth)
   const gridDeltaY = Math.round(deltaY / cellHeight)
-  
+  const minSize = widgetMinGridSizes[widgetResizeState.resizingWidget.type] || {
+    width: 1,
+    height: 1,
+  }
   // 새로운 크기 계산
   let newWidth = widgetResizeState.startWidth
   let newHeight = widgetResizeState.startHeight
-  
+
   switch (widgetResizeState.resizeHandle) {
     case 'se': // 남동쪽 (오른쪽 아래)
-      newWidth = Math.max(1, widgetResizeState.startWidth + gridDeltaX)
-      newHeight = Math.max(1, widgetResizeState.startHeight + gridDeltaY)
+      newWidth = Math.max(minSize.width, widgetResizeState.startWidth + gridDeltaX)
+      newHeight = Math.max(minSize.height, widgetResizeState.startHeight + gridDeltaY)
       break
     case 'sw': // 남서쪽 (왼쪽 아래)
       newWidth = Math.max(1, widgetResizeState.startWidth - gridDeltaX)
@@ -1307,23 +1401,32 @@ const handleResizeMove = (event) => {
       newHeight = Math.max(1, widgetResizeState.startHeight - gridDeltaY)
       break
   }
-  
+
   // 그리드 범위 제한
   const widget = widgetResizeState.resizingWidget
+
   const maxWidth = gridConfig.cols - widget.position.x
   const maxHeight = gridConfig.rows - widget.position.y
-  
+
+  // newWidth = Math.min(newWidth, maxWidth)
+  // newHeight = Math.min(newHeight, maxHeight)
+
+  // 최소 크기 제한 적용
+  newWidth = Math.max(minSize.width, newWidth)
+  newHeight = Math.max(minSize.height, newHeight)
+
+  // 최대 크기 제한 적용
   newWidth = Math.min(newWidth, maxWidth)
   newHeight = Math.min(newHeight, maxHeight)
-  
+
   // 다른 위젯과 겹치는지 확인
   const newSize = { width: newWidth, height: newHeight }
   const canResize = canPlaceWidget(widget.position, newSize, widget)
-  
+
   // 임시로 크기 업데이트 (시각적 피드백)
   widget.gridSize.width = newWidth
   widget.gridSize.height = newHeight
-  
+
   // 겹침 상태에 따라 시각적 피드백 제공
   if (!canResize) {
     // 겹치는 경우 빨간색 테두리로 표시
@@ -1334,17 +1437,17 @@ const handleResizeMove = (event) => {
 // 위젯 크기 조절 완료
 const handleResizeEnd = (event) => {
   if (!widgetResizeState.isResizing) return
-  
+
   event.preventDefault()
-  
+
   // 마우스 이벤트 리스너 제거
   document.removeEventListener('mousemove', handleResizeMove)
   document.removeEventListener('mouseup', handleResizeEnd)
-  
+
   // 최종 크기 확인 및 저장
   const widget = widgetResizeState.resizingWidget
   const finalSize = { width: widget.gridSize.width, height: widget.gridSize.height }
-  
+
   if (canPlaceWidget(widget.position, finalSize, widget)) {
     saveDashboard()
     console.log('크기 조절 완료:', widget.name, finalSize)
@@ -1354,17 +1457,17 @@ const handleResizeEnd = (event) => {
     widget.gridSize.height = widgetResizeState.startHeight
     console.log('크기 조절 실패 - 원래 크기로 복원')
   }
-  
+
   resetWidgetResizeState()
 }
 
 onMounted(() => {
   // 초기 날짜 설정
   updateCurrentDate()
-  
+
   // 매 분마다 날짜 업데이트 (날짜가 바뀔 수 있으므로)
   dateUpdateInterval = setInterval(updateCurrentDate, 60000) // 1분마다
-  
+
   loadDashboard()
   // 헤더에서 오는 이벤트 리스너 등록
   window.addEventListener('edit-mode-change', handleEditModeChange)
@@ -1380,10 +1483,10 @@ onUnmounted(() => {
   if (dateUpdateInterval) {
     clearInterval(dateUpdateInterval)
   }
-  
+
   // 모든 실시간 업데이트 중지
   realtimeUpdateManager.stopAllUpdates()
-  
+
   // 이벤트 리스너 제거
   window.removeEventListener('edit-mode-change', handleEditModeChange)
   window.removeEventListener('sidebar-toggle', handleSidebarToggle)

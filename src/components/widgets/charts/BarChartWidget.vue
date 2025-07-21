@@ -4,7 +4,12 @@
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '막대 시계열 그래프' }}</h3>
       <div class="widget-controls">
-        <select v-model="selectedPeriod" @click.stop @change.stop="updateData" class="period-selector">
+        <select
+          v-model="selectedPeriod"
+          @click.stop
+          @change.stop="updateData"
+          class="period-selector"
+        >
           <option value="1min">1분</option>
           <option value="15min">15분</option>
           <option value="1hour">1시간</option>
@@ -16,34 +21,29 @@
 
     <!-- 날짜 선택 컨트롤 -->
     <div class="date-controls">
-      <button @click="previousDay" class="nav-btn"><img src="@/assets/images/prev_arrow_circle.png" alt="전날">전날</button>
-      <input 
-
-        type="date" 
-        v-model="selectedDate" 
+      <button @click="previousDay" class="nav-btn">
+        <img src="@/assets/images/prev_arrow_circle.png" alt="전날" />전날
+      </button>
+      <input
+        type="date"
+        v-model="selectedDate"
         @click.stop
         @change.stop="updateData"
         class="date-picker"
       />
-      <button @click="nextDay" class="nav-btn">다음날 <img src="@/assets/images/next_arrow_circle.png" alt=""></button>
+      <button @click="nextDay" class="nav-btn">
+        다음날 <img src="@/assets/images/next_arrow_circle.png" alt="" />
+      </button>
     </div>
 
     <!-- 차트 영역 -->
     <div class="chart-container">
-      <BarChart 
-        :data="chartData"
-        :config="chartConfig"
-        @hover="onChartHover"
-      />
+      <BarChart :data="chartData" :config="chartConfig" @hover="onChartHover" />
     </div>
 
     <!-- 범례 -->
     <div class="chart-legend">
-      <div 
-        v-for="item in legendItems" 
-        :key="item.name"
-        class="legend-item"
-      >
+      <div v-for="item in legendItems" :key="item.name" class="legend-item">
         <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
         <span class="legend-label">{{ item.name }}</span>
       </div>
@@ -67,29 +67,29 @@ import BarChart from '../charts/BarChart.vue'
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   config: {
     type: Object,
     default: () => ({
       title: '막대 시계열 그래프',
       unit: '[kWh]',
-      dataSource: 'api/power-usage'
-    })
+      dataSource: 'api/power-usage',
+    }),
   },
   isEditMode: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 // 반응형 데이터
 const selectedPeriod = ref('1day')
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 
-  const selectYear = ref(selectedDate.value.split('-')[0]);
-  const slectMonth = ref(selectedDate.value.split('-')[1]);
-const selectDay = ref(selectedDate.value.split('-')[2]);
+const selectYear = ref(selectedDate.value.split('-')[0])
+const slectMonth = ref(selectedDate.value.split('-')[1])
+const selectDay = ref(selectedDate.value.split('-')[2])
 
 const hoveredData = ref(null)
 const tooltipPosition = ref({ left: '0px', top: '0px' })
@@ -100,7 +100,7 @@ const rawData = ref([
   { time: '06:00', powerUsage: 150, solarGeneration: 20, solarPrediction: 25 },
   { time: '12:00', powerUsage: 200, solarGeneration: 180, solarPrediction: 170 },
   { time: '18:00', powerUsage: 250, solarGeneration: 50, solarPrediction: 55 },
-  { time: '23:59', powerUsage: 130, solarGeneration: 0, solarPrediction: 0 }
+  { time: '23:59', powerUsage: 130, solarGeneration: 0, solarPrediction: 0 },
 ])
 
 // 차트 설정
@@ -110,75 +110,74 @@ const chartConfig = computed(() => ({
     x: {
       title: {
         display: false,
-        text: '시간'
-      }
+        text: '시간',
+      },
     },
     y: {
       title: {
         display: false,
-        text: `${props.config.unit}`
-      }
-    }
+        text: `${props.config.unit}`,
+      },
+    },
   },
   plugins: {
-    legend : {
-      display:false,
-    }
-  }
+    legend: {
+      display: false,
+    },
+  },
 }))
 
 // 차트 데이터
 const chartData = computed(() => ({
-  labels: rawData.value.map(item => item.time),
+  labels: rawData.value.map((item) => item.time),
   datasets: [
     {
       label: '전력 사용량',
-      data: rawData.value.map(item => item.powerUsage),
+      data: rawData.value.map((item) => item.powerUsage),
       backgroundColor: '#E16349',
-      borderColor: '#E16349'
+      borderColor: '#E16349',
     },
     {
       label: '태양광 발전량',
-      data: rawData.value.map(item => item.solarGeneration),
+      data: rawData.value.map((item) => item.solarGeneration),
       backgroundColor: '#F0BBB1',
-      borderColor: '#F0BBB1'
+      borderColor: '#F0BBB1',
     },
     {
       label: '태양광 예측량',
-      data: rawData.value.map(item => item.solarPrediction),
+      data: rawData.value.map((item) => item.solarPrediction),
       backgroundColor: '#F3D7D0',
-      borderColor: '#F3D7D0'
-    }
-  ]
+      borderColor: '#F3D7D0',
+    },
+  ],
 }))
 
 // 범례 데이터
 const legendItems = computed(() => [
   { name: '전력 사용량', color: '#E16349' },
   { name: '태양광 발전량', color: '#F0BBB1' },
-  { name: '태양광 예측량', color: '#F3D7D0' }
+  { name: '태양광 예측량', color: '#F3D7D0' },
 ])
 
 // 메서드
 const previousDay = (e) => {
-e.stopPropagation();
+  e.stopPropagation()
   const date = new Date(selectedDate.value)
   date.setDate(date.getDate() - 1)
   selectedDate.value = date.toISOString().split('T')[0]
 }
 
 const nextDay = (e) => {
-  e.stopPropagation();
+  e.stopPropagation()
   const date = new Date(selectedDate.value)
   date.setDate(date.getDate() + 1)
   selectedDate.value = date.toISOString().split('T')[0]
 }
 
 const updateData = async () => {
-
   console.log('데이터 업데이트:', {
     date: selectedDate.value,
-    period: selectedPeriod.value
+    period: selectedPeriod.value,
   })
 }
 
@@ -186,11 +185,11 @@ const onChartHover = (event, data) => {
   if (data && data.length > 0) {
     hoveredData.value = {
       time: data[0].time,
-      values: data
+      values: data,
     }
     tooltipPosition.value = {
       left: event.clientX + 'px',
-      top: event.clientY + 'px'
+      top: event.clientY + 'px',
     }
   } else {
     hoveredData.value = null
@@ -208,7 +207,9 @@ watch([selectedDate, selectedPeriod], () => {
 
 <style scoped>
 .widget-inner {
-  height:100%;
+  container-name: bar-chart-container;
+  container-type: inline-size;
+  height: 100%;
 }
 .bar-chart-widget {
   /* background: white; */
@@ -217,26 +218,26 @@ watch([selectedDate, selectedPeriod], () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  width:100%;
+  width: 100%;
 }
 
 /* 확대 모드 스타일 */
-.bar-chart-widget[data-expanded="true"] {
+.bar-chart-widget[data-expanded='true'] {
   padding: 24px;
   border-radius: 0;
   background: #fafafa;
 }
 
-.bar-chart-widget[data-expanded="true"] .chart-container {
+.bar-chart-widget[data-expanded='true'] .chart-container {
   min-height: 400px;
-  height:100%;
+  height: 100%;
 }
 
-.bar-chart-widget[data-expanded="true"] .widget-title {
+.bar-chart-widget[data-expanded='true'] .widget-title {
   font-size: 24px;
 }
 
-.bar-chart-widget[data-expanded="true"] .chart-legend {
+.bar-chart-widget[data-expanded='true'] .chart-legend {
   margin-top: 20px;
   padding: 16px;
   background: white;
@@ -284,8 +285,6 @@ watch([selectedDate, selectedPeriod], () => {
   /* margin-bottom: 16px; */
 }
 
-
-
 .nav-btn {
   display: flex;
   justify-content: center;
@@ -306,7 +305,7 @@ watch([selectedDate, selectedPeriod], () => {
   background: #e4e4e4;
 }
 
-.nav-btn img{
+.nav-btn img {
   width: 20px;
   height: 20px;
   object-fit: cover;
@@ -325,14 +324,11 @@ watch([selectedDate, selectedPeriod], () => {
   flex: 1;
   /* min-height: 300px; */
   margin-bottom: 16px;
-  width:100%;
-
-  
-
+  width: 100%;
 }
-.chart-container  canvas{
-    height:0px;
-  }
+.chart-container canvas {
+  height: 0px;
+}
 
 .chart-legend {
   display: flex;
@@ -378,5 +374,8 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+
+@container bar-chart-container (max-width: 400px) {
 }
 </style>
