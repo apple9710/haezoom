@@ -337,14 +337,11 @@
             </div>
             <div class="widget-type-name">{{ widget.name }}</div>
             <div class="widget-type-description">{{ widget.description }}</div>
-            <div class="widget-type-badge">
-              {{
-                widget.updateCycle.length !== 1
-                  ? widgetChar(Math.min(...widget.updateCycle)) +
-                    '~' +
-                    widgetChar(Math.max(...widget.updateCycle))
-                  : widgetChar(widget.updateCycle[0])
-              }}
+            <div 
+              v-if="getBadgeText(widget)" 
+              class="widget-type-badge"
+            >
+              {{ getBadgeText(widget) }}
             </div>
           </div>
         </div>
@@ -942,6 +939,33 @@ const widgetChar = (ele) => {
     return numArr[ele]
   } else if (typeof ele === 'string') {
     return ele
+  }
+}
+
+// 뱃지 텍스트 생성 함수
+const getBadgeText = (widget) => {
+  if (!widget.updateCycle) return null
+  
+  try {
+    if (Array.isArray(widget.updateCycle)) {
+      if (widget.updateCycle.length === 0) return null
+      
+      const validCycles = widget.updateCycle.filter(cycle => cycle !== undefined && cycle !== null)
+      if (validCycles.length === 0) return null
+      
+      if (validCycles.length === 1) {
+        return widgetChar(validCycles[0])
+      } else {
+        const minCycle = Math.min(...validCycles)
+        const maxCycle = Math.max(...validCycles)
+        return widgetChar(minCycle) + '~' + widgetChar(maxCycle)
+      }
+    } else {
+      return widgetChar(widget.updateCycle)
+    }
+  } catch (error) {
+    console.warn('뱃지 텍스트 생성 오류:', error, widget)
+    return null
   }
 }
 
