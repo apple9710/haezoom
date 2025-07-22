@@ -9,6 +9,7 @@
           <option value="1week">일주일</option>
           <option value="1month">한달</option>
         </select>
+        
         <span class="unit">{{ config.unit || '[kWh]' }}</span>
       </div>
     </div>
@@ -286,6 +287,7 @@ watch([selectedPeriod], () => {
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 14px;
+  display: none;
 }
 
 .unit {
