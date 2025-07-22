@@ -1,7 +1,7 @@
 <template>
   <div class="box-widget" :data-expanded="config.isExpanded">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더 -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '수치 데이터' }}</h3>
       <div class="widget-status" :class="statusClass">
         <span class="status-dot"></span>
@@ -184,14 +184,17 @@ const lastUpdateTime = computed(() => {
 </script>
 
 <style scoped>
+.update-indicator{
+  display: none;
+}
 .box-widget {
-  background: white;
+  width: 100%;
+  height: 100%;
   border-radius: 12px;
   padding: 20px;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  justify-content: center;
 }
 
 /* 확대 모드 스타일 */
@@ -297,6 +300,7 @@ const lastUpdateTime = computed(() => {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
+  display: none;
 }
 
 .info-row {
@@ -333,6 +337,8 @@ const lastUpdateTime = computed(() => {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 12px;
+  color: #000;
+  display: none;
 }
 
 .change-indicator.increase {
@@ -359,5 +365,6 @@ const lastUpdateTime = computed(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+  display: none;
 }
 </style>
