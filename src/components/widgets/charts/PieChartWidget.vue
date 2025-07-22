@@ -229,7 +229,7 @@ watch([selectedPeriod], () => {
 
 <style scoped>
 .pie-chart-widget {
-  background: white;
+  /* background: white; */
   border-radius: 8px;
   padding: 16px;
   height: 100%;

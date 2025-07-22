@@ -287,13 +287,13 @@ onUnmounted(() => {
 
 <style scoped>
 .alarm-widget {
-  background: white;
+  /* background: white; */
   border-radius: 12px;
   padding: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
 }
 
 .widget-header {

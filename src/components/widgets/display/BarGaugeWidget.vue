@@ -231,14 +231,14 @@ onUnmounted(() => {
 .bar-gauge-widget {
   container-name: bar-gauge-container;
   container-type: size;
-  background: white;
+  /* background: white; */
   width: 100%;
   border-radius: 12px;
   padding: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
 }
 
 .widget-header {
