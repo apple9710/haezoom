@@ -565,11 +565,15 @@ const widgetMinGridSizes = {
   'line-chart': { width: 3, height: 3 },
   'bar-chart': { width: 2, height: 2 },
   'pie-chart': { width: 2, height: 2 },
-  'box-widget': { width: 1, height: 1 },
-  'bar-gauge-widget': { width: 2, height: 1 },
-  'status-widget': { width: 2, height: 1 },
-  'on-off-control': { width: 1, height: 1 },
-  'up-down-control': { width: 1, height: 1 },
+  'on-off-control': { width: 2, height: 2 },
+  'up-down-control': { width: 2, height: 2 },
+  'box-widget': { width: 2, height: 2 },
+  'bar-gauge-widget': { width: 2, height: 2 },
+  'status-widget': { width: 2, height: 2 },
+  'alarm-widget': { width: 3, height: 1 },
+  'energy-report': { width: 2, height: 2 },
+  'page-link': { width: 2, height: 2 },
+  'image-widget': { width: 2, height: 2 },
 }
 
 // 현재 날짜 정보
