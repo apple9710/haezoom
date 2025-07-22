@@ -269,6 +269,7 @@ watch([selectedDate, selectedPeriod], () => {
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 14px;
+  display: none;
 }
 
 .unit {
