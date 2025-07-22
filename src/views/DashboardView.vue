@@ -13,7 +13,7 @@
         <div class="widget-categories">
           <!-- ...existing widget categories... -->
           <div class="category-section">
-            <h4 class="category-title">전력 사용량</h4>
+            <h4 class="category-title">전력</h4>
             <div class="data-description">실시간 전력 사용량 모니터링</div>
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 사용량')">
@@ -25,7 +25,7 @@
           </div>
 
           <div class="category-section">
-            <h4 class="category-title">태양광 발전량</h4>
+            <h4 class="category-title">태양광</h4>
             <div class="data-description">태양광 발전량 및 예측량</div>
             <div class="widget-list">
               <div
