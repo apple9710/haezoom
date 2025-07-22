@@ -1,7 +1,7 @@
 <template>
   <div class="energy-report-widget">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더 -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '에너지 진단보고서' }}</h3>
       <div class="report-status" :class="reportStatusClass">
         <span class="status-dot"></span>

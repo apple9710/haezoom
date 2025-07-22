@@ -1,7 +1,7 @@
 <template>
   <div class="up-down-control-widget">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더  -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || 'UP/DOWN 제어' }}</h3>
       <div class="connection-status" :class="connectionClass">
         <span class="connection-dot"></span>

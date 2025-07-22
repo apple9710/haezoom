@@ -1,7 +1,7 @@
 <template>
   <div class="line-chart-widget" :data-expanded="config.isExpanded">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더  -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '선 시계열 그래프' }}</h3>
       <div class="widget-controls">
         <select v-model="selectedPeriod" @change="updateData" class="period-selector">

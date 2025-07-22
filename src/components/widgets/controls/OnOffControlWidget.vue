@@ -1,7 +1,7 @@
 <template>
   <div class="on-off-control-widget">
     <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || 'ON/OFF 제어' }}</h3>
       <div class="connection-status" :class="connectionClass">
         <span class="connection-dot"></span>
@@ -399,6 +399,7 @@ onUnmounted(() => {
   border-radius: 8px;
   font-size: 12px;
   color: #424242;
+  display: none;
 }
 
 .status-dot {

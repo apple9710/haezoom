@@ -189,7 +189,7 @@ const lastUpdateTime = computed(() => {
 }
 .box-widget {
   width: 100%;
-  height: 100%;
+  /* height: 100%; */
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -300,7 +300,7 @@ const lastUpdateTime = computed(() => {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  display: none;
+  /* display: none; */
 }
 
 .info-row {
@@ -338,7 +338,7 @@ const lastUpdateTime = computed(() => {
   font-weight: 500;
   margin-bottom: 12px;
   color: #000;
-  display: none;
+  /* display: none; */
 }
 
 .change-indicator.increase {
@@ -365,6 +365,6 @@ const lastUpdateTime = computed(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
-  display: none;
+  /* display: none; */
 }
 </style>

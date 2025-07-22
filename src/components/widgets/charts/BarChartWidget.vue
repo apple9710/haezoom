@@ -1,6 +1,6 @@
 <template>
   <div class="bar-chart-widget" :data-expanded="config.isExpanded">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
+    <!-- 위젯 헤더  -->
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '막대 시계열 그래프' }}</h3>
       <div class="widget-controls">

@@ -1,7 +1,7 @@
 <template>
   <div class="bar-gauge-widget">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더 -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '게이지' }}</h3>
       <div class="widget-status" :class="statusClass">
         <span class="status-dot"></span>

@@ -1,7 +1,7 @@
 <template>
   <div class="image-widget">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div v-if="isEditMode" class="widget-header">
+    <!-- 위젯 헤더 -->
+    <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '이미지' }}</h3>
       <div v-if="config.showStatus" class="widget-status">
         <span class="status-dot" :class="statusClass"></span>
