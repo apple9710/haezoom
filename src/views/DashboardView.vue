@@ -16,9 +16,9 @@
             <h4 class="category-title">전력</h4>
             <div class="data-description">실시간 전력 사용량 모니터링</div>
             <div class="widget-list">
-              <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 사용량')">
+              <div class="widget-item" @click="showWidgetSelector('power_usage', '전력 ')">
                 <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt="" /></span>
-                <span class="widget-name">전력 사용량 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -33,7 +33,7 @@
                 @click="showWidgetSelector('solar_generation', '태양광 발전량')"
               >
                 <span class="widget-icon"><img src="@/assets/images/icon/1.png" alt="" /></span>
-                <span class="widget-name">태양광 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -45,7 +45,7 @@
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('environment', '환경 센서')">
                 <span class="widget-icon">🌡️</span>
-                <span class="widget-name">환경 센서 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -53,14 +53,14 @@
 
           <div class="category-section">
             <h4 class="category-title">설비 제어</h4>
-            <div class="data-description">설비 제어 및 상태 모니터링</div>
+            <div class="data-description">기기 제어 및 상태 모니터링</div>
             <div class="widget-list">
               <div
                 class="widget-item"
                 @click="showWidgetSelector('equipment_control', '설비 제어')"
               >
                 <span class="widget-icon">🔘</span>
-                <span class="widget-name">설비 제어 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -72,7 +72,7 @@
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('system_info', '시스템 정보')">
                 <span class="widget-icon">🔔</span>
-                <span class="widget-name">시스템 정보 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -84,7 +84,7 @@
             <div class="widget-list">
               <div class="widget-item" @click="showWidgetSelector('misc', '기타')">
                 <span class="widget-icon">🔗</span>
-                <span class="widget-name">기타 위젯 추가</span>
+                <span class="widget-name">위젯 추가</span>
                 <span class="widget-arrow">→</span>
               </div>
             </div>
@@ -322,7 +322,7 @@
           {{ widgetSelector.dataType }} {{ widgetOptions.show ? '옵션' : '위젯' }} 선택
         </h3>
         <p class="modal-description">
-          {{ widgetSelector.dataType }}를 표시할 위젯 형태를 선택하세요
+          표시할 위젯 형태를 선택하세요
         </p>
 
         <div v-if="!widgetOptions.show" class="widget-type-grid">
@@ -346,60 +346,136 @@
           </div>
         </div>
         <div v-else-if="widgetOptions.show" class="widget-options">
-          <p>명칭</p>
-          <div class="input-box">
-            <input
-              type="text"
-              v-model="widgetOptions.widgetName"
-              placeholder="위젯 명칭을 입력하세요"
-              class="widget-input"
-            />
-          </div>
-
-          <p>단위</p>
-          <div class="input-box">
-            <input
-              type="text"
-              v-model="widgetOptions.widgetUnit"
-              placeholder="단위를 입력하세요 (예: kWh, °C, %)"
-              class="widget-input"
-            />
-          </div>
-
-          <p>기간조회</p>
-          <div class="input-box">
-            <input type="date" v-model="widgetOptions.periodQuery" class="widget-input" />
-          </div>
-
-          <p>업데이트 주기</p>
-          <div class="input-box">
-            <div
-              v-for="(option, index) in widgetOptions.cycle"
-              :key="index"
-              class="widget-option-item"
-            >
+          <div class="input-grid">
+            <p>명칭</p>
+            <div class="input-box">
               <input
-                type="radio"
-                name="cycle"
-                :value="option"
-                v-model="widgetOptions.selectedCycle"
-                :id="`cycle-${index}`"
+                type="text"
+                v-model="widgetOptions.widgetName"
+                placeholder="위젯 명칭을 입력하세요"
+                class="widget-input"
               />
-              <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
             </div>
           </div>
-          <p>데이터 종류</p>
-          <div class="input-box">
-            <div v-for="(option, index) in dumyData" :key="index" class="widget-option-item">
-              <input type="radio" name="dataType" :value="option" :id="`data-${index}`" />
-              <label :for="`cycle-${index}`">{{ option }}</label>
+
+          <div class="input-grid">
+            <p>단위</p>
+            <div class="input-box">
+              <input
+                type="text"
+                v-model="widgetOptions.widgetUnit"
+                placeholder="단위를 입력하세요 (예: kWh, °C, %)"
+                class="widget-input"
+              />
+            </div>
+          </div>
+
+          <div class="input-grid">
+            <p>기간</p>
+            <div class="input-box period-selection">
+              <div class="widget-option-item">
+                <input
+                  type="radio"
+                  name="period"
+                  value="day"
+                  v-model="widgetOptions.selectedPeriod"
+                  id="period-day"
+                />
+                <label for="period-day">하루</label>
+              </div>
+              <div class="widget-option-item">
+                <input
+                  type="radio"
+                  name="period"
+                  value="month"
+                  v-model="widgetOptions.selectedPeriod"
+                  id="period-month"
+                />
+                <label for="period-month">1개월</label>
+              </div>
+              <div class="widget-option-item">
+                <input
+                  type="radio"
+                  name="period"
+                  value="year"
+                  v-model="widgetOptions.selectedPeriod"
+                  id="period-year"
+                />
+                <label for="period-year">1년</label>
+              </div>
+              <div class="widget-option-item">
+                <input
+                  type="radio"
+                  name="period"
+                  value="custom"
+                  v-model="widgetOptions.selectedPeriod"
+                  id="period-custom"
+                />
+                <label for="period-custom">사용자임의</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 사용자임의 선택 시 날짜 범위 입력 -->
+          <div v-if="widgetOptions.selectedPeriod === 'custom'" class="input-grid">
+            <p class="period-label">기간 설정</p>
+            <div class="input-box custom-period">
+              <div class="date-range-inputs">
+                <div class="date-input-group">
+                  <label class="date-label">시작일</label>
+                  <input 
+                    type="date" 
+                    v-model="widgetOptions.startDate" 
+                    class="widget-input date-input"
+                  />
+                </div>
+                <div class="date-separator">~</div>
+                <div class="date-input-group">
+                  <label class="date-label">종료일</label>
+                  <input 
+                    type="date" 
+                    v-model="widgetOptions.endDate" 
+                    class="widget-input date-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-grid">
+            <p>업데이트 주기</p>
+            <div class="input-box">
+              <div
+                v-for="(option, index) in widgetOptions.cycle"
+                :key="index"
+                class="widget-option-item"
+              >
+                <input
+                  type="radio"
+                  name="cycle"
+                  :value="option"
+                  v-model="widgetOptions.selectedCycle"
+                  :id="`cycle-${index}`"
+                />
+                <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-grid">
+            <p>데이터 타입</p>
+            <div class="input-box">
+              <div v-for="(option, index) in dumyData" :key="index" class="widget-option-item">
+                <input type="radio" name="dataType" :value="option" :id="`data-${index}`" />
+                <label :for="`data-${index}`">{{ option }}</label>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button @click="addWidget(widgetOptions.other)" class="apply-btn">등록</button>
           <button @click="closeWidgetSelector" class="cancel-btn">취소</button>
+          <button @click="addWidget(widgetOptions.other)" class="apply-btn">등록</button>
         </div>
       </div>
     </div>
@@ -459,10 +535,10 @@
     <div v-if="widgetModal.show" class="modal-overlay" @click="closeWidgetModal">
       <div class="modal-content widget-detail-modal" @click.stop>
         <div class="modal-header">
-          <div class="modal-title-section">
+          <!-- <div class="modal-title-section">
             <h3 class="modal-title">{{ widgetModal.widget?.name || '위젯 상세보기' }}</h3>
             <span class="widget-category-badge">{{ widgetModal.widget?.dataType }}</span>
-          </div>
+          </div> -->
           <button @click="closeWidgetModal" class="close-btn">✕</button>
         </div>
 
@@ -563,7 +639,7 @@ const authStore = useAuthStore()
 
 const widgetMinGridSizes = {
   'line-chart': { width: 3, height: 3 },
-  'bar-chart': { width: 2, height: 2 },
+  'bar-chart': { width: 3, height: 3 },
   'pie-chart': { width: 2, height: 2 },
   'on-off-control': { width: 2, height: 2 },
   'up-down-control': { width: 2, height: 2 },
@@ -700,6 +776,9 @@ const widgetOptions = reactive({
   widgetName: '',
   widgetUnit: '',
   periodQuery: '',
+  selectedPeriod: 'day', // 기본값 추가
+  startDate: '',
+  endDate: '',
 })
 
 // 위젯 상세보기 모달 상태
@@ -1525,4 +1604,260 @@ onUnmounted(() => {
 
 <style scoped>
 @import './DashboardView-styles.css';
+
+/* 위젯 옵션 스타일 */
+.widget-options {
+  padding: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.widget-options p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.widget-options .input-box {
+  margin-bottom: 20px;
+}
+
+.widget-options .widget-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  transition: border-color 0.2s ease;
+}
+
+.widget-options .widget-input:focus {
+  outline: none;
+  border-color: #E16349;
+  background: white;
+}
+
+.widget-options .widget-input::placeholder {
+  color: #999;
+}
+
+/* 기간조회 날짜 입력 */
+.widget-options input[type="date"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  color: #333;
+}
+
+.widget-options input[type="date"]:focus {
+  outline: none;
+  border-color: #E16349;
+  background: white;
+}
+
+/* 라디오 버튼 그리드 스타일 */
+.widget-options .input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 업데이트 주기 라디오 버튼들 */
+.widget-options .input-box:has(input[name="cycle"]) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+/* 데이터 종류 라디오 버튼들 */
+.widget-options .input-box:has(input[name="dataType"]) {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.widget-option-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.widget-option-item:hover {
+  border-color: #E16349;
+  background: #fff;
+}
+
+.widget-option-item input[type="radio"] {
+  margin: 0 8px 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #E16349;
+}
+
+.widget-option-item label {
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+}
+
+.widget-option-item:has(input:checked) {
+  border-color: #E16349;
+  background: #fff5f3;
+}
+
+.widget-option-item:has(input:checked) label {
+  color: #E16349;
+  font-weight: 500;
+}
+
+/* 모달 액션 버튼 */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+  margin-top: auto;
+}
+
+.modal-actions .apply-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: #E16349;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-actions .apply-btn:hover {
+  background: #d55843;
+}
+
+.modal-actions .cancel-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .cancel-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* 위젯 선택 모달 전체 높이 조정 */
+.widget-selector-modal {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-selector-modal .modal-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.widget-selector-modal .modal-description {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* input-grid 스타일 추가 */
+.widget-options .input-grid {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+}
+
+.widget-options .input-grid p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0;
+}
+
+.widget-options .input-grid .input-box {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* 기간 선택 스타일 */
+.widget-options .input-grid p.period-label{
+  margin-top : 24px;
+}
+.widget-options .input-grid .input-box.period-selection {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.period-selection .widget-option-item {
+  justify-content: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: background 0.2s ease;
+}
+
+.period-selection .widget-option-item:hover {
+  background: #e2e6ea;
+}
+
+.custom-period {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input-group {
+  flex: 1;
+}
+
+.date-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.date-separator {
+  margin-top: 26px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
 </style>
