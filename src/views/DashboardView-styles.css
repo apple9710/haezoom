@@ -672,7 +672,7 @@
 } */
 
 .widget-content {
-  padding: 8px;
+  /* padding: 8px; */
   /* height: calc(100% - 85px); */
   /* display: flex;
   align-items: center;
@@ -1261,7 +1261,7 @@
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   align-items: center;
   padding: 24px 24px 20px 24px;
   border-bottom: 1px solid #e5e7eb;
