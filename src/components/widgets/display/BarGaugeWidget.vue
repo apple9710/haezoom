@@ -326,7 +326,7 @@ onUnmounted(() => {
 }
 
 .gauge-normal {
-  background: linear-gradient(90deg, #10b981, #059669);
+  background: linear-gradient(90deg, #f3d7d0, #e16349);
 }
 
 .gauge-warning {
