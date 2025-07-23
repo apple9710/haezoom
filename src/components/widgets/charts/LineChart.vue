@@ -54,7 +54,7 @@ const chartData = computed(() => {
     labels: props.data.labels,
     datasets: props.data.datasets.map((dataset) => ({
       ...dataset,
-      fill: false,
+      fill: dataset.fill !== undefined ? dataset.fill : false,
       tension: 0.4,
       pointBackgroundColor: dataset.borderColor,
       pointBorderColor: dataset.borderColor,

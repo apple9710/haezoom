@@ -22,14 +22,18 @@
 
     <!-- 날짜 선택 컨트롤 -->
     <div class="date-controls">
-      <button @click="previousDay" class="nav-btn">◀ 이전</button>
+      <button @click="previousDay" class="nav-btn">
+        <img src="@/assets/images/prev_arrow_circle.png" alt="전날" />전날
+      </button>
       <input 
         type="date" 
         v-model="selectedDate" 
         @change="updateData"
         class="date-picker"
       />
-      <button @click="nextDay" class="nav-btn">다음 ▶</button>
+      <button @click="nextDay" class="nav-btn">
+        다음날 <img src="@/assets/images/next_arrow_circle.png" alt="" />
+      </button>
     </div>
 
     <!-- 차트 영역 -->
@@ -107,25 +111,39 @@ const chartData = computed(() => {
   const realtimeData = widgetData.value
   const fallbackData = props.data
   
+  let data = null
+  
   if (realtimeData && realtimeData.labels && realtimeData.datasets) {
-    return realtimeData
+    data = { ...realtimeData }
+  } else if (fallbackData && fallbackData.labels && fallbackData.datasets) {
+    data = { ...fallbackData }
+  } else {
+    // 기본 샘플 데이터
+    data = {
+      labels: ['00:00', '06:00', '12:00', '18:00', '23:59'],
+      datasets: [{
+        label: '전력 사용량',
+        data: [120, 150, 200, 250, 130],
+        borderColor: '#E16349',
+        backgroundColor: 'rgba(225, 99, 73, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    }
   }
   
-  if (fallbackData && fallbackData.labels && fallbackData.datasets) {
-    return fallbackData
+  // 모든 데이터셋의 색상을 #E16349로 강제 변경
+  if (data && data.datasets) {
+    data.datasets = data.datasets.map(dataset => ({
+      ...dataset,
+      borderColor: '#E16349',
+      backgroundColor: 'rgba(225, 99, 73, 0.1)',
+      pointBackgroundColor: '#E16349',
+      pointBorderColor: '#E16349'
+    }))
   }
   
-  // 기본 샘플 데이터
-  return {
-    labels: ['00:00', '06:00', '12:00', '18:00', '23:59'],
-    datasets: [{
-      label: '전력 사용량',
-      data: [120, 150, 200, 250, 130],
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.4
-    }]
-  }
+  return data
 })
 
 // 차트 설정 - 확대 모드에 따라 다른 옵션 사용
@@ -156,9 +174,9 @@ const currentChartOptions = computed(() => {
 
 // 범례 데이터
 const legendItems = computed(() => [
-  { name: '전력 사용량', color: '#3b82f6' },
-  { name: '태양광 발전량', color: '#10b981' },
-  { name: '태양광 예측량', color: '#f59e0b' }
+  { name: '전력 사용량', color: '#E16349' },
+  { name: '태양광 발전량', color: '#F0BBB1' },
+  { name: '태양광 예측량', color: '#F3D7D0' }
 ])
 
 // 메서드
@@ -217,6 +235,8 @@ watch([selectedDate, selectedPeriod], () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  container-name: line-chart-container;
+  container-type: inline-size;
 }
 
 /* 확대 모드 스타일 */
@@ -255,7 +275,6 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
 }
 
 .widget-title {
@@ -289,27 +308,43 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  /* margin-bottom: 16px; */
 }
 
 .nav-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #fff;
+  border-radius: 99px;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
-  background: #f3f4f6;
+  background: #e4e4e4;
+}
+
+.nav-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
 }
 
 .date-picker {
-  padding: 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #fff;
+  border-radius: 99px;
 }
 
 .chart-container {
@@ -402,6 +437,33 @@ watch([selectedDate, selectedPeriod], () => {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@container line-chart-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .date-picker{
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+  .nav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .current-period{
+    font-size: 12px;
+    min-width: auto;
+  }
+}
+@container line-chart-container (max-height: 300px) {
+  .chart-container{
+    min-height: 200px;
+    margin-bottom: 0;
   }
 }
 </style>
