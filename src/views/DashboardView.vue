@@ -1346,7 +1346,7 @@ const changeShowWidget = (widget) => {
     : widget.updateCycle
   widgetOptions.keyword = []
   widgetOptions.unit = ''
-  widgetOptions.widgetName = widget.name || ''
+  widgetOptions.widgetName = ''
   widgetOptions.widgetUnit = ''
   widgetOptions.periodQuery = ''
   widgetOptions.other = widget
