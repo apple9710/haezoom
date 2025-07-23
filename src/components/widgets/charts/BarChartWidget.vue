@@ -207,11 +207,12 @@ watch([selectedDate, selectedPeriod], () => {
 
 <style scoped>
 .widget-inner {
-  container-name: bar-chart-container;
-  container-type: inline-size;
+
   height: 100%;
 }
 .bar-chart-widget {
+  container-name: bar-chart-container;
+  container-type: inline-size;
   /* background: white; */
   border-radius: 8px;
   padding: 16px;
@@ -248,7 +249,7 @@ watch([selectedDate, selectedPeriod], () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .widget-title {
@@ -377,6 +378,22 @@ watch([selectedDate, selectedPeriod], () => {
   gap: 8px;
 }
 
-@container bar-chart-container (max-width: 400px) {
+@container bar-chart-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .date-picker{
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+  .nav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+@container bar-chart-container (max-height: 400px) {
 }
 </style>
