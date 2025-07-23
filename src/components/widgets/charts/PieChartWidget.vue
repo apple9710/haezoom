@@ -16,9 +16,13 @@
 
     <!-- 날짜 선택 컨트롤 -->
     <div class="date-controls">
-      <button @click="previousPeriod" class="nav-btn">◀ 이전</button>
+      <button @click="previousPeriod" class="nav-btn">
+        <img src="@/assets/images/prev_arrow_circle.png" alt="전날" />전날
+      </button>
       <span class="current-period">{{ currentPeriodLabel }}</span>
-      <button @click="nextPeriod" class="nav-btn">다음 ▶</button>
+      <button @click="nextPeriod" class="nav-btn">
+        다음날 <img src="@/assets/images/next_arrow_circle.png" alt="" />
+      </button>
     </div>
 
     <!-- 차트 영역 -->
@@ -142,7 +146,11 @@ const chartData = computed(() => {
     labels: ['태양광 자가소비', '계통 전력', '태양광 잉여'],
     datasets: [{
       data: [Math.min(solar, usage), grid, excess],
-      backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+      backgroundColor: [
+        '#E16349',  // --color-primary
+        '#E8A89A',  // --color-primary-light
+        '#f59e0b'   // 잉여전력은 노란색 유지
+      ],
       borderWidth: 2,
       borderColor: '#ffffff'
     }]
@@ -151,8 +159,8 @@ const chartData = computed(() => {
 
 // 범례 데이터
 const legendItems = computed(() => [
-  { name: '태양광 자가소비', color: '#10b981' },
-  { name: '계통 전력', color: '#ef4444' },
+  { name: '태양광 자가소비', color: '#E16349' },
+  { name: '계통 전력', color: '#E8A89A' },
   { name: '태양광 잉여', color: '#f59e0b' }
 ])
 
@@ -229,7 +237,8 @@ watch([selectedPeriod], () => {
 
 <style scoped>
 .pie-chart-widget {
-  /* background: white; */
+  container-name: pie-chart-container;
+  container-type: inline-size;
   border-radius: 8px;
   padding: 16px;
   height: 100%;
@@ -266,7 +275,7 @@ watch([selectedPeriod], () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .widget-title {
@@ -300,21 +309,43 @@ watch([selectedPeriod], () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  /* margin-bottom: 16px; */
 }
 
 .nav-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #fff;
+  border-radius: 99px;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
-  background: #f3f4f6;
+  background: #e4e4e4;
+}
+
+.nav-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+}
+
+.date-picker {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e4e4e4;
+  background: #fff;
+  border-radius: 99px;
 }
 
 .current-period {
@@ -404,5 +435,27 @@ watch([selectedPeriod], () => {
   font-size: 16px;
   font-weight: 700;
   color: #1f2937;
+}
+@container pie-chart-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .date-picker{
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+  .nav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .current-period{
+    font-size: 12px;
+    min-width: auto;
+  }
+}
+@container pie-chart-container (max-height: 400px) {
 }
 </style>

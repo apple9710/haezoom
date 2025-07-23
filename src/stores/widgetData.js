@@ -73,8 +73,8 @@ export const generateRealtimeData = (widgetType, dataType) => {
         datasets: [{
           label: dataType,
           data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 100) + 20),
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: '#E16349',
+          backgroundColor: 'rgba(225, 99, 73, 0.1)',
           tension: 0.4
         }],
         lastUpdated: now.toLocaleTimeString()
@@ -85,7 +85,7 @@ export const generateRealtimeData = (widgetType, dataType) => {
         labels: ['사용량 A', '사용량 B', '사용량 C', '기타'],
         datasets: [{
           data: [30, 25, 20, 25],
-          backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+          backgroundColor: ['#E16349', '#E8A89A', '#F3D7D0', '#f59e0b']
         }],
         lastUpdated: now.toLocaleTimeString()
       }
