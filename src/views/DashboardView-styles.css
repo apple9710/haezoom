@@ -1484,6 +1484,306 @@
   transform: scale(1.2);
 }
 
+/* 위젯 옵션 스타일 */
+.widget-options {
+  padding: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.widget-options p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.widget-options .input-box {
+  margin-bottom: 20px;
+}
+
+.widget-options .widget-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  transition: border-color 0.2s ease;
+}
+
+.widget-options .widget-input:focus {
+  outline: none;
+  border-color: #E16349;
+  background: white;
+}
+
+.widget-options .widget-input::placeholder {
+  color: #999;
+}
+
+/* 기간조회 날짜 입력 */
+.widget-options input[type="date"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fa;
+  color: #333;
+  cursor: pointer;
+  position: relative;
+}
+
+.widget-options input[type="date"]:focus {
+  outline: none;
+  border-color: #E16349;
+  background: white;
+}
+
+/* 날짜 입력 필드 클릭 영역 확장 */
+.widget-options input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  opacity: 0;
+}
+
+/* Firefox 브라우저 지원 */
+.widget-options input[type="date"]::-moz-calendar-picker {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+}
+
+/* 라디오 버튼 그리드 스타일 */
+.widget-options .input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 업데이트 주기 라디오 버튼들 */
+.widget-options .input-box:has(input[name="cycle"]) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+/* 데이터 종류 라디오 버튼들 */
+.widget-options .input-box:has(input[name="dataType"]) {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.widget-option-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  user-select: none;
+}
+
+.widget-option-item:hover {
+  border-color: #E16349;
+  background: #fff;
+}
+
+.widget-option-item input[type="radio"] {
+  margin: 0 8px 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #E16349;
+  pointer-events: none; 
+}
+
+.widget-option-item label {
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+  pointer-events: none; 
+}
+
+.widget-option-item:has(input:checked) {
+  border-color: #E16349;
+  background: #fff5f3;
+}
+
+.widget-option-item:has(input:checked) label {
+  color: #E16349;
+  font-weight: 500;
+}
+
+/* 활성 상태 애니메이션 */
+.widget-option-item:active {
+  transform: scale(0.98);
+}
+
+/* 모달 액션 버튼 */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  /* padding: 20px; */
+  border-top: 1px solid #eee;
+  margin-top: auto;
+}
+
+.modal-actions .apply-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: #E16349;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-actions .apply-btn:hover {
+  background: #d55843;
+}
+
+.modal-actions .cancel-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-actions .cancel-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* 위젯 선택 모달 전체 높이 조정 */
+.widget-selector-modal {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-selector-modal .modal-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.widget-selector-modal .modal-description {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* input-grid 스타일 추가 */
+.widget-options .input-grid {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+}
+
+.widget-options .input-grid p {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.widget-options .input-grid .input-box {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* 기간 선택 스타일 */
+.widget-options .input-grid p.period-label{
+  margin-top : 24px;
+}
+
+.widget-options .input-grid .input-box.period-selection {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.period-selection .widget-option-item {
+  justify-content: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: background 0.2s ease;
+}
+
+.period-selection .widget-option-item:hover {
+  background: #e2e6ea;
+}
+
+.custom-period {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input-group {
+  flex: 1;
+}
+
+.date-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.date-separator {
+  margin-top: 26px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.required-mark {
+  color: red;
+  font-size: 16px;
+  vertical-align: super;
+  margin-left: 4px;
+}
+
 /* 각 방향별 핸들 위치 및 커서 */
 .resize-handle-se {
   bottom: 0px;
