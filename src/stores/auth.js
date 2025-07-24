@@ -33,6 +33,48 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 데모 계정 로그인 시도
+  const tryDemoLogin = (credentials) => {
+    const demoAccounts = [
+      { username: 'admin', password: 'admin', role: 'admin', name: '최고 관리자' },
+      { username: 'user1', password: 'user123', role: 'user', name: '일반 사용자' },
+      { username: 'user', password: 'user123', role: 'user', name: '일반 사용자' }
+    ]
+    
+    const account = demoAccounts.find(acc => 
+      acc.username === credentials.username && acc.password === credentials.password
+    )
+    
+    if (account) {
+      console.log('데모 계정으로 로그인:', account.username)
+      
+      const userData = {
+        id: account.username,
+        username: account.username,
+        name: account.name,
+        email: `${account.username}@demo.com`,
+        role: account.role,
+        phone: '010-0000-0000'
+      }
+      
+      // 가짜 토큰 생성 (데모용)
+      const demoToken = `demo_token_${account.username}_${Date.now()}`
+      
+      // 상태 업데이트
+      token.value = demoToken
+      user.value = userData
+      
+      // localStorage에 저장
+      localStorage.setItem('auth_token', demoToken)
+      localStorage.setItem('user', JSON.stringify(userData))
+      
+      console.log('데모 로그인 성공:', userData)
+      return { success: true, user: userData }
+    }
+    
+    return { success: false }
+  }
+
   // 로그인
   const login = async (credentials) => {
     loading.value = true
@@ -41,6 +83,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('로그인 시도:', credentials.username)
       
+      // 데모 계정 체크 먼저 실행
+      const demoResult = tryDemoLogin(credentials)
+      if (demoResult.success) {
+        loading.value = false
+        return demoResult
+      }
+      
+      // 백엔드 API 로그인 시도
       const response = await authAPI.login(credentials)
       console.log('로그인 응답:', response.data)
       
@@ -126,7 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
             errorMessage = data?.message || `오류가 발생했습니다. (${status})`
         }
       } else if (err.request) {
-        errorMessage = '서버에 연결할 수 없습니다. 네트워크를 확인해주세요.'
+        errorMessage = '서버에 연결할 수 없습니다. 데모 계정(admin/admin, user1/user123)을 사용해보세요.'
       } else {
         errorMessage = err.message || '알 수 없는 오류가 발생했습니다.'
       }

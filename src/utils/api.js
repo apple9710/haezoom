@@ -1,9 +1,10 @@
 import axios from 'axios'
 
-// API 기본 URL - 개발 환경에서는 프록시 사용
-const API_BASE_URL = import.meta.env.DEV ? '/api' : 'http://15.164.55.52:9091/api'
+// API 기본 URL - 환경 변수 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 console.log('API Base URL:', API_BASE_URL)
+console.log('Environment:', import.meta.env.MODE)
 
 // axios 인스턴스 생성
 const api = axios.create({
