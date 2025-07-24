@@ -212,7 +212,7 @@ watch([selectedDate, selectedPeriod], () => {
 }
 .bar-chart-widget {
   container-name: bar-chart-container;
-  container-type: inline-size;
+  container-type: size;
   /* background: white; */
   border-radius: 8px;
   padding: 16px;
@@ -393,6 +393,9 @@ watch([selectedDate, selectedPeriod], () => {
     padding: 4px 8px;
   }
 }
-@container bar-chart-container (max-height: 400px) {
+@container bar-chart-container (max-height: 300px) {
+  .chart-container {
+    height: 200px !important;
+  }
 }
 </style>

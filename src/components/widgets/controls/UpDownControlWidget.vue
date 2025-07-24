@@ -20,6 +20,31 @@
       </div>
     </div>
 
+    <!-- 슬라이더 제어 -->
+    <div class="slider-section">
+      <label class="slider-label">
+        <!-- 직접 설정 -->
+        </label>
+      <div class="slider-container">
+        <input 
+          type="range"
+          class="slider"
+          :min="config.min || 0"
+          :max="config.max || 100"
+          :step="config.minorStep || 1"
+          v-model="targetValue"
+          :disabled="!isConnected || isTransitioning"
+          @input="onSliderInput"
+          @change="onSliderChange"
+        >
+        <div class="slider-markers">
+          <span class="marker-min">{{ config.min || 0 }}</span>
+          <span class="marker-mid">{{ Math.round(((config.max || 100) + (config.min || 0)) / 2) }}</span>
+          <span class="marker-max">{{ config.max || 100 }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 제어 버튼 -->
     <div class="control-section">
       <!-- 큰 단위 증가/감소 -->
@@ -65,28 +90,7 @@
       </div>
     </div>
 
-    <!-- 슬라이더 제어 -->
-    <div class="slider-section">
-      <label class="slider-label">직접 설정</label>
-      <div class="slider-container">
-        <input 
-          type="range"
-          class="slider"
-          :min="config.min || 0"
-          :max="config.max || 100"
-          :step="config.minorStep || 1"
-          v-model="targetValue"
-          :disabled="!isConnected || isTransitioning"
-          @input="onSliderInput"
-          @change="onSliderChange"
-        >
-        <div class="slider-markers">
-          <span class="marker-min">{{ config.min || 0 }}</span>
-          <span class="marker-mid">{{ Math.round(((config.max || 100) + (config.min || 0)) / 2) }}</span>
-          <span class="marker-max">{{ config.max || 100 }}</span>
-        </div>
-      </div>
-    </div>
+   
 
     <!-- 프리셋 버튼 -->
     <div v-if="config.presets && config.presets.length" class="preset-section">
@@ -413,6 +417,8 @@ onUnmounted(() => {
 
 <style scoped>
 .up-down-control-widget {
+  container-name: up-down-control-container;
+  container-type: size;
   /* background: white; */
   border-radius: 12px;
   padding: 20px;
@@ -426,7 +432,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 .widget-title {
@@ -465,10 +471,6 @@ onUnmounted(() => {
 
 .current-value {
   text-align: center;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 12px;
 }
 
 .value-display {
@@ -476,7 +478,7 @@ onUnmounted(() => {
 }
 
 .value-number {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1f2937;
   margin-right: 8px;
@@ -734,5 +736,43 @@ onUnmounted(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+} 
+
+
+@container up-down-control-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .date-picker{
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+  .nav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+@container up-down-control-container (max-height: 640px) {
+.control-log,.status-info{
+  display: none;
+}
+}
+@container up-down-control-container (max-height: 311px) {
+  .chart-container{
+    min-height: 200px;
+    margin-bottom: 0;
+  }
+  .btn-icon{
+    display: none;
+  }
+  .major-controls,
+  .minor-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
 }
 </style>

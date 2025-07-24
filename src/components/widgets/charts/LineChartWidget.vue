@@ -229,14 +229,14 @@ watch([selectedDate, selectedPeriod], () => {
 
 <style scoped>
 .line-chart-widget {
+  container-name: line-chart-container;
+  container-type: size;
   /* background: white; */
   border-radius: 8px;
   padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  container-name: line-chart-container;
-  container-type: inline-size;
 }
 
 /* 확대 모드 스타일 */

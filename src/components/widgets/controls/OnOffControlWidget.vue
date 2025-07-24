@@ -1,65 +1,66 @@
 <template>
   <div class="on-off-control-widget">
-    <!-- 위젯 헤더 (편집모드에서만 표시) -->
-    <div class="widget-header">
-      <h3 class="widget-title">{{ config.title || 'ON/OFF 제어' }}</h3>
-      <div class="connection-status" :class="connectionClass">
-        <span class="connection-dot"></span>
-        <span class="connection-text">{{ connectionText }}</span>
-      </div>
-    </div>
-
-    <!-- 실시간 업데이트 표시 -->
-    <div v-if="!isEditMode && lastUpdateTime" class="update-indicator">
-      <span class="update-time">최근 업데이트: {{ lastUpdateTime }}</span>
-      <div class="status-dot" :class="{ active: isConnected }"></div>
-    </div>
-
-    <!-- 현재 상태 표시 -->
-    <div class="current-status">
-      <div class="status-indicator" :class="statusClass">
-        <div class="status-icon">
-
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <mask id="mask0_2260_9556" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
-          <rect width="48" height="48" fill="#D9D9D9"/>
-          </mask>
-          <g mask="url(#mask0_2260_9556)">
-          <path d="M23.991 24.1C23.3303 24.1 22.775 23.8728 22.325 23.4185C21.875 22.9645 21.65 22.4083 21.65 21.75V4.9C21.65 4.24167 21.878 3.677 22.334 3.206C22.7897 2.73533 23.348 2.5 24.009 2.5C24.6697 2.5 25.225 2.73533 25.675 3.206C26.125 3.677 26.35 4.24167 26.35 4.9V21.75C26.35 22.4083 26.122 22.9645 25.666 23.4185C25.2103 23.8728 24.652 24.1 23.991 24.1ZM24 43.35C21.3333 43.35 18.8333 42.85 16.5 41.85C14.1667 40.85 12.125 39.475 10.375 37.725C8.625 35.975 7.25 33.9333 6.25 31.6C5.25 29.2667 4.75 26.7667 4.75 24.1C4.75 21.9667 5.08333 19.9167 5.75 17.95C6.41667 15.9833 7.41667 14.1833 8.75 12.55C9.18333 11.9833 9.75 11.675 10.45 11.625C11.15 11.575 11.7625 11.7792 12.2875 12.2375C12.7292 12.6792 12.95 13.225 12.95 13.875C12.95 14.525 12.7667 15.1167 12.4 15.65C11.4333 16.85 10.7 18.179 10.2 19.637C9.7 21.0947 9.45 22.5823 9.45 24.1C9.45 28.1453 10.8637 31.5817 13.691 34.409C16.5183 37.2363 19.9547 38.65 24 38.65C28.0453 38.65 31.4817 37.2363 34.309 34.409C37.1363 31.5817 38.55 28.1453 38.55 24.1C38.55 22.5333 38.3 21.0417 37.8 19.625C37.3 18.2083 36.5833 16.8833 35.65 15.65C35.239 15.0817 35.0278 14.4897 35.0165 13.874C35.0055 13.258 35.2333 12.7167 35.7 12.25C36.2667 11.75 36.9167 11.5333 37.65 11.6C38.3833 11.6667 38.9833 12 39.45 12.6C40.75 14.2333 41.7167 16.0333 42.35 18C42.9833 19.9667 43.3 22 43.3 24.1C43.3 26.7667 42.7917 29.2667 41.775 31.6C40.7583 33.9333 39.375 35.975 37.625 37.725C35.875 39.475 33.8333 40.85 31.5 41.85C29.1667 42.85 26.6667 43.35 24 43.35Z" :fill="svgIconColor"/>
-          </g>
-          </svg>
+    <div class="media-container">
+      <!-- 위젯 헤더 (편집모드에서만 표시) -->
+      <div class="widget-header">
+        <h3 class="widget-title">{{ config.title || 'ON/OFF 제어' }}</h3>
+        <div class="connection-status" :class="connectionClass">
+          <span class="connection-dot"></span>
+          <span class="connection-text">{{ connectionText }}</span>
         </div>
-        <div class="status-pulse" v-if="isTransitioning"></div>
       </div>
-      <div class="status-text">
-        <div class="status-title">{{ statusTitle }}</div>
-        <div class="status-description">{{ statusDescription }}</div>
+
+      <!-- 실시간 업데이트 표시 -->
+      <div v-if="!isEditMode && lastUpdateTime" class="update-indicator">
+        <span class="update-time">최근 업데이트: {{ lastUpdateTime }}</span>
+        <div class="status-dot" :class="{ active: isConnected }"></div>
       </div>
-    </div>
 
-    <!-- 제어 버튼 -->
-    <div class="control-section">
-      <button 
-        class="control-btn on-btn" 
-        :class="{ active: currentState === 'on', disabled: !isConnected || isTransitioning }"
-        :disabled="!isConnected || isTransitioning"
-        @click="turnOn"
-      >
-        <!-- <span class="btn-icon">⚡</span> -->
-        <span class="btn-text">ON</span>
-      </button>
-      
-      <button 
-        class="control-btn off-btn" 
-        :class="{ active: currentState === 'off', disabled: !isConnected || isTransitioning }"
-        :disabled="!isConnected || isTransitioning"
-        @click="turnOff"
-      >
-        <!-- <span class="btn-icon">⏸</span> -->
-        <span class="btn-text">OFF</span>
-      </button>
-    </div>
+      <!-- 현재 상태 표시 -->
+      <div class="current-status">
+        <div class="status-indicator" :class="statusClass">
+          <div class="status-icon">
 
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <mask id="mask0_2260_9556" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
+            <rect width="48" height="48" fill="#D9D9D9"/>
+            </mask>
+            <g mask="url(#mask0_2260_9556)">
+            <path d="M23.991 24.1C23.3303 24.1 22.775 23.8728 22.325 23.4185C21.875 22.9645 21.65 22.4083 21.65 21.75V4.9C21.65 4.24167 21.878 3.677 22.334 3.206C22.7897 2.73533 23.348 2.5 24.009 2.5C24.6697 2.5 25.225 2.73533 25.675 3.206C26.125 3.677 26.35 4.24167 26.35 4.9V21.75C26.35 22.4083 26.122 22.9645 25.666 23.4185C25.2103 23.8728 24.652 24.1 23.991 24.1ZM24 43.35C21.3333 43.35 18.8333 42.85 16.5 41.85C14.1667 40.85 12.125 39.475 10.375 37.725C8.625 35.975 7.25 33.9333 6.25 31.6C5.25 29.2667 4.75 26.7667 4.75 24.1C4.75 21.9667 5.08333 19.9167 5.75 17.95C6.41667 15.9833 7.41667 14.1833 8.75 12.55C9.18333 11.9833 9.75 11.675 10.45 11.625C11.15 11.575 11.7625 11.7792 12.2875 12.2375C12.7292 12.6792 12.95 13.225 12.95 13.875C12.95 14.525 12.7667 15.1167 12.4 15.65C11.4333 16.85 10.7 18.179 10.2 19.637C9.7 21.0947 9.45 22.5823 9.45 24.1C9.45 28.1453 10.8637 31.5817 13.691 34.409C16.5183 37.2363 19.9547 38.65 24 38.65C28.0453 38.65 31.4817 37.2363 34.309 34.409C37.1363 31.5817 38.55 28.1453 38.55 24.1C38.55 22.5333 38.3 21.0417 37.8 19.625C37.3 18.2083 36.5833 16.8833 35.65 15.65C35.239 15.0817 35.0278 14.4897 35.0165 13.874C35.0055 13.258 35.2333 12.7167 35.7 12.25C36.2667 11.75 36.9167 11.5333 37.65 11.6C38.3833 11.6667 38.9833 12 39.45 12.6C40.75 14.2333 41.7167 16.0333 42.35 18C42.9833 19.9667 43.3 22 43.3 24.1C43.3 26.7667 42.7917 29.2667 41.775 31.6C40.7583 33.9333 39.375 35.975 37.625 37.725C35.875 39.475 33.8333 40.85 31.5 41.85C29.1667 42.85 26.6667 43.35 24 43.35Z" :fill="svgIconColor"/>
+            </g>
+            </svg>
+          </div>
+          <div class="status-pulse" v-if="isTransitioning"></div>
+        </div>
+        <div class="status-text">
+          <div class="status-title">{{ statusTitle }}</div>
+          <div class="status-description">{{ statusDescription }}</div>
+        </div>
+      </div>
+
+      <!-- 제어 버튼 -->
+      <div class="control-section">
+        <button 
+          class="control-btn on-btn" 
+          :class="{ active: currentState === 'on', disabled: !isConnected || isTransitioning }"
+          :disabled="!isConnected || isTransitioning"
+          @click="turnOn"
+        >
+          <!-- <span class="btn-icon">⚡</span> -->
+          <span class="btn-text">ON</span>
+        </button>
+        
+        <button 
+          class="control-btn off-btn" 
+          :class="{ active: currentState === 'off', disabled: !isConnected || isTransitioning }"
+          :disabled="!isConnected || isTransitioning"
+          @click="turnOff"
+        >
+          <!-- <span class="btn-icon">⏸</span> -->
+          <span class="btn-text">OFF</span>
+        </button>
+      </div>
+  </div>
     <!-- 추가 정보 -->
     <div class="device-info">
       <div class="info-row">
@@ -340,6 +341,8 @@ onUnmounted(() => {
 
 <style scoped>
 .on-off-control-widget {
+  container-name: on-off-control-container;
+  container-type: size;
   border-radius: 12px;
   padding: 20px;
   width: 100%;
@@ -564,6 +567,7 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 30px;
+  display: none;
 }
 
 .info-row {
@@ -660,5 +664,69 @@ onUnmounted(() => {
 }
 .update-time.lasttime{
   font-size: 0;
+}
+
+
+@container on-off-control-container (max-width: 450px) {
+  }
+@container on-off-control-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .date-picker{
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+  .nav-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .status-description{
+    display: none;
+  }
+}
+@container on-off-control-container (max-height: 640px) {
+.control-log,.status-info{
+  display: none;
+}
+}
+@container on-off-control-container (max-height: 311px) {
+  .chart-container{
+    min-height: 200px;
+    margin-bottom: 0;
+  }
+
+}
+@container on-off-control-container (max-height: 205px) {
+.media-container{
+    display: grid;  
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto 1fr ;
+  }
+  .widget-header {
+    grid-column-start: 1;
+    grid-column-end: 3;    
+    margin-bottom: 8px;
+  }
+  .current-status{
+    display: block;
+    margin-bottom: 0px;
+    margin-right: 8px;
+  }
+  .status-title{
+    margin-bottom: 0;
+    font-size: 14px;
+    text-align: center;
+  }
+  .status-indicator{
+    margin: 0 auto 4px;
+  }
+  .control-section{
+    margin-bottom: 0;
+    flex-direction: column;
+  }
 }
 </style>

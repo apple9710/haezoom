@@ -123,7 +123,14 @@ const currentStatus = computed(() => {
 
 // 샘플 데이터 생성
 const generateStatusData = () => {
-  const items = props.config.monitoredItems || []
+  const items = props.config.monitoredItems || [
+    { id: 'power', name: '전력 시스템' },
+    { id: 'network', name: '네트워크' },
+    { id: 'sensors', name: '센서' },
+    { id: 'storage', name: '저장장치' },
+    { id: 'hvac', name: '공조 시스템' }
+  ]
+  
   const statuses = ['normal', 'warning', 'critical']
   const statusValues = {
     normal: ['정상', '온라인', '활성', '연결됨'],
@@ -202,7 +209,13 @@ const startPeriodicUpdate = () => {
 onMounted(() => {
   // 초기 데이터 로드
   generateStatusData()
+  
+  // 초기 히스토리 데이터 추가
   addStatusHistory('normal', '상태 모니터링 시작')
+  addStatusHistory('warning', '네트워크 지연 감지됨')
+  addStatusHistory('critical', '저장장치 용량 부족 경고')
+  addStatusHistory('normal', '전력 시스템 안정화')
+  addStatusHistory('warning', 'HVAC 시스템 점검 필요')
   
   // 주기적 업데이트 시작
   startPeriodicUpdate()

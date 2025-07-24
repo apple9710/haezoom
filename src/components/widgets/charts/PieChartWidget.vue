@@ -238,7 +238,7 @@ watch([selectedPeriod], () => {
 <style scoped>
 .pie-chart-widget {
   container-name: pie-chart-container;
-  container-type: inline-size;
+  container-type: size;
   border-radius: 8px;
   padding: 16px;
   height: 100%;
