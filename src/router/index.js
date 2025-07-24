@@ -84,7 +84,7 @@ router.beforeEach((to, from, next) => {
     console.log('이미 로그인됨')
     
     // 역할에 따른 리다이렉트
-    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager' || authStore.user?.role === 'SUPER') {
       console.log('관리자/매니저 - admin 페이지로 이동')
       next('/admin')
     } else {
@@ -98,7 +98,7 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/' && authStore.isAuthenticated) {
     console.log('홈 경로 접근 - 역할에 따른 리다이렉트')
     
-    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager' || authStore.user?.role === 'SUPER') {
       console.log('관리자/매니저 - admin 페이지로 이동')
       next('/admin')
     } else {
@@ -110,7 +110,7 @@ router.beforeEach((to, from, next) => {
   
   // admin 페이지 접근 권한 확인
   if (to.meta.isAdmin && authStore.isAuthenticated) {
-    if (authStore.user?.role !== 'admin' && authStore.user?.role !== 'manager') {
+    if (authStore.user?.role !== 'admin' && authStore.user?.role !== 'manager' && authStore.user?.role !== 'SUPER') {
       console.log('admin 페이지 접근 권한 없음, 대시보드로 이동')
       next('/dashboard')
       return
@@ -119,7 +119,7 @@ router.beforeEach((to, from, next) => {
   
   // dashboard 페이지 접근 권한 확인 (일반 사용자만)
   if (to.meta.isUserOnly && authStore.isAuthenticated) {
-    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager') {
+    if (authStore.user?.role === 'admin' || authStore.user?.role === 'manager' || authStore.user?.role === 'SUPER') {
       console.log('관리자는 dashboard 접근 불가, admin 페이지로 이동')
       next('/admin')
       return
