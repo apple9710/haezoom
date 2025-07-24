@@ -13,7 +13,7 @@ const authStore = useAuthStore()
 
 onMounted(() => {
   // 앱 시작시 저장된 인증 정보 초기화
-  authStore.initializeAuth()
+  authStore.initAuth()
 })
 </script>
 
