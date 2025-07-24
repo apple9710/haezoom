@@ -261,7 +261,7 @@
                     <span class="widget-title">{{ element.name }}</span>
                   </div>
                   <div class="widget-controls">
-                    <button @click="configureWidget(element)" class="control-btn" title="설정">
+                    <button @click="configureWidget(element)" id="settingBtn" class="control-btn" title="설정">
                       <img src="@/assets/images/settings.svg" alt="" />
                     </button>
                     <button @click="removeWidget(element)" class="control-btn remove" title="삭제">
@@ -319,7 +319,9 @@
     <div v-if="widgetSelector.show" class="modal-overlay" @click="closeWidgetSelector">
       <div class="modal-content widget-selector-modal" @click.stop>
         <h3 class="modal-title">
-          {{ widgetSelector.dataType }} {{ widgetOptions.show ? '옵션' : '위젯' }} 선택
+          {{ widgetOptions.isEditing ? '위젯 수정' : widgetSelector.dataType }} 
+          {{ widgetOptions.show ? '옵션' : '위젯' }} 
+          {{ widgetOptions.isEditing ? '' : '선택' }}
         </h3>
         <p class="modal-description">
           표시할 위젯 형태를 선택하세요
@@ -469,7 +471,9 @@
 
         <div class="modal-actions">
           <button @click="closeWidgetSelector" class="cancel-btn">취소</button>
-          <button v-if="widgetOptions.show" @click="addWidget(widgetOptions.other)" class="apply-btn">등록</button>
+          <button v-if="widgetOptions.show" @click="addWidget(widgetOptions.other)" class="apply-btn">
+            {{ widgetOptions.isEditing ? '수정' : '등록' }}
+          </button>
         </div>
       </div>
     </div>
@@ -773,7 +777,10 @@ const widgetOptions = reactive({
   selectedPeriod: 'day',
   startDate: '',
   endDate: '',
-  selectedDataType: '', // 추가
+  selectedDataType: '',
+  editingWidget: null, // 수정 중인 위젯
+  isEditing: false,    // 수정 모드 여부
+  other: null
 })
 
 // 위젯 상세보기 모달 상태
@@ -1047,7 +1054,7 @@ const getBadgeText = (widget) => {
   }
 }
 
-// 위젯 추가
+// 위젯 추가/수정
 const addWidget = (widget) => {
   // 필수 입력 검증
   const validationErrors = validateRequiredFields()
@@ -1056,14 +1063,83 @@ const addWidget = (widget) => {
     return
   }
 
+  if (widgetOptions.isEditing && widgetOptions.editingWidget) {
+    // 기존 위젯 수정
+    updateExistingWidget(widgetOptions.editingWidget, widget)
+  } else {
+    // 새 위젯 추가
+    addNewWidget(widget)
+  }
+
+  closeWidgetSelector()
+  
+  // 위젯 추가/수정 후 사이드바 닫기
+  sidebarOpen.value = false
+  // 헤더에 사이드바 상태 변경 알림
+  window.dispatchEvent(
+    new CustomEvent('sidebar-state-change', {
+      detail: { isOpen: false },
+    }),
+  )
+}
+
+// 기존 위젯 업데이트 함수
+const updateExistingWidget = (existingWidget, widgetTemplate) => {
+  console.log('기존 위젯 수정:', existingWidget, widgetTemplate)
+  
+  // 기존 위젯의 속성 업데이트
+  existingWidget.name = widgetOptions.widgetName || widgetTemplate.name
+  existingWidget.customUnit = widgetOptions.widgetUnit
+  existingWidget.selectedCycle = widgetOptions.selectedCycle
+  existingWidget.cycle = widgetOptions.cycle
+  existingWidget.keyword = widgetOptions.keyword
+  existingWidget.unit = widgetOptions.unit
+  existingWidget.periodQuery = widgetOptions.periodQuery
+  existingWidget.selectedDataType = widgetOptions.selectedDataType
+  
+  // config 업데이트
+  if (!existingWidget.config) {
+    existingWidget.config = {}
+  }
+  
+  existingWidget.config = {
+    ...existingWidget.config,
+    title: widgetOptions.widgetName || existingWidget.config.title,
+    unit: widgetOptions.widgetUnit || existingWidget.config.unit,
+    periodQuery: widgetOptions.periodQuery || '',
+    selectedPeriod: widgetOptions.selectedPeriod,
+    startDate: widgetOptions.startDate,
+    endDate: widgetOptions.endDate,
+    updateCycle: widgetOptions.selectedCycle
+  }
+
+  // 실시간 데이터 업데이트 재시작 (설정이 변경되었을 수 있으므로)
+  const isControlWidget = existingWidget.type.includes('control')
+  if (!isControlWidget) {
+    realtimeUpdateManager.stopUpdate(existingWidget.instanceId)
+    realtimeUpdateManager.startUpdate(
+      existingWidget.instanceId,
+      existingWidget.type,
+      existingWidget.dataType,
+      5000
+    )
+  }
+
+  saveDashboard()
+  console.log('위젯 수정 완료:', existingWidget)
+}
+
+// 새 위젯 추가 함수 (기존 addWidget 로직)
+const addNewWidget = (widget) => {
+  console.log('새 위젯 추가:', widget)
+  
   // 빈 공간 찾기
   const minSize = widgetMinGridSizes[widget.type] || { width: 2, height: 2 }
-  const emptyPosition = findEmptyPosition(
-    widgetMinGridSizes[widget.type] || { width: 2, height: 2 },
-  )
+  const emptyPosition = findEmptyPosition(minSize)
+  
   if (emptyPosition === null) {
     alert(
-      `대시보드에 빈 공간이 없습니다. 해당 위젯을 추가하려면 최소 가로 ${minSize.width}칸, 세로 ${minSize.height}칸의 공간을 확보해주세요.`,
+      `대시보드에 빈 공간이 없습니다. 해당 위젯을 추가하려면 최소 가로 ${minSize.width}칸, 세로 ${minSize.height}칸의 공간을 확보해주세요.`
     )
     return
   }
@@ -1088,6 +1164,9 @@ const addWidget = (widget) => {
           critical: 90,
         },
         periodQuery: widgetOptions.periodQuery || '',
+        selectedPeriod: widgetOptions.selectedPeriod,
+        startDate: widgetOptions.startDate,
+        endDate: widgetOptions.endDate
       }
     }
 
@@ -1096,6 +1175,9 @@ const addWidget = (widget) => {
       title: widgetOptions.widgetName || baseConfig.title,
       unit: widgetOptions.widgetUnit || baseConfig.unit,
       periodQuery: widgetOptions.periodQuery || '',
+      selectedPeriod: widgetOptions.selectedPeriod,
+      startDate: widgetOptions.startDate,
+      endDate: widgetOptions.endDate
     }
   }
 
@@ -1110,6 +1192,7 @@ const addWidget = (widget) => {
     name: widgetOptions.widgetName || widget.name,
     customUnit: widgetOptions.widgetUnit,
     periodQuery: widgetOptions.periodQuery,
+    selectedDataType: widgetOptions.selectedDataType,
     gridSize: { width: Math.max(minSize.width, 2), height: Math.max(minSize.height, 2) },
     position: emptyPosition,
     data: {},
@@ -1125,20 +1208,12 @@ const addWidget = (widget) => {
       newWidget.instanceId,
       newWidget.type,
       newWidget.dataType,
-      5000, // 5초마다 업데이트
+      5000
     )
   }
 
-  closeWidgetSelector()
-
-  // 위젯 추가 후 사이드바 닫기
-  sidebarOpen.value = false
-  // 헤더에 사이드바 상태 변경 알림
-  window.dispatchEvent(
-    new CustomEvent('sidebar-state-change', {
-      detail: { isOpen: false },
-    }),
-  )
+  saveDashboard()
+  console.log('새 위젯 추가 완료:', newWidget)
 }
 
 // 빈 공간 찾기
@@ -1180,7 +1255,49 @@ const isPositionOccupied = (x, y) => {
 // 나머지 필요한 함수들
 const configureWidget = (widget) => {
   console.log('위젯 설정:', widget)
-  // TODO: 위젯 설정 모달 구현
+  
+  // 위젯 선택 모달 설정
+  widgetSelector.category = getCategoryFromDataType(widget.dataType)
+  widgetSelector.dataType = widget.dataType
+  widgetSelector.show = true
+  
+  // 위젯 옵션을 바로 표시하고 기존 값으로 초기화
+  widgetOptions.show = true
+  widgetOptions.cycle = widget.updateCycle || widget.cycle || []
+  widgetOptions.selectedCycle = widget.selectedCycle || (Array.isArray(widget.updateCycle) ? widget.updateCycle[0] : widget.updateCycle)
+  widgetOptions.keyword = widget.keyword || []
+  widgetOptions.unit = widget.unit || ''
+  widgetOptions.widgetName = widget.name || widget.config?.title || ''
+  widgetOptions.widgetUnit = widget.customUnit || widget.config?.unit || ''
+  widgetOptions.periodQuery = widget.periodQuery || widget.config?.periodQuery || ''
+  widgetOptions.selectedPeriod = widget.config?.selectedPeriod || 'day'
+  widgetOptions.startDate = widget.config?.startDate || ''
+  widgetOptions.endDate = widget.config?.endDate || ''
+  widgetOptions.selectedDataType = widget.selectedDataType || dumyData[0] || ''
+  
+  // 수정할 위젯 정보 저장
+  widgetOptions.editingWidget = widget
+  widgetOptions.isEditing = true
+  
+  // 기존 위젯 타입 정보도 저장
+  const availableWidgets = getAvailableWidgets(widgetSelector.category)
+  const currentWidgetType = availableWidgets.find(w => w.type === widget.type)
+  widgetOptions.other = currentWidgetType || availableWidgets[0]
+}
+
+// 데이터 타입으로부터 카테고리를 찾는 헬퍼 함수 추가
+const getCategoryFromDataType = (dataType) => {
+  const categoryMapping = {
+    '전력': 'power_usage',
+    '태양광': 'solar_generation', 
+    '태양광 발전량': 'solar_generation',
+    '환경 센서': 'environment',
+    '설비 제어': 'equipment_control',
+    '시스템 정보': 'system_info',
+    '기타': 'misc'
+  }
+  
+  return categoryMapping[dataType] || 'power_usage'
 }
 
 const clearDashboard = () => {
@@ -1347,10 +1464,12 @@ const closeWidgetSelector = () => {
   widgetOptions.widgetName = ''
   widgetOptions.widgetUnit = ''
   widgetOptions.periodQuery = ''
-  widgetOptions.selectedPeriod = 'day' // 기간 초기화
-  widgetOptions.startDate = '' // 시작일 초기화
-  widgetOptions.endDate = '' // 종료일 초기화
-  widgetOptions.selectedDataType = '' // 데이터 타입 초기화
+  widgetOptions.selectedPeriod = 'day'
+  widgetOptions.startDate = ''
+  widgetOptions.endDate = ''
+  widgetOptions.selectedDataType = ''
+  widgetOptions.editingWidget = null  // 편집 상태 초기화
+  widgetOptions.isEditing = false     // 편집 모드 초기화
   widgetOptions.other = null
 }
 
