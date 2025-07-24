@@ -1,137 +1,257 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { authAPI } from '@/utils/api'
 
 export const useAuthStore = defineStore('auth', () => {
   // 상태
   const user = ref(null)
   const token = ref(localStorage.getItem('auth_token') || null)
+  const refreshToken = ref(localStorage.getItem('refresh_token') || null)
   const loading = ref(false)
   const error = ref(null)
 
   // 계산된 속성
   const isAuthenticated = computed(() => !!token.value)
 
-  // 액션
+  // JWT 토큰 디코드 함수
+  const decodeJWT = (token) => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+          })
+          .join('')
+      )
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error('JWT 디코드 오류:', error)
+      return null
+    }
+  }
+
+  // 로그인
   const login = async (credentials) => {
     loading.value = true
     error.value = null
     
     try {
-      // 실제 API 호출 대신 모의 로그인 로직
-      await new Promise(resolve => setTimeout(resolve, 1000)) // 로딩 시뮬레이션
+      console.log('로그인 시도:', credentials.username)
       
-      // 테스트용 사용자 계정들
-      const testUsers = [
-        {
-          username: 'admin',
-          password: 'password',
-          id: 1,
-          name: '관리자',
-          role: 'admin',
-          email: 'admin@haezoom.com',
-          building: '해줌 본사'
-        },
-        {
-          username: 'haezoom',
-          password: '123456',
-          id: 2,
-          name: '해줌관리자',
-          role: 'manager',
-          email: 'lab@haezoom.com',
-          building: '롯데마트 대전점'
-        },
-        {
-          username: 'user1',
-          password: 'user123',
-          id: 3,
-          name: '김철수',
+      const response = await authAPI.login(credentials)
+      console.log('로그인 응답:', response.data)
+      
+      if (response.data && response.data.success) {
+        const responseData = response.data.data
+        const accessToken = responseData.accessToken
+        const userRefreshToken = responseData.refreshToken
+        
+        // 기본 사용자 데이터
+        let userData = {
+          id: credentials.username,
+          username: credentials.username,
+          name: credentials.username,
+          email: '',
           role: 'user',
-          email: 'user1@example.com',
-          building: '롯데마트 금천점'
-        },
-        {
-          username: 'user2',
-          password: 'user456',
-          id: 4,
-          name: '이영희',
-          role: 'user',
-          email: 'user2@example.com',
-          building: '시흥과학기술대학교'
-        },
-        {
-          username: 'manager1',
-          password: 'manager123',
-          id: 5,
-          name: '박관리',
-          role: 'manager',
-          email: 'manager1@example.com',
-          building: '롯데마트 VIC 영등포점'
-        }
-      ]
-      
-      // 로그인 검증
-      const foundUser = testUsers.find(user => 
-        user.username === credentials.username && user.password === credentials.password
-      )
-      
-      if (foundUser) {
-        const mockToken = 'mock-jwt-token-' + Date.now()
-        const userData = {
-          id: foundUser.id,
-          username: foundUser.username,
-          name: foundUser.name,
-          role: foundUser.role,
-          email: foundUser.email,
-          building: foundUser.building
+          phone: ''
         }
         
-        token.value = mockToken
-        user.value = userData
+        // JWT 토큰에서 사용자 정보 추출
+        if (accessToken) {
+          const tokenData = decodeJWT(accessToken)
+          console.log('JWT 토큰 데이터:', tokenData)
+          
+          if (tokenData && tokenData.user) {
+            userData = {
+              id: tokenData.user.userId || tokenData.user.id || credentials.username,
+              username: tokenData.user.id || credentials.username,
+              name: tokenData.user.name || credentials.username,
+              email: tokenData.user.email || '',
+              role: tokenData.user.role || 'user',
+              phone: tokenData.user.phone || ''
+            }
+          }
+        }
         
-        // 토큰을 localStorage에 저장
-        localStorage.setItem('auth_token', mockToken)
-        localStorage.setItem('user', JSON.stringify(userData))
+        console.log('파싱된 사용자 데이터:', userData)
         
-        return { success: true }
+        if (accessToken) {
+          // 상태 업데이트
+          token.value = accessToken
+          user.value = userData
+          
+          if (userRefreshToken) {
+            refreshToken.value = userRefreshToken
+            localStorage.setItem('refresh_token', userRefreshToken)
+          }
+          
+          // localStorage에 저장
+          localStorage.setItem('auth_token', accessToken)
+          localStorage.setItem('user', JSON.stringify(userData))
+          
+          console.log('로그인 성공:', userData)
+          return { success: true, user: userData }
+        } else {
+          throw new Error('토큰을 받지 못했습니다.')
+        }
       } else {
-        throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.')
+        throw new Error(response.data?.message || '로그인에 실패했습니다.')
       }
     } catch (err) {
-      error.value = err.message
-      return { success: false, error: err.message }
+      console.error('로그인 에러:', err)
+      
+      let errorMessage = '로그인에 실패했습니다.'
+      
+      if (err.response) {
+        const status = err.response.status
+        const data = err.response.data
+        
+        switch (status) {
+          case 401:
+            errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.'
+            break
+          case 403:
+            errorMessage = '접근이 거부되었습니다.'
+            break
+          case 404:
+            errorMessage = '서버를 찾을 수 없습니다.'
+            break
+          case 500:
+            errorMessage = '서버 오류가 발생했습니다.'
+            break
+          default:
+            errorMessage = data?.message || `오류가 발생했습니다. (${status})`
+        }
+      } else if (err.request) {
+        errorMessage = '서버에 연결할 수 없습니다. 네트워크를 확인해주세요.'
+      } else {
+        errorMessage = err.message || '알 수 없는 오류가 발생했습니다.'
+      }
+      
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
     } finally {
       loading.value = false
     }
   }
 
+  // 로그아웃
   const logout = () => {
+    console.log('로그아웃 시작')
+    
+    // 상태 초기화
     user.value = null
     token.value = null
+    refreshToken.value = null
     error.value = null
     
-    // localStorage에서 제거
+    // localStorage 정리
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    localStorage.removeItem('selectedBuilding')
+    
+    console.log('로그아웃 완료')
   }
 
-  const initializeAuth = () => {
-    const savedToken = localStorage.getItem('auth_token')
-    const savedUser = localStorage.getItem('user')
-    
-    if (savedToken && savedUser) {
-      token.value = savedToken
-      user.value = JSON.parse(savedUser)
+  // 인증 정보 복원
+  const initAuth = () => {
+    try {
+      const savedUser = localStorage.getItem('user')
+      const savedToken = localStorage.getItem('auth_token')
+      const savedRefreshToken = localStorage.getItem('refresh_token')
+      
+      if (savedUser && savedToken) {
+        user.value = JSON.parse(savedUser)
+        token.value = savedToken
+        
+        if (savedRefreshToken) {
+          refreshToken.value = savedRefreshToken
+        }
+        
+        console.log('저장된 인증 정보 복원:', user.value)
+      } else {
+        console.log('저장된 인증 정보 없음')
+      }
+    } catch (error) {
+      console.error('인증 정보 복원 실패:', error)
+      logout()
     }
   }
 
+  // 토큰 갱신
+  const refreshAccessToken = async () => {
+    try {
+      if (!refreshToken.value) {
+        throw new Error('리프레시 토큰이 없습니다.')
+      }
+      
+      const response = await authAPI.refreshToken(refreshToken.value)
+      
+      if (response.data && response.data.success) {
+        const newAccessToken = response.data.data?.accessToken
+        
+        if (newAccessToken) {
+          token.value = newAccessToken
+          localStorage.setItem('auth_token', newAccessToken)
+          
+          // 새 토큰으로 사용자 정보 업데이트
+          const tokenData = decodeJWT(newAccessToken)
+          if (tokenData && tokenData.user) {
+            const updatedUser = {
+              ...user.value,
+              ...tokenData.user
+            }
+            user.value = updatedUser
+            localStorage.setItem('user', JSON.stringify(updatedUser))
+          }
+          
+          console.log('토큰 갱신 성공')
+          return true
+        }
+      }
+      
+      throw new Error('토큰 갱신 실패')
+    } catch (error) {
+      console.error('토큰 갱신 오류:', error)
+      logout()
+      return false
+    }
+  }
+
+  // 역할 확인 헬퍼
+  const isAdmin = computed(() => {
+    return user.value && (
+      user.value.role === 'admin' || 
+      user.value.role === 'manager' || 
+      user.value.role === 'SUPER'
+    )
+  })
+
+  const isUser = computed(() => {
+    return user.value && user.value.role === 'user'
+  })
+
   return {
+    // 상태
     user,
     token,
+    refreshToken,
     loading,
     error,
+    
+    // 계산된 속성
     isAuthenticated,
+    isAdmin,
+    isUser,
+    
+    // 액션
     login,
     logout,
-    initializeAuth
+    initAuth,
+    refreshAccessToken
   }
 })
