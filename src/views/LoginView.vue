@@ -1,12 +1,5 @@
 <template>
   <div class="login-container">
-    <!-- 배경 애니메이션 요소들 -->
-    <!-- <div class="background-elements">
-      <div class="floating-element element-1"></div>
-      <div class="floating-element element-2"></div>
-      <div class="floating-element element-3"></div>
-      <div class="floating-element element-4"></div>
-    </div> -->
       <div class="demo-info">
         <div class="demo-overlay"></div>
         <div class="demo-content">
@@ -165,7 +158,16 @@ const handleLogin = async () => {
   })
   
   if (result.success) {
-    router.push('/dashboard')
+    // 사용자 역할에 따라 페이지 이동
+    const user = authStore.user
+    console.log('로그인한 사용자 정보:', user)
+    if (user && (user.role === 'admin' || user.role === 'manager')) {
+      console.log('관리자/매니저로 인식, /admin으로 이동')
+      router.push('/admin')
+    } else {
+      console.log('일반 사용자로 인식, /dashboard로 이동')
+      router.push('/dashboard')
+    }
   }
 }
 </script>
