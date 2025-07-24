@@ -283,6 +283,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
+import { authAPI } from '@/utils/api.js'
 
 // 반응형 데이터
 const users = ref([
@@ -417,6 +418,17 @@ const openUserModal = (user = null) => {
 
 const closeUserModal = () => {
   showUserModal.value = false
+  // 폼 초기화
+  userForm.value = {
+    id: null,
+    username: '',
+    name: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
+    userType: 'user',
+    buildings: []
+  }
 }
 
 // 사용자 세부 정보 모달 관련
@@ -643,17 +655,66 @@ const apiService = {
 
 const saveUser = async () => {
   try {
-    if (isEditMode.value) {
-      // 수정
-      await apiService.updateUser(userForm.value.id, userForm.value)
-    } else {
-      // 추가
-      await apiService.createUser(userForm.value)
+    // 폼 유효성 검사
+    if (!userForm.value.username || !userForm.value.name || !userForm.value.email) {
+      alert('필수 정보를 모두 입력해주세요.')
+      return
     }
-    closeUserModal()
+
+    if (!isEditMode.value) {
+      // 새 사용자 등록
+      if (!userForm.value.password) {
+        alert('비밀번호를 입력해주세요.')
+        return
+      }
+      
+      if (userForm.value.password !== userForm.value.passwordConfirm) {
+        alert('비밀번호가 일치하지 않습니다.')
+        return
+      }
+
+      // 백엔드 API 호출하여 사용자 등록
+      const response = await authAPI.register({
+        username: userForm.value.username,
+        password: userForm.value.password,
+        email: userForm.value.email,
+        name: userForm.value.name,
+        userType: userForm.value.userType,
+        buildings: userForm.value.buildings || []
+      })
+
+      if (response.data.success) {
+        alert('사용자가 성공적으로 등록되었습니다.')
+        
+        // 로컬 사용자 목록에 추가 (UI 업데이트용)
+        const newId = Math.max(...users.value.map(u => u.id)) + 1
+        const newUser = {
+          id: newId,
+          username: userForm.value.username,
+          name: userForm.value.name,
+          email: userForm.value.email,
+          userType: userForm.value.userType,
+          buildings: userForm.value.buildings || [],
+          building: userForm.value.buildings ? userForm.value.buildings.join(' / ') : ''
+        }
+        users.value.push(newUser)
+        
+        closeUserModal()
+      } else {
+        alert('사용자 등록에 실패했습니다: ' + (response.data.message || '알 수 없는 오류'))
+      }
+    } else {
+      // 수정 모드 (기존 코드 유지)
+      await apiService.updateUser(userForm.value.id, userForm.value)
+      closeUserModal()
+    }
   } catch (error) {
     console.error('사용자 저장 실패:', error)
-    alert('사용자 저장에 실패했습니다.')
+    if (error.response?.data?.message) {
+      alert('사용자 저장에 실패했습니다: ' + error.response.data.message)
+    } else {
+      alert('사용자 저장에 실패했습니다.')
+    }
   }
 }
 
