@@ -188,7 +188,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!refreshToken.value) {
         throw new Error('리프레시 토큰이 없습니다.')
       }
-      
+      console.log('리프레시 토큰:', refreshToken.value)
       const response = await authAPI.refreshToken(refreshToken.value)
       
       if (response.data && response.data.success) {
