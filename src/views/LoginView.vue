@@ -11,37 +11,25 @@
                 <span class="credential-label">ID:</span>
                 <span class="credential-value">admin</span>
                 <span class="credential-label">PW:</span>
-                <span class="credential-value">password</span>
+                <span class="credential-value">admin</span>
               </div>
             </div>
             <div class="account-group">
               <h4>관리자</h4>
               <div class="credential-item">
-                <span class="credential-label">ID:</span>
+                <!-- <span class="credential-label">ID:</span>
                 <span class="credential-value">haezoom</span>
                 <span class="credential-label">PW:</span>
-                <span class="credential-value">123456</span>
-              </div>
-              <div class="credential-item">
-                <span class="credential-label">ID:</span>
-                <span class="credential-value">manager1</span>
-                <span class="credential-label">PW:</span>
-                <span class="credential-value">manager123</span>
+                <span class="credential-value">123456</span> -->
               </div>
             </div>
             <div class="account-group">
               <h4>알번 사용자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
-                <span class="credential-value">user1</span>
-                <span class="credential-label">PW:</span>
+                <span class="credential-value">user</span>
+                <span class="credential-label">WP:</span>
                 <span class="credential-value">user123</span>
-              </div>
-              <div class="credential-item">
-                <span class="credential-label">ID:</span>
-                <span class="credential-value">user2</span>
-                <span class="credential-label">PW:</span>
-                <span class="credential-value">user456</span>
               </div>
             </div>
           </div>
