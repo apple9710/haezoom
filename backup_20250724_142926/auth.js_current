@@ -1,0 +1,300 @@
+import { defineStore } from 'pinia'
+import { ref, computed      // admin 계정 Mock 인증
+      if (credentials.username === 'admin' && credentials.password === 'admin') {
+        const mockToken = 'mock-jwt-token-admin-' + Date.now()
+        const userData = {
+          id: 1,
+          username: 'admin',
+          name: '관리자',
+          role: 'admin',
+          email: 'admin@haezoom.com'
+        }
+        
+        token.value = mockToken
+        user.value = userData
+        
+        localStorage.setItem('auth_token', mockToken)
+        localStorage.setItem('user', JSON.stringify(userData))
+        
+        return { success: true }
+      }
+
+      // 일반 사용자 계정 Mock 인증
+      if (credentials.username === 'user123' && credentials.password === 'user456') {
+        const mockToken = 'mock-jwt-token-user-' + Date.now()
+        const userData = {
+          id: 2,
+          username: 'user123',
+          name: '일반 사용자',
+          role: 'user',
+          email: 'user@haezoom.com'
+        }
+        
+        token.value = mockToken
+        user.value = userData
+        
+        localStorage.setItem('auth_token', mockToken)
+        localStorage.setItem('user', JSON.stringify(userData))
+        
+        return { success: true }
+      }PI 기본 설정
+const API_BASE_URL = 'http://15.164.55.52:9091/api'
+
+export const useAuthStore = defineStore('auth', () => {
+  // 상태
+  const user = ref(null)
+  const token = ref(localStorage.getItem('auth_token') || null)
+  const refreshToken = ref(localStorage.getItem('refresh_token') || null)
+  const loading = ref(false)
+  const error = ref(null)
+
+  // 계산된 속성
+  const isAuthenticated = computed(() => !!token.value)
+
+  // API 호출 헬퍼 함수
+  const apiCall = async (endpoint, options = {}) => {
+    const url = `${API_BASE_URL}${endpoint}`
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    }
+
+    // 토큰이 있으면 Authorization 헤더 추가
+    if (token.value) {
+      config.headers.Authorization = `Bearer ${token.value}`
+    }
+
+    try {
+      const response = await fetch(url, config)
+      
+      if (!response.ok) {
+        const errorData = await response.text()
+        throw new Error(errorData || `HTTP ${response.status}`)
+      }
+
+      return response.json()
+    } catch (err) {
+      // 네트워크 오류나 서버 연결 실패 시
+      if (err.name === 'TypeError' || err.message.includes('fetch')) {
+        console.warn('API 서버에 연결할 수 없습니다:', url)
+        throw new Error('서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.')
+      }
+      throw err
+    }
+  }
+
+  // 액션들
+  const login = async (credentials) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      // 먼저 테스트용 fallback 계정 확인
+      if (credentials.username === 'admin' && credentials.password === 'admin') {
+        const mockToken = 'mock-jwt-token-' + Date.now()
+        const userData = {
+          id: 1,
+          username: 'admin',
+          name: '관리자',
+          role: 'admin',
+          email: 'admin@haezoom.com'
+        }
+        
+        token.value = mockToken
+        user.value = userData
+        
+        localStorage.setItem('auth_token', mockToken)
+        localStorage.setItem('user', JSON.stringify(userData))
+        
+        return { success: true }
+      }
+
+      // 실제 API 호출 시도
+      const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
+      
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${basicAuth}`
+        },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || '로그인에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      
+      // 토큰과 사용자 정보 저장
+      token.value = data.accessToken || data.token
+      refreshToken.value = data.refreshToken
+      user.value = {
+        id: data.userId || data.id,
+        username: credentials.username,
+        name: data.userName || data.name || credentials.username,
+        role: data.role || 'user',
+        email: data.email || '',
+        ...data.userInfo
+      }
+      
+      // localStorage에 저장
+      localStorage.setItem('auth_token', token.value)
+      if (refreshToken.value) {
+        localStorage.setItem('refresh_token', refreshToken.value)
+      }
+      localStorage.setItem('user', JSON.stringify(user.value))
+      
+      return { success: true, data }
+    } catch (err) {
+      console.warn('API 로그인 실패:', err.message)
+      error.value = '아이디 또는 비밀번호가 올바르지 않습니다.'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 토큰 갱신
+  const refreshAccessToken = async () => {
+    if (!refreshToken.value) {
+      throw new Error('Refresh token이 없습니다.')
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${refreshToken.value}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('토큰 갱신에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      token.value = data.accessToken || data.token
+      
+      localStorage.setItem('auth_token', token.value)
+      
+      return token.value
+    } catch (err) {
+      // 토큰 갱신 실패 시 로그아웃
+      logout()
+      throw err
+    }
+  }
+
+  // 사용자 등록
+  const register = async (userData) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || '회원가입에 실패했습니다.')
+      }
+
+      const data = await response.json()
+      return { success: true, data }
+    } catch (err) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 그룹 코드 조회
+  const getGroupCodes = async () => {
+    try {
+      const data = await apiCall('/group/codes', {
+        method: 'GET'
+      })
+      return Array.isArray(data) ? data : []
+    } catch (error) {
+      console.warn('그룹 코드 조회 실패:', error.message)
+      // API 실패 시 빈 배열 반환
+      return []
+    }
+  }
+
+  const logout = () => {
+    user.value = null
+    token.value = null
+    refreshToken.value = null
+    error.value = null
+    
+    // localStorage에서 제거
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user')
+  }
+
+  const initializeAuth = () => {
+    const savedToken = localStorage.getItem('auth_token')
+    const savedRefreshToken = localStorage.getItem('refresh_token')
+    const savedUser = localStorage.getItem('user')
+    
+    if (savedToken && savedUser) {
+      token.value = savedToken
+      refreshToken.value = savedRefreshToken
+      user.value = JSON.parse(savedUser)
+    }
+  }
+
+  // API 요청 시 토큰 만료 체크 및 자동 갱신
+  const authenticatedApiCall = async (endpoint, options = {}) => {
+    try {
+      return await apiCall(endpoint, options)
+    } catch (err) {
+      // 401 에러 시 토큰 갱신 시도
+      if (err.message.includes('401') && refreshToken.value) {
+        try {
+          await refreshAccessToken()
+          return await apiCall(endpoint, options)
+        } catch (refreshErr) {
+          logout()
+          throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.')
+        }
+      }
+      throw err
+    }
+  }
+
+  return {
+    user,
+    token,
+    refreshToken,
+    loading,
+    error,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+    refreshAccessToken,
+    getGroupCodes,
+    initializeAuth,
+    apiCall,
+    authenticatedApiCall
+  }
+})
