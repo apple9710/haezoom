@@ -3,14 +3,14 @@
     <!-- 위젯 헤더 -->
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '알람' }}</h3>
-      <div class="alarm-summary" :class="alarmSummaryClass">
+      <!-- <div class="alarm-summary" :class="alarmSummaryClass">
         <span class="alarm-count">{{ activeAlarmsCount }}</span>
         <span class="alarm-text">{{ alarmSummaryText }}</span>
-      </div>
+      </div> -->
     </div>
 
     <!-- 알람 필터 -->
-    <div class="alarm-filters">
+    <!-- <div class="alarm-filters">
       <button 
         v-for="filter in alarmFilters"
         :key="filter.type"
@@ -22,7 +22,7 @@
         <span class="filter-label">{{ filter.label }}</span>
         <span class="filter-count">({{ getFilterCount(filter.type) }})</span>
       </button>
-    </div>
+    </div> -->
 
     <!-- 알람 목록 -->
     <div class="alarm-list">
@@ -139,27 +139,27 @@ const generateSampleAlarms = () => {
     {
       id: Date.now() + Math.random(),
       severity: 'critical',
-      title: '전력 시스템 과부하',
-      description: '메인 전력 라인에서 정격 용량의 95%를 초과했습니다.',
-      source: '전력 모니터링 시스템',
+      title: '조명-1',
+      description: '연결해제',
+      source: '',
       timestamp: new Date(),
       acknowledged: false
     },
     {
       id: Date.now() + Math.random() + 1,
       severity: 'warning',
-      title: '온도 센서 이상',
-      description: '3번 구역 온도 센서에서 비정상적인 값이 감지되었습니다.',
-      source: '환경 모니터링',
+      title: '전기차충전기',
+      description: '정상',
+      source: '',
       timestamp: new Date(Date.now() - 300000), // 5분 전
       acknowledged: false
     },
     {
       id: Date.now() + Math.random() + 2,
       severity: 'info',
-      title: '정기 점검 완료',
-      description: '태양광 패널 정기 점검이 완료되었습니다.',
-      source: '유지보수 시스템',
+      title: '조명-2',
+      description: '정상',
+      source: '',
       timestamp: new Date(Date.now() - 900000), // 15분 전
       acknowledged: true
     }
@@ -287,6 +287,8 @@ onUnmounted(() => {
 
 <style scoped>
 .alarm-widget {
+  container-name: alarm-container;
+  container-type: size;
   /* background: white; */
   border-radius: 12px;
   padding: 20px;
@@ -376,34 +378,37 @@ onUnmounted(() => {
 
 .alarm-list {
   flex: 1;
-  overflow-y: auto;
-  margin-bottom: 16px;
+  /* overflow-y: auto; */
+  padding: 0 4px;
 }
 
 .alarm-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  position: relative;
   padding: 12px;
   border-radius: 8px;
-  margin-bottom: 8px;
   border-left: 4px solid transparent;
   background: #f9fafb;
+  height: calc(33.333% - 8px);
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+}
+
+.alarm-item:not(:last-child) {
+  margin-bottom: 8px;
 }
 
 .alarm-critical {
-  border-left-color: #ef4444;
-  background: #fef2f2;
+  border-left-color: var(--color-primary);
+  background: var(--color-primary-lightest);
 }
 
 .alarm-warning {
-  border-left-color: #f59e0b;
-  background: #fefbf2;
+  border-left-color: var(--color-primary-light);
+  background: var(--color-gray-bg);
 }
 
 .alarm-info {
-  border-left-color: #3b82f6;
-  background: #eff6ff;
+  border-left-color: var(--color-gray);
+  background: var(--color-gray-lightest);
 }
 
 .alarm-indicator {
@@ -417,18 +422,19 @@ onUnmounted(() => {
   flex-shrink: 0;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: none;
 }
 
 .indicator-critical {
-  background: #fecaca;
+  background: var(--color-primary-lighter);
 }
 
 .indicator-warning {
-  background: #fef3c7;
+  background: var(--color-primary-lightest);
 }
 
 .indicator-info {
-  background: #dbeafe;
+  background: var(--color-gray-lightest);
 }
 
 .alarm-icon {
@@ -442,7 +448,7 @@ onUnmounted(() => {
   right: -2px;
   bottom: -2px;
   border-radius: 50%;
-  border: 2px solid #ef4444;
+  border: 2px solid var(--color-primary);
   animation: pulse 2s infinite;
 }
 
@@ -489,6 +495,9 @@ onUnmounted(() => {
 }
 
 .alarm-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
   gap: 4px;
   flex-shrink: 0;
@@ -508,21 +517,21 @@ onUnmounted(() => {
 }
 
 .ack-btn {
-  background: #10b981;
+  background: var(--color-primary);
   color: white;
 }
 
 .ack-btn:hover {
-  background: #059669;
+  background: #000000;
 }
 
 .clear-btn {
-  background: #ef4444;
-  color: white;
+  background: #000;
+  color: #fff;
 }
 
 .clear-btn:hover {
-  background: #dc2626;
+  background: #7f7f7f;
 }
 
 .no-alarms {
@@ -545,6 +554,7 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
+  display: none;
 }
 
 .stat-item {
@@ -572,5 +582,34 @@ onUnmounted(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+  display: none;
+}
+
+
+@container alarm-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .widget-header{
+    margin-bottom: 8px;
+  }
+  .alarm-list {
+    padding: 0;
+  }
+}
+@container alarm-container (max-height: 300px) {
+  .chart-container{
+    min-height: 200px;
+    margin-bottom: 0;
+  }
+  .alarm-item{
+    padding: 8px;
+  }
+  .alarm-item:not(:last-child) {
+    margin-bottom: 4px;
+  }
+  .alarm-description{
+    font-size: 12px;
+  }
 }
 </style>

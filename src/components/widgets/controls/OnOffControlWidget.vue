@@ -4,10 +4,10 @@
       <!-- 위젯 헤더 (편집모드에서만 표시) -->
       <div class="widget-header">
         <h3 class="widget-title">{{ config.title || 'ON/OFF 제어' }}</h3>
-        <div class="connection-status" :class="connectionClass">
+        <!-- <div class="connection-status" :class="connectionClass">
           <span class="connection-dot"></span>
           <span class="connection-text">{{ connectionText }}</span>
-        </div>
+        </div> -->
       </div>
 
       <!-- 실시간 업데이트 표시 -->
@@ -698,7 +698,6 @@ onUnmounted(() => {
     min-height: 200px;
     margin-bottom: 0;
   }
-
 }
 @container on-off-control-container (max-height: 205px) {
 .media-container{

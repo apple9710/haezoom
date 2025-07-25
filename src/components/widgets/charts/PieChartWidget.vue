@@ -457,5 +457,28 @@ watch([selectedPeriod], () => {
   }
 }
 @container pie-chart-container (max-height: 400px) {
+  .chart-container{
+    min-height: 180px;
+  }
+  .chart-legend{
+    overflow-y: auto;
+  }
+  .chart-summary{
+    display: none;
+  }
+}
+@container pie-chart-container (max-height: 312px) {
+  .chart-container{
+    min-height: 150px;
+  }
+  .chart-legend{
+    flex-direction: row;
+  }
+  .legend-value{
+    display: none;
+  }
+  .legend-label{
+    display: none;
+  }
 }
 </style>

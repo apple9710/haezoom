@@ -3,10 +3,10 @@
     <!-- 위젯 헤더  -->
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || 'UP/DOWN 제어' }}</h3>
-      <div class="connection-status" :class="connectionClass">
+      <!-- <div class="connection-status" :class="connectionClass">
         <span class="connection-dot"></span>
         <span class="connection-text">{{ connectionText }}</span>
-      </div>
+      </div> -->
     </div>
 
     <!-- 현재 값 표시 -->
@@ -142,9 +142,9 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div class="update-time">
+    <!-- <div class="update-time">
       마지막 업데이트: {{ lastUpdateTime }}
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -228,7 +228,18 @@ const targetValue = ref(50)
 const isConnected = ref(true)
 const isTransitioning = ref(false)
 const lastChangeTime = computed(() => currentData.value.lastChanged || '알 수 없음')
-const lastUpdateTime = computed(() => currentData.value.lastUpdated || new Date().toLocaleTimeString())
+const lastUpdateTime = computed(() => {
+  const timestamp = currentData.value.lastUpdated;
+
+  if(timestamp){
+    if(typeof timestamp === 'number'){
+      return new Date(timestamp).toLocaleTimeString();
+    }
+    return timestamp
+  }
+
+  return new Date().toLocaleTimeString();
+})
 const controlLogs = ref([])
 
 let statusInterval = null
@@ -422,6 +433,7 @@ onUnmounted(() => {
   /* background: white; */
   border-radius: 12px;
   padding: 20px;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -429,9 +441,7 @@ onUnmounted(() => {
 }
 
 .widget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display:block;
   margin-bottom: 8px;
 }
 
@@ -443,6 +453,8 @@ onUnmounted(() => {
 }
 
 .connection-status {
+  float: right;
+  width: fit-content;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -450,6 +462,11 @@ onUnmounted(() => {
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+  
+}
+.connection-status::after{
+  content: '';
+  clear: both;
 }
 
 .connection-status.connected {
@@ -478,7 +495,7 @@ onUnmounted(() => {
 }
 
 .value-number {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #1f2937;
   margin-right: 8px;
@@ -696,6 +713,7 @@ onUnmounted(() => {
 .control-log {
   flex: 1;
   margin-bottom: 12px;
+  display: none;
 }
 
 .log-title {
@@ -736,6 +754,7 @@ onUnmounted(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+  display: block;
 } 
 
 
@@ -756,9 +775,15 @@ onUnmounted(() => {
   }
 }
 @container up-down-control-container (max-height: 640px) {
-.control-log,.status-info{
-  display: none;
-}
+  .control-log,.status-info{
+    display: none;
+  }
+  .expanded-widget .status-info{
+    display: block;
+  }
+  .update-time {
+    display: block;
+  }
 }
 @container up-down-control-container (max-height: 311px) {
   .chart-container{
@@ -773,6 +798,9 @@ onUnmounted(() => {
     display: flex;
     gap: 8px;
     margin-bottom: 8px;
+  }
+  .value-number {
+    font-size: 2.25rem;
   }
 }
 </style>

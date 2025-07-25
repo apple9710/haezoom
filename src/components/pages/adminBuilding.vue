@@ -5,10 +5,10 @@
     <div class="page-header">
       <h1>실증지 관리</h1>
       <div class="header-actions">
-        <button @click="showFilter = !showFilter" class="btn btn-secondary">
+        <!-- <button @click="showFilter = !showFilter" class="btn btn-secondary">
           <img src="@/assets/images/manage_search.png" alt="필터" class="btn-icon" />
           필터
-        </button>
+        </button> -->
         <div class="search-box">
           <input 
             v-model="searchQuery" 

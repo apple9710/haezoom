@@ -3,10 +3,10 @@
     <!-- 위젯 헤더 -->
     <div class="widget-header">
       <h3 class="widget-title">{{ config.title || '수치 데이터' }}</h3>
-      <div class="widget-status" :class="statusClass">
+      <!-- <div class="widget-status" :class="statusClass">
         <span class="status-dot"></span>
         <span class="status-text">{{ statusText }}</span>
-      </div>
+      </div> -->
     </div>
 
     <!-- 실시간 업데이트 표시 -->
@@ -17,11 +17,11 @@
 
     <!-- 메인 수치 표시 -->
     <div class="main-value-container">
+      <div class="value-label">{{ config.label || '현재값' }}</div>
       <div class="main-value">
         <span class="value-number">{{ formattedValue }}</span>
         <span class="value-unit">{{ currentData.unit || config.unit || '' }}</span>
       </div>
-      <div class="value-label">{{ config.label || '현재값' }}</div>
     </div>
 
     <!-- 추가 정보 -->
@@ -47,9 +47,9 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div v-if="isEditMode" class="update-time">
+    <!-- <div class="update-time">
       마지막 업데이트: {{ lastUpdateTime }}
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -179,7 +179,16 @@ const statusText = computed(() => {
 })
 
 const lastUpdateTime = computed(() => {
-  return currentData.value.lastUpdated || new Date().toLocaleTimeString()
+  const timestamp = currentData.value.lastUpdated;
+
+  if(timestamp){
+    if(typeof timestamp === 'number'){
+      return new Date(timestamp).toLocaleTimeString();
+    }
+    return timestamp
+  }
+
+  return new Date().toLocaleTimeString();
 })
 </script>
 
@@ -188,13 +197,14 @@ const lastUpdateTime = computed(() => {
   display: none;
 }
 .box-widget {
+  container-name: box-control-container;
+  container-type: size;
   width: 100%;
-  /* height: 100%; */
+  height: 100%;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 /* 확대 모드 스타일 */
@@ -265,7 +275,6 @@ const lastUpdateTime = computed(() => {
 
 .main-value-container {
   text-align: center;
-  margin-bottom: 24px;
 }
 
 .main-value {
@@ -273,7 +282,7 @@ const lastUpdateTime = computed(() => {
   align-items: baseline;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-top: 8px;
 }
 
 .value-number {
@@ -300,7 +309,7 @@ const lastUpdateTime = computed(() => {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  /* display: none; */
+  display: none;
 }
 
 .info-row {
@@ -338,7 +347,7 @@ const lastUpdateTime = computed(() => {
   font-weight: 500;
   margin-bottom: 12px;
   color: #000;
-  /* display: none; */
+  display: none;
 }
 
 .change-indicator.increase {
@@ -365,6 +374,21 @@ const lastUpdateTime = computed(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
-  /* display: none; */
+  display: block;
+}
+
+@container box-control-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+  .status-description{
+    display: none;
+  }
+}
+@container box-control-container (max-height: 640px) {
+
 }
 </style>

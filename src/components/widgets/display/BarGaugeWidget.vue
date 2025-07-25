@@ -70,7 +70,7 @@
     </div>
 
     <!-- 업데이트 시간 -->
-    <div class="update-time">마지막 업데이트: {{ lastUpdateTime }}</div>
+    <!-- <div class="update-time">마지막 업데이트: {{ lastUpdateTime }}</div> -->
   </div>
 </template>
 
@@ -195,9 +195,9 @@ const thresholdMarkers = computed(() => {
 // 히스토리 색상
 const getHistoryColor = (value) => {
   const thresholds = props.config.thresholds
-  if (value >= thresholds.critical) return '#ef4444'
-  if (value >= thresholds.warning) return '#f59e0b'
-  return '#10b981'
+  if (value >= thresholds.critical) return 'var(--color-primary)'
+  if (value >= thresholds.warning) return 'var(--color-primary-light)'
+  return 'var(--color-gray)'
 }
 
 // 라이프사이클
@@ -266,18 +266,18 @@ onUnmounted(() => {
 }
 
 .widget-status.normal {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-gray-lightest);
+  color: var(--color-gray-dark);
 }
 
 .widget-status.warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-primary-lightest);
+  color: var(--color-gray-dark);
 }
 
 .widget-status.critical {
-  background: #fecaca;
-  color: #991b1b;
+  background: var(--color-primary-lighter);
+  color: var(--color-gray-dark);
 }
 
 .status-dot {
@@ -313,7 +313,7 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   height: 24px;
-  background: #f3f4f6;
+  background: #ffe9e6;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -326,15 +326,15 @@ onUnmounted(() => {
 }
 
 .gauge-normal {
-  background: linear-gradient(90deg, #f3d7d0, #e16349);
+  background: linear-gradient(90deg, var(--color-primary-lighter), var(--color-primary));
 }
 
 .gauge-warning {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: linear-gradient(90deg, var(--color-primary-light), var(--color-primary));
 }
 
 .gauge-critical {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-gray-dark));
 }
 
 .threshold-marker {
@@ -351,11 +351,11 @@ onUnmounted(() => {
 }
 
 .marker-warning {
-  background: #f59e0b;
+  background: var(--color-primary-light);
 }
 
 .marker-critical {
-  background: #ef4444;
+  background: var(--color-primary);
 }
 
 .marker-label {
@@ -377,6 +377,7 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
+  display: none;
 }
 
 .status-item {
@@ -396,22 +397,24 @@ onUnmounted(() => {
 
 .status-value {
   font-weight: 600;
+  
 }
 
 .status-value.normal {
-  color: #059669;
+  color: var(--color-gray);
 }
 
 .status-value.warning {
-  color: #d97706;
+  color: var(--color-primary-light);
 }
 
 .status-value.critical {
-  color: #dc2626;
+  color: var(--color-primary);
 }
 
 .history-chart {
   margin-bottom: 12px;
+  display: none;
 }
 
 .history-title {
@@ -455,7 +458,8 @@ onUnmounted(() => {
     display: none;
   }
   .value-number {
-    font-size: 1.25rem;
+    font-size: 2.25rem;
   }
+  .update-time{margin-top: 10px;}
 }
 </style>

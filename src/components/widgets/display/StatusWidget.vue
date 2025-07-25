@@ -12,7 +12,7 @@
     <div class="main-status">
       <div class="status-circle" :class="`status-${currentStatus.level}`">
         <div class="status-inner">
-          <span class="status-icon">{{ currentStatus.icon }}</span>
+          <span class="status-icon" v-html="getIconSvg(currentStatus.icon)"></span>
         </div>
         <div class="status-pulse" v-if="currentStatus.level === 'critical'"></div>
       </div>
@@ -101,25 +101,79 @@ let updateInterval = null
 
 // 상태 레벨 정의
 const statusLevels = {
-  normal: { title: '정상', description: '모든 시스템이 정상 작동 중입니다', icon: '✓', color: '#10b981' },
-  warning: { title: '주의', description: '일부 시스템에 주의가 필요합니다', icon: '⚠', color: '#f59e0b' },
-  critical: { title: '위험', description: '즉시 확인이 필요한 문제가 있습니다', icon: '✕', color: '#ef4444' },
-  unknown: { title: '알 수 없음', description: '상태를 확인할 수 없습니다', icon: '?', color: '#6b7280' }
+  normal: { 
+    title: '정상', 
+    description: '모든 시스템이 정상 작동 중입니다', 
+    icon: 'check-circle',
+    color: '#10b981' 
+  },
+  warning: { 
+    title: '주의', 
+    description: '일부 시스템에 주의가 필요합니다', 
+    icon: 'alert-triangle',
+    color: '#f59e0b' 
+  },
+  critical: { 
+    title: '위험', 
+    description: '즉시 확인이 필요한 문제가 있습니다', 
+    icon: 'x-circle',
+    color: '#ef4444' 
+  },
+  unknown: { 
+    title: '알 수 없음', 
+    description: '상태를 확인할 수 없습니다', 
+    icon: 'help-circle',
+    color: '#6b7280' 
+  }
 }
 
 // 현재 전체 상태 계산
 const currentStatus = computed(() => {
   if (statusItems.value.length === 0) {
-    return statusLevels.unknown
+    return { ...statusLevels.unknown, level: 'unknown' }
   }
 
   const hasCritical = statusItems.value.some(item => item.status === 'critical')
   const hasWarning = statusItems.value.some(item => item.status === 'warning')
 
-  if (hasCritical) return statusLevels.critical
-  if (hasWarning) return statusLevels.warning
-  return statusLevels.normal
+  if (hasCritical) return { ...statusLevels.critical, level: 'critical' }
+  if (hasWarning) return { ...statusLevels.warning, level: 'warning' }
+  return { ...statusLevels.normal, level: 'normal' }
 })
+
+// 아이콘 렌더링 함수
+const getIconSvg = (iconName) => {
+  const icons = {
+    'check-circle': `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22,4 12,14.01 9,11.01"></polyline>
+      </svg>
+    `,
+    'alert-triangle': `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+        <path d="M12 9v4"></path>
+        <path d="m12 17 .01 0"></path>
+      </svg>
+    `,
+    'x-circle': `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="m15 9-6 6"></path>
+        <path d="m9 9 6 6"></path>
+      </svg>
+    `,
+    'help-circle': `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <path d="m12 17 .01 0"></path>
+      </svg>
+    `
+  }
+  return icons[iconName] || icons['help-circle']
+}
 
 // 샘플 데이터 생성
 const generateStatusData = () => {
@@ -230,6 +284,8 @@ onUnmounted(() => {
 
 <style scoped>
 .status-widget {
+  container-name: status-container;
+  container-type: size;
   /* background: white; */
   border-radius: 12px;
   padding: 20px;
@@ -243,7 +299,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 .widget-title {
@@ -260,6 +316,7 @@ onUnmounted(() => {
   padding: 6px;
   cursor: pointer;
   transition: background-color 0.2s;
+  display: none;
 }
 
 .refresh-btn:hover:not([disabled]) {
@@ -308,28 +365,52 @@ onUnmounted(() => {
 }
 
 .status-normal {
-  background: #dcfce7;
-  border: 3px solid #10b981;
+  background: #f3f4f6;
+  border: 3px solid #7f7f7f;
+  color: #7f7f7f;
 }
 
 .status-warning {
-  background: #fef3c7;
-  border: 3px solid #f59e0b;
+  background: var(--color-primary);
+  border: 3px solid var(--color-primary-light);
+  color: #fff;
 }
 
 .status-critical {
-  background: #fecaca;
-  border: 3px solid #ef4444;
+  background: #000;
+  border: 3px solid var(--color-primary);
+  color: var(--color-font-white);
 }
 
 .status-unknown {
-  background: #f3f4f6;
-  border: 3px solid #6b7280;
+  background: var(--color-gray-lightest);
+  border: 3px solid var(--color-gray);
+  color: var(--color-gray-dark);
+}
+
+.status-undefined {
+  background: var(--color-gray-lightest);
+  border: 3px solid var(--color-gray);
+  color: var(--color-gray-dark);
 }
 
 .status-inner {
-  font-size: 24px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon svg {
+  width: 32px;
+  height: 32px;
 }
 
 .status-pulse {
@@ -339,7 +420,7 @@ onUnmounted(() => {
   right: -3px;
   bottom: -3px;
   border-radius: 50%;
-  border: 3px solid #ef4444;
+  border: 3px solid var(--color-primary);
   animation: pulse 2s infinite;
 }
 
@@ -373,6 +454,7 @@ onUnmounted(() => {
 
 .status-details {
   margin-bottom: 20px;
+  display: none;
 }
 
 .status-item {
@@ -393,15 +475,15 @@ onUnmounted(() => {
 }
 
 .indicator-normal {
-  background: #10b981;
+  background: var(--color-primary);
 }
 
 .indicator-warning {
-  background: #f59e0b;
+  background: var(--color-primary-light);
 }
 
 .indicator-critical {
-  background: #ef4444;
+  background: var(--color-primary);
 }
 
 .item-content {
@@ -430,6 +512,7 @@ onUnmounted(() => {
 .status-history {
   flex: 1;
   margin-bottom: 12px;
+  display: none;
 }
 
 .history-title {
@@ -460,15 +543,15 @@ onUnmounted(() => {
 }
 
 .dot-normal {
-  background: #10b981;
+  background: var(--color-primary);
 }
 
 .dot-warning {
-  background: #f59e0b;
+  background: var(--color-primary-light);
 }
 
 .dot-critical {
-  background: #ef4444;
+  background: var(--color-primary);
 }
 
 .timeline-content {
@@ -492,5 +575,44 @@ onUnmounted(() => {
   color: #9ca3af;
   text-align: center;
   margin-top: auto;
+  display: none;
+}
+
+
+@container status-container (max-width: 300px) {
+  .widget-title{
+    font-size: 14px;
+  }
+  .legend-label {
+    font-size: 12px;
+  }
+}
+@container status-container (max-width: 202px) {
+  .main-status{
+    display: block;
+    padding: 0;
+  }
+}
+@container status-container (max-height: 640px) {
+  .control-log,.status-info{
+    display: none;
+  }
+  .expanded-widget .status-info{
+    display: block;
+  }
+  .update-time {
+    display: none;
+  }
+}
+@container status-container (max-height: 311px) {
+  .status-circle{
+    margin: 0 auto;
+  }
+  .status-title{
+    margin-top: 8px;
+  }
+  .status-title, .status-description{
+    text-align: center;
+  }
 }
 </style>

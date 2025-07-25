@@ -169,6 +169,14 @@ const handleHover = (event, activeElements) => {
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.bar-chart canvas {
+  flex: 1 !important;
+  width: 100% !important;
+  height: auto !important;
 }
 
 /* Chart.js 스타일 커스터마이징 */

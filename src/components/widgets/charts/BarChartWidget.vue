@@ -106,6 +106,7 @@ const rawData = ref([
 // 차트 설정
 const chartConfig = computed(() => ({
   responsive: true,
+  maintainAspectRatio: false,
   scales: {
     x: {
       title: {
@@ -224,31 +225,46 @@ watch([selectedDate, selectedPeriod], () => {
 
 /* 확대 모드 스타일 */
 .bar-chart-widget[data-expanded='true'] {
-  padding: 24px;
+  padding: 16px;
   border-radius: 0;
   background: #fafafa;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .bar-chart-widget[data-expanded='true'] .chart-container {
-  min-height: 400px;
-  height: 100%;
+  flex: 1;
+  min-height: 300px;
+  max-height: calc(100% - 120px);
+  overflow: hidden;
 }
 
 .bar-chart-widget[data-expanded='true'] .widget-title {
-  font-size: 24px;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.bar-chart-widget[data-expanded='true'] .date-controls {
+  margin-bottom: 12px;
 }
 
 .bar-chart-widget[data-expanded='true'] .chart-legend {
-  margin-top: 20px;
-  padding: 16px;
-  background: white;
+  margin-top: 12px;
+  padding: 12px;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .widget-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 8px;
 }
 
 .widget-title {
@@ -283,7 +299,8 @@ watch([selectedDate, selectedPeriod], () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  /* margin-bottom: 16px; */
+  flex-shrink: 0;
+  margin-bottom: 8px;
 }
 
 .nav-btn {
@@ -323,12 +340,18 @@ watch([selectedDate, selectedPeriod], () => {
 
 .chart-container {
   flex: 1;
-  /* min-height: 300px; */
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   width: 100%;
+  min-height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+
 .chart-container canvas {
-  height: 0px;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
 }
 
 .chart-legend {
@@ -336,6 +359,7 @@ watch([selectedDate, selectedPeriod], () => {
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .legend-item {
@@ -394,8 +418,8 @@ watch([selectedDate, selectedPeriod], () => {
   }
 }
 @container bar-chart-container (max-height: 300px) {
-  .chart-container {
-    height: 200px !important;
+  .bar-chart-widget:not([data-expanded='true']) .chart-container {
+    min-height: 180px !important;
   }
 }
 </style>
