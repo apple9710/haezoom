@@ -260,6 +260,7 @@ watch([selectedDate, selectedPeriod], () => {
 .line-chart-widget[data-expanded="true"] .chart-legend {
   margin-top: 20px;
   gap: 24px;
+  display: none;
 }
 
 .line-chart-widget[data-expanded="true"] .legend-item {
@@ -358,6 +359,7 @@ watch([selectedDate, selectedPeriod], () => {
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
+  display: none;
 }
 
 .legend-item {
