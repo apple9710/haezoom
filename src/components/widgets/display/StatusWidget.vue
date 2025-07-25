@@ -377,7 +377,7 @@ onUnmounted(() => {
 }
 
 .status-critical {
-  background: #000;
+  background: var(--color-primary);
   border: 3px solid var(--color-primary);
   color: var(--color-font-white);
 }
