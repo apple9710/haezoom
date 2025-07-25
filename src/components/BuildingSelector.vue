@@ -60,6 +60,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import BasePagination from '@/components/common/BasePagination.vue'
+// 이미지 import (Vite 빌드 시 자동으로 최적화됨)
+import testImage from '@/assets/images/testimg.png'
 
 const emit = defineEmits(['building-selected'])
 
@@ -90,7 +92,8 @@ const handlePageChange = (page) => {
 }
 
 const getImagePath = (buildingId) => {
-  return `/src/assets/images/testimg.png`
+  // import된 이미지 사용 (개발/배포 환경 모두 지원)
+  return testImage
 }
 
 // 생성될 때 실증지 데이터 로드
