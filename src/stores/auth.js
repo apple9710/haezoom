@@ -36,8 +36,8 @@ export const useAuthStore = defineStore('auth', () => {
   // 데모 계정 로그인 시도
   const tryDemoLogin = (credentials) => {
     const demoAccounts = [
-      { username: 'admin', password: 'admin', role: 'admin', name: '최고 관리자' },
-      { username: 'user1', password: 'user123', role: 'user', name: '일반 사용자' },
+      { username: 'admin', password: 'admin23', role: 'admin', name: '최고 관리자' },
+      { username: 'manager', password: 'manager23', role: 'manager', name: '일반 관리자' },
       { username: 'user', password: 'user123', role: 'user', name: '일반 사용자' }
     ]
     
@@ -176,7 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
             errorMessage = data?.message || `오류가 발생했습니다. (${status})`
         }
       } else if (err.request) {
-        errorMessage = '서버에 연결할 수 없습니다. 데모 계정(admin/admin, user1/user123)을 사용해보세요.'
+        errorMessage = '서버에 연결할 수 없습니다. 데모 계정(admin/admin23, user/user23)을 사용해보세요.'
       } else {
         errorMessage = err.message || '알 수 없는 오류가 발생했습니다.'
       }
