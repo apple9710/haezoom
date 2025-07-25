@@ -102,7 +102,9 @@
               <span>{{ currentDate.month }}</span>
             </div>
             <div class="task">
-              <button>Green Energy Mode!</button>
+              <div class="building_name">
+                {{ selectedBuilding?.name || 'Green Energy Mode!' }}
+              </div>
             </div>
           </div>
 
@@ -280,8 +282,8 @@
                     :instanceId="element.instanceId"
                   />
                 </div>
-                <!-- 위젯 모달 버튼 (일반 모드) -->
-                <div v-if="!isEditMode" class="widget_modal_btn">
+                <!-- 위젯 모달 버튼 (일반 모드, 차트 위젯에만 표시) -->
+                <div v-if="!isEditMode && isChartWidget(element.type)" class="widget_modal_btn">
                   <button @click="openWidgetModal(element)">
                     <DetailIcon />
                   </button>
@@ -486,20 +488,25 @@
           <div class="size-control">
             <label>너비 (그리드 칸 수)</label>
             <select v-model="resizeModal.width">
-              <option :value="1">1칸</option>
-              <option :value="2">2칸</option>
-              <option :value="3">3칸</option>
-              <option :value="4">4칸</option>
-              <option :value="6">6칸</option>
+              <option 
+                v-for="width in getAvailableWidthOptions(resizeModal.widget)" 
+                :key="width" 
+                :value="width"
+              >
+                {{ width }}칸
+              </option>
             </select>
           </div>
           <div class="size-control">
             <label>높이 (그리드 칸 수)</label>
             <select v-model="resizeModal.height">
-              <option :value="1">1칸</option>
-              <option :value="2">2칸</option>
-              <option :value="3">3칸</option>
-              <option :value="4">4칸</option>
+              <option 
+                v-for="height in getAvailableHeightOptions(resizeModal.widget)" 
+                :key="height" 
+                :value="height"
+              >
+                {{ height }}칸
+              </option>
             </select>
           </div>
         </div>
@@ -634,20 +641,36 @@ import DragIcon from '@/components/icons/DragIcon.vue'
 import BuildingSelector from '@/components/BuildingSelector.vue'
 
 const authStore = useAuthStore()
-
+// 그리드 설정
+// 최대 너비 16, 최소높이 6 
 const widgetMinGridSizes = {
   'line-chart': { width: 3, height: 3 },
   'bar-chart': { width: 3, height: 3 },
-  'pie-chart': { width: 2, height: 2 },
+  'pie-chart': { width: 3, height: 3 },
   'on-off-control': { width: 2, height: 2 },
   'up-down-control': { width: 2, height: 2 },
   'box-widget': { width: 2, height: 2 },
   'bar-gauge-widget': { width: 2, height: 2 },
   'status-widget': { width: 2, height: 2 },
-  'alarm-widget': { width: 3, height: 1 },
-  'energy-report': { width: 2, height: 2 },
+  'alarm-widget': { width: 2, height: 3 },
+  'energy-report': { width: 8, height: 6 },
   'page-link': { width: 2, height: 2 },
   'image-widget': { width: 2, height: 2 },
+}
+
+const widgetMaxGridSizes = {
+  'line-chart': { width: 16, height: 6 },     // 최소 3x3, 최대 16x6
+  'bar-chart': { width: 16, height: 6 },      // 최소 3x3, 최대 16x6
+  'pie-chart': { width: 16, height: 6 },      // 최소 3x3, 최대 16x6
+  'on-off-control': { width: 4, height: 3 },  // 최소 2x2, 최대 4x3
+  'up-down-control': { width: 4, height: 4 }, // 최소 2x2, 최대 4x4
+  'box-widget': { width: 4, height: 2 },      // 최소 2x2, 최대 4x2
+  'bar-gauge-widget': { width: 6, height: 3 }, // 최소 2x2, 최대 6x3
+  'status-widget': { width: 3, height: 2 },    // 최소 2x2, 최대 3x2
+  'alarm-widget': { width:4 , height: 6 },    // 최소 2x3, 최대 4x6
+  'energy-report': { width: 16, height: 6 },  // 최소 8x6, 최대 16x6
+  'page-link': { width: 4, height: 6 },
+  'image-widget': { width: 6, height: 6 },
 }
 
 // 현재 날짜 정보
@@ -1135,6 +1158,7 @@ const addNewWidget = (widget) => {
   
   // 빈 공간 찾기
   const minSize = widgetMinGridSizes[widget.type] || { width: 2, height: 2 }
+  const maxSize = widgetMaxGridSizes[widget.type] || { width: 16, height: 6 }
   const emptyPosition = findEmptyPosition(minSize)
   
   if (emptyPosition === null) {
@@ -1193,7 +1217,10 @@ const addNewWidget = (widget) => {
     customUnit: widgetOptions.widgetUnit,
     periodQuery: widgetOptions.periodQuery,
     selectedDataType: widgetOptions.selectedDataType,
-    gridSize: { width: Math.max(minSize.width, 2), height: Math.max(minSize.height, 2) },
+    gridSize: { 
+      width: Math.min(Math.max(minSize.width, 2), maxSize.width), 
+      height: Math.min(Math.max(minSize.height, 2), maxSize.height) 
+    },
     position: emptyPosition,
     data: {},
     config: getDefaultConfig(widget.type),
@@ -1529,6 +1556,34 @@ const resizeWidget = () => {
   alert('위젯의 모서리를 드래그하여 크기를 조절할 수 있습니다.')
 }
 
+// 사용 가능한 너비 옵션 생성
+const getAvailableWidthOptions = (widget) => {
+  if (!widget) return [1, 2, 3, 4, 6]
+  
+  const minSize = widgetMinGridSizes[widget.type] || { width: 1, height: 1 }
+  const maxSize = widgetMaxGridSizes[widget.type] || { width: 16, height: 6 }
+  
+  const options = []
+  for (let i = minSize.width; i <= maxSize.width; i++) {
+    options.push(i)
+  }
+  return options
+}
+
+// 사용 가능한 높이 옵션 생성
+const getAvailableHeightOptions = (widget) => {
+  if (!widget) return [1, 2, 3, 4]
+  
+  const minSize = widgetMinGridSizes[widget.type] || { width: 1, height: 1 }
+  const maxSize = widgetMaxGridSizes[widget.type] || { width: 16, height: 6 }
+  
+  const options = []
+  for (let i = minSize.height; i <= maxSize.height; i++) {
+    options.push(i)
+  }
+  return options
+}
+
 // 위젯 크기 조절 모달 닫기
 const closeResizeModal = () => {
   resizeModal.show = false
@@ -1578,6 +1633,12 @@ const openWidgetSettings = () => {
   console.log('위젯 설정 열기:', widgetModal.widget)
   // TODO: 위젯별 설정 모달 구현
   alert('위젯 설정 기능은 추후 구현 예정입니다.')
+}
+
+// 차트 위젯인지 확인하는 함수
+const isChartWidget = (widgetType) => {
+  const chartWidgets = ['bar-chart', 'line-chart', 'pie-chart']
+  return chartWidgets.includes(widgetType)
 }
 
 const widgetResizeState = reactive({
@@ -1637,9 +1698,15 @@ const handleResizeMove = (event) => {
   // 델타를 그리드 단위로 변환
   const gridDeltaX = Math.round(deltaX / cellWidth)
   const gridDeltaY = Math.round(deltaY / cellHeight)
+  
   const minSize = widgetMinGridSizes[widgetResizeState.resizingWidget.type] || {
     width: 1,
     height: 1,
+  }
+  
+  const maxSize = widgetMaxGridSizes[widgetResizeState.resizingWidget.type] || {
+    width: 16,
+    height: 6,
   }
   // 새로운 크기 계산
   let newWidth = widgetResizeState.startWidth
@@ -1677,7 +1744,11 @@ const handleResizeMove = (event) => {
   newWidth = Math.max(minSize.width, newWidth)
   newHeight = Math.max(minSize.height, newHeight)
 
-  // 최대 크기 제한 적용
+  // 위젯별 최대 크기 제한 적용
+  newWidth = Math.min(newWidth, maxSize.width)
+  newHeight = Math.min(newHeight, maxSize.height)
+
+  // 그리드 범위 제한 적용
   newWidth = Math.min(newWidth, maxWidth)
   newHeight = Math.min(newHeight, maxHeight)
 
