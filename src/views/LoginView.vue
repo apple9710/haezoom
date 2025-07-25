@@ -27,9 +27,9 @@
               <h4>일반 사용자</h4>
               <div class="credential-item">
                 <span class="credential-label">ID:</span>
-                <span class="credential-value">user1</span>
+                <span class="credential-value">test1234</span>
                 <span class="credential-label">PW:</span>
-                <span class="credential-value">user123</span>
+                <span class="credential-value">test!23</span>
               </div>
             </div>
           </div>
