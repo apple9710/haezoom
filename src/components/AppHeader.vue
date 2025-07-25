@@ -18,7 +18,7 @@
         <ul class="top-menu" ref="topMenu" @mouseleave="handleMenuMouseLeave">
           <div class="menu-background" ref="menuBackground"></div>
           <li v-if="route.name ==='Dashboard'" class="active" @mouseenter="handleMenuItemHover" @click="handleMenuItemClick">
-            <a class="top-menu-item" href="#">대시보드</a>
+            <a class="top-menu-item hovered" href="#">대시보드</a>
           </li>
           <li @mouseenter="handleMenuItemHover" @click="handleMenuItemClick">
             <a class="top-menu-item" href="#">에너지 진단보고서</a>
@@ -122,7 +122,24 @@ const initializeMenuBackground = async () => {
   // 모든 메뉴 아이템에서 hovered 클래스 제거
   topMenu.value.querySelectorAll('.top-menu-item').forEach(l => l.classList.remove('hovered'))
   
-  // 활성 메뉴 아이템 찾기
+  // 대시보드 페이지일 때 첫 번째 메뉴 항목을 활성화
+  if (route.name === 'Dashboard') {
+    const firstMenuItem = topMenu.value.querySelector('li:first-child')
+    const firstMenuLink = firstMenuItem?.querySelector('.top-menu-item')
+    
+    if (firstMenuItem && firstMenuLink) {
+      // 모든 li에서 active 클래스 제거
+      topMenu.value.querySelectorAll('li').forEach(li => li.classList.remove('active'))
+      
+      // 첫 번째 메뉴에 active 클래스 추가
+      firstMenuItem.classList.add('active')
+      firstMenuLink.classList.add('hovered')
+      updateMenuBackground(firstMenuLink)
+      return
+    }
+  }
+  
+  // 기존 활성 메뉴 아이템 찾기 (fallback)
   const activeItem = topMenu.value.querySelector('.active .top-menu-item')
   if (activeItem) {
     activeItem.classList.add('hovered')
@@ -274,6 +291,13 @@ watch(
       isEditMode.value = false
       sidebarOpen.value = false
     }
+    
+    // 대시보드 페이지로 이동했을 때 메뉴 초기화
+    if (newRoute.name === 'Dashboard') {
+      setTimeout(() => {
+        initializeMenuBackground()
+      }, 100)
+    }
   },
   { immediate: true },
 )
@@ -304,6 +328,13 @@ watch(
           detail: { isEditMode: false, sidebarOpen: false },
         }),
       )
+    }
+    
+    // 실증지가 선택되면 메뉴 초기화
+    if (newBuilding && route.name === 'Dashboard') {
+      setTimeout(() => {
+        initializeMenuBackground()
+      }, 100)
     }
   }
 )
