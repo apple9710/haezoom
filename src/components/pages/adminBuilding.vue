@@ -530,6 +530,8 @@ API 엔드포인트:
 import { ref, computed, onMounted } from 'vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
+// 이미지 import (Vite 빌드 시 자동으로 최적화됨)
+import testImage from '@/assets/images/testimg.png'
 
 // 반응형 데이터
 const buildings = ref([
@@ -801,8 +803,8 @@ const handlePageChange = (page) => {
 
 // 이미지 경로 반환 함수
 const getImagePath = (buildingId) => {
-  // 임시 이미지 사용 - Vite의 정적 asset 처리 방식으로 변경
-  return `/src/assets/images/testimg.png`
+  // import된 이미지 사용 (개발/배포 환경 모두 지원)
+  return testImage
 }
 
 // 연결된 사용자 목록 가져오기 (백엔드 연결 전까지 임시 데이터 반환)
