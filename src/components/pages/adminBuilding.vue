@@ -186,6 +186,18 @@
         </div>
 
         <div class="form-row">
+          <div class="form-group">
+            <label for="buildingPhone">전화번호</label>
+            <input 
+              id="buildingPhone"
+              v-model="buildingForm.phone" 
+              type="tel" 
+              placeholder="전화번호를 입력해 주세요"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group desc">
             <label for="buildingDescription">비고</label>
             <div class="textarea-container">
@@ -530,34 +542,18 @@ API 엔드포인트:
 import { ref, computed, onMounted } from 'vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
+import { buildingAPI, electricRateAPI } from '@/utils/api.js'
 // 이미지 import (Vite 빌드 시 자동으로 최적화됨)
 import testImage from '@/assets/images/testimg.png'
 
 // 반응형 데이터
-const buildings = ref([
-  {
-    id: 1,
-    name: '롯데마트 금천점',
-    type: '롯데마트 금천점',
-    phone: '0269602550',
-    address: '서울특별시 금천구 시흥대로 291',
-    description: '롯데마트 금천점 내 3층 임대방이다.',
-    admin: 'Prodadmin(슈퍼관리자)',
-    memberCount: 3,
-    status: '수정'
-  },
-  {
-    id: 2,
-    name: '롯데마트 금천점',
-    type: '롯데마트 금천점',
-    phone: '0269602550',
-    address: '서울특별시 금천구 시흥대로 291',
-    description: '롯데마트 금천점 내 3층 임대방이다.',
-    admin: 'Prodadmin(슈퍼관리자)',
-    memberCount: 3,
-    status: '수정'
-  }
-])
+const buildings = ref([])
+const loading = ref(false)
+const totalBuildings = ref(0)
+
+// 전기요금제 관련 데이터
+const electricRatePlans = ref([])
+const powerDivisions = ref([])
 
 // 백엔드 연결을 위한 사용자 데이터 추가
 const connectedUsers = ref([]) // 각 실증지별 연결된 사용자 목록
@@ -612,25 +608,192 @@ const filteredBuildings = computed(() => {
   )
 })
 
-const paginatedBuildings = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredBuildings.value.slice(start, end)
-})
+const paginatedBuildings = computed(() => filteredBuildings.value)
 
 const totalPages = computed(() => 
-  Math.ceil(filteredBuildings.value.length / itemsPerPage.value)
+  Math.ceil(totalBuildings.value / itemsPerPage.value)
 )
 
-const totalItems = computed(() => filteredBuildings.value.length)
+const totalItems = computed(() => totalBuildings.value)
 
 // 백엔드 API 함수들
+const apiService = {
+  // 실증지 관련 API
+  async getBuildings(page = 1, size = 6) {
+    try {
+      loading.value = true
+      console.log('실증지 목록 조회 - API 연결')
+      
+      const response = await buildingAPI.getBuildings({
+        page: page - 1, // 백엔드가 0부터 시작하는 경우
+        size: size
+      })
+      
+      if (response.data.success) {
+        const buildingData = response.data.data
+        buildings.value = buildingData.content.map(building => ({
+          id: building.id,
+          name: building.name,
+          phone: building.phone || '',
+          address: building.address,
+          description: building.description || '',
+          admin: 'Prodadmin(슈퍼관리자)', // 임시 값
+          memberCount: 3, // 임시 값
+          status: '수정', // 임시 값
+          type: building.name
+        }))
+        totalBuildings.value = buildingData.totalElements
+        return buildingData
+      }
+    } catch (error) {
+      console.error('실증지 목록 조회 실패:', error)
+      console.warn('더미 데이터로 대체합니다.')
+      
+      // API 실패 시 더미 데이터 사용
+      buildings.value = [
+        {
+          id: 1,
+          name: '롯데마트 금천점',
+          type: '롯데마트 금천점',
+          phone: '0269602550',
+          address: '서울특별시 금천구 시흥대로 291',
+          description: '롯데마트 금천점 내 3층 임대방이다.',
+          admin: 'Prodadmin(슈퍼관리자)',
+          memberCount: 3,
+          status: '수정'
+        },
+        {
+          id: 2,
+          name: '롯데마트 대전점',
+          type: '롯데마트 대전점',
+          phone: '0423456789',
+          address: '대전광역시 서구 대덕대로 291',
+          description: '롯데마트 대전점 내 2층 임대방이다.',
+          admin: 'Prodadmin(슈퍼관리자)',
+          memberCount: 5,
+          status: '수정'
+        }
+      ]
+      totalBuildings.value = buildings.value.length
+      throw error
+    } finally {
+      loading.value = false
+    }
+  },
+
+  async createBuilding(buildingData) {
+    try {
+      console.log('실증지 생성 - API 연결')
+      
+      const response = await buildingAPI.createBuilding({
+        name: buildingData.name,
+        phone: buildingData.phone,
+        address: buildingData.address,
+        description: buildingData.description
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '실증지 생성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('실증지 생성 실패:', error)
+      throw error
+    }
+  },
+
+  async updateBuilding(buildingId, buildingData) {
+    try {
+      console.log('실증지 수정 - API 연결')
+      
+      const response = await buildingAPI.updateBuilding(buildingId, {
+        name: buildingData.name,
+        phone: buildingData.phone,
+        address: buildingData.address,
+        description: buildingData.description
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '실증지 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('실증지 수정 실패:', error)
+      throw error
+    }
+  },
+
+  async deleteBuilding(buildingId) {
+    try {
+      console.log('실증지 삭제 - API 연결')
+      
+      const response = await buildingAPI.deleteBuilding(buildingId)
+      if (response.data.success) {
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('실증지 삭제 실패:', error)
+      throw error
+    }
+  },
+
+  // 전기요금제 관련 API
+  async getElectricRatePlans() {
+    try {
+      console.log('전기요금제 목록 조회 - API 연결')
+      
+      const response = await electricRateAPI.getElectricRatePlans()
+      if (response.data.success) {
+        return response.data.data.map(plan => ({
+          code: plan.code,
+          name: plan.codeName
+        }))
+      }
+    } catch (error) {
+      console.error('전기요금제 목록 조회 실패:', error)
+      // 실패 시 더미 데이터 반환
+      return [
+        { code: 'general', name: '일반용' },
+        { code: 'commercial', name: '상업용' },
+        { code: 'industrial', name: '산업용' }
+      ]
+    }
+  },
+
+  async getPowerDivisions(planCode) {
+    try {
+      console.log('전력구분 목록 조회 - API 연결')
+      
+      const response = await electricRateAPI.getPowerDivisionsByPlan(planCode)
+      if (response.data.success) {
+        return response.data.data.map(division => ({
+          code: division.code,
+          name: division.codeName
+        }))
+      }
+    } catch (error) {
+      console.error('전력구분 목록 조회 실패:', error)
+      // 실패 시 더미 데이터 반환
+      return [
+        { code: 'peak', name: '첨두구분' },
+        { code: 'middle', name: '중간구분' },
+        { code: 'base', name: '기저구분' }
+      ]
+    }
+  }
+}
+
 const fetchBuildingUsers = async (buildingId) => {
   try {
-    // 실제 API 호출
-    const response = await fetch(`/api/buildings/${buildingId}/users`)
-    const users = await response.json()
-    return users
+    // 임시로 더미 데이터 반환 (사용자 API 연결 전까지)
+    return [
+      { id: 1, username: 'haezoom', displayName: '해줌관리자' },
+      { id: 2, username: 'prodadmin', displayName: '슈퍼관리자' },
+      { id: 3, username: 'hzuser', displayName: '해줌사용자' },
+      { id: 4, username: 'lottemart', displayName: '김태훈' }
+    ]
   } catch (error) {
     console.error('사용자 데이터 조회 실패:', error)
     return []
@@ -639,15 +802,7 @@ const fetchBuildingUsers = async (buildingId) => {
 
 const fetchAllBuildings = async () => {
   try {
-    const response = await fetch('/api/buildings')
-    const buildingsData = await response.json()
-    
-    // 각 실증지별 사용자 데이터도 함께 조회
-    for (let building of buildingsData) {
-      building.connectedUsers = await fetchBuildingUsers(building.id)
-    }
-    
-    buildings.value = buildingsData
+    await apiService.getBuildings(currentPage.value, itemsPerPage.value)
   } catch (error) {
     console.error('실증지 데이터 조회 실패:', error)
   }
@@ -766,39 +921,92 @@ const saveElectricPlan = () => {
   closeElectricPlanModal()
 }
 
-const saveBuilding = () => {
-  if (isEditMode.value) {
-    // 수정
-    const index = buildings.value.findIndex(b => b.id === buildingForm.value.id)
-    if (index !== -1) {
-      buildings.value[index] = { ...buildingForm.value }
+const saveBuilding = async () => {
+  try {
+    // 폼 유효성 검사
+    if (!buildingForm.value.name || !buildingForm.value.address) {
+      alert('필수 정보를 모두 입력해주세요.')
+      return
     }
-  } else {
-    // 추가
-    const newId = Math.max(...buildings.value.map(b => b.id)) + 1
-    buildings.value.push({ 
-      ...buildingForm.value, 
-      id: newId
-    })
+
+    if (isEditMode.value) {
+      // 수정
+      await apiService.updateBuilding(buildingForm.value.id, buildingForm.value)
+      alert('실증지 정보가 성공적으로 수정되었습니다.')
+      
+      // 목록 새로고침
+      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      
+    } else {
+      // 추가
+      await apiService.createBuilding(buildingForm.value)
+      alert('실증지가 성공적으로 등록되었습니다.')
+      
+      // 목록 새로고침
+      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+    }
+    
+    closeBuildingModal()
+    
+  } catch (error) {
+    console.error('실증지 저장 실패:', error)
+    if (error.message) {
+      alert('실증지 저장에 실패했습니다: ' + error.message)
+    } else {
+      alert('실증지 저장에 실패했습니다.')
+    }
   }
-  closeBuildingModal()
 }
 
-const deleteBuildingConfirm = (building) => {
+const deleteBuildingConfirm = async (building) => {
   if (confirm(`${building.name}을(를) 삭제하시겠습니까?`)) {
-    buildings.value = buildings.value.filter(b => b.id !== building.id)
+    try {
+      await apiService.deleteBuilding(building.id)
+      alert('실증지가 삭제되었습니다.')
+      
+      // 목록 새로고침
+      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      
+    } catch (error) {
+      console.error('실증지 삭제 실패:', error)
+      alert('실증지 삭제에 실패했습니다.')
+    }
   }
 }
 
-const deleteSelected = () => {
+const deleteSelected = async () => {
+  if (selectedBuildings.value.length === 0) {
+    alert('삭제할 실증지를 선택해주세요.')
+    return
+  }
+  
   if (confirm('선택한 실증지를 삭제하시겠습니까?')) {
-    buildings.value = buildings.value.filter(building => !selectedBuildings.value.includes(building.id))
-    selectedBuildings.value = []
+    try {
+      // 선택된 실증지들을 하나씩 삭제
+      await Promise.all(
+        selectedBuildings.value.map(buildingId => 
+          apiService.deleteBuilding(buildingId)
+        )
+      )
+      alert('선택한 실증지가 삭제되었습니다.')
+      selectedBuildings.value = []
+      
+      // 목록 새로고침
+      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      
+    } catch (error) {
+      console.error('실증지 삭제 실패:', error)
+      alert('실증지 삭제에 실패했습니다.')
+    }
   }
 }
 
-const handlePageChange = (page) => {
-  currentPage.value = page
+const handlePageChange = async (page) => {
+  try {
+    await apiService.getBuildings(page, itemsPerPage.value)
+  } catch (error) {
+    console.error('페이지 변경 중 오류:', error)
+  }
 }
 
 // 이미지 경로 반환 함수
@@ -842,8 +1050,8 @@ onMounted(async () => {
     })
   }
   
-  // 백엔드 연결 시 주석 해제
-  // await fetchAllBuildings()
+  // 실제 백엔드 API 연결
+  await apiService.getBuildings(1, itemsPerPage.value)
 })
 </script>
 
@@ -1275,7 +1483,7 @@ img{
 .building-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .image-upload-area {
