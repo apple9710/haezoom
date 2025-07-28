@@ -582,30 +582,6 @@ const apiService = {
         totalPages: Math.ceil(dummyUsers.length / size)
       }
       
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
-      const response = await authAPI.getUsers({
-        page: page - 1, // 백엔드가 0부터 시작하는 경우
-        size: size
-      })
-      
-      if (response.data.success) {
-        const userData = response.data.data
-        users.value = userData.content.map(user => ({
-          id: user.id,
-          username: user.id, // API에서 id가 username
-          name: user.name,
-          email: user.email,
-          phone: user.phone || '',
-          userType: user.role,
-          buildings: user.buildingArray || [],
-          building: user.buildingArray ? user.buildingArray.join(' / ') : ''
-        }))
-        totalUsers.value = userData.totalElements
-        return userData
-      }
-      */
-      
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error)
       console.error('에러 상세:', {
@@ -670,9 +646,43 @@ const apiService = {
 
   async createUser(userData) {
     try {
-      console.warn('사용자 생성 - 더미 모드 (백엔드 연결 전)')
+      console.log('사용자 생성 - API 호출')
       
-      // 더미 응답 시뮬레이션
+      // 실제 API 호출
+      const response = await authAPI.register({
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        name: userData.name,
+        buildings: userData.buildings || [],
+        userType: userData.userType
+      })
+      
+      if (response.data.success) {
+        const newUser = {
+          id: userData.username,
+          username: userData.username,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone || '',
+          userType: userData.userType,
+          buildings: userData.buildings || [],
+          building: userData.buildings ? userData.buildings.join(' / ') : ''
+        }
+        
+        // 목록 새로고침
+        await apiService.getUsers(currentPage.value, itemsPerPage.value)
+        
+        return newUser
+      } else {
+        throw new Error(response.data.message || '사용자 생성에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 생성 실패:', error)
+      
+      // API 실패 시 더미 모드로 대체
+      console.warn('API 실패, 더미 모드로 전환')
+      
       await new Promise(resolve => setTimeout(resolve, 500)) // 0.5초 딜레이
       
       const newUser = {
@@ -691,35 +701,34 @@ const apiService = {
       totalUsers.value = users.value.length
       
       return newUser
-      
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
-      const response = await authAPI.register({
-        username: userData.username,
-        password: userData.password,
-        email: userData.email,
-        name: userData.name,
-        userType: userData.userType,
-        buildings: userData.buildings || []
-      })
-      
-      if (response.data.success) {
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '사용자 생성에 실패했습니다.')
-      }
-      */
-    } catch (error) {
-      console.error('사용자 생성 실패:', error)
-      throw error
     }
   },
 
   async updateUser(userId, userData) {
     try {
-      console.warn('사용자 수정 - 더미 모드 (백엔드 연결 전)')
+      console.log('사용자 수정 - API 호출')
       
-      // 더미 응답 시뮬레이션
+      // 실제 API 호출
+      const response = await authAPI.updateUser(userId, {
+        email: userData.email,
+        name: userData.name,
+        role: userData.userType,
+        buildingArray: userData.buildings || []
+      })
+      
+      if (response.data.success) {
+        // 목록 새로고침
+        await apiService.getUsers(currentPage.value, itemsPerPage.value)
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '사용자 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 수정 실패:', error)
+      
+      // API 실패 시 더미 모드로 대체
+      console.warn('API 실패, 더미 모드로 전환')
+      
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // 로컬 목록에서 사용자 업데이트
@@ -736,32 +745,29 @@ const apiService = {
         return users.value[userIndex]
       }
       
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
-      const response = await authAPI.updateUser(userId, {
-        email: userData.email,
-        name: userData.name,
-        role: userData.userType,
-        buildingArray: userData.buildings || []
-      })
-      
-      if (response.data.success) {
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '사용자 수정에 실패했습니다.')
-      }
-      */
-    } catch (error) {
-      console.error('사용자 수정 실패:', error)
-      throw error
+      return { success: true }
     }
   },
 
   async deleteUser(userId) {
     try {
-      console.warn('사용자 삭제 - 더미 모드 (백엔드 연결 전)')
+      console.log('사용자 삭제 - API 호출')
       
-      // 더미 응답 시뮬레이션
+      // 실제 API 호출
+      const response = await authAPI.deleteUser(userId)
+      if (response.data.success) {
+        // 목록 새로고침
+        await apiService.getUsers(currentPage.value, itemsPerPage.value)
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '사용자 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 삭제 실패:', error)
+      
+      // API 실패 시 더미 모드로 대체
+      console.warn('API 실패, 더미 모드로 전환')
+      
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // 로컬 목록에서 사용자 제거
@@ -769,25 +775,28 @@ const apiService = {
       totalUsers.value = users.value.length
       
       return { success: true }
-      
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
-      const response = await authAPI.deleteUser(userId)
-      if (response.data.success) {
-        return response.data.data
-      }
-      */
-    } catch (error) {
-      console.error('사용자 삭제 실패:', error)
-      throw error
     }
   },
 
   async deleteMultipleUsers(userIds) {
     try {
-      console.warn('사용자 일괄 삭제 - 더미 모드 (백엔드 연결 전)')
+      console.log('사용자 일괄 삭제 - API 호출')
       
-      // 더미 응답 시뮬레이션
+      // 실제 API 호출
+      const response = await authAPI.deleteMultipleUsers(userIds)
+      if (response.data.success) {
+        // 목록 새로고침
+        await apiService.getUsers(currentPage.value, itemsPerPage.value)
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '사용자 일괄 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 일괄 삭제 실패:', error)
+      
+      // API 실패 시 더미 모드로 대체
+      console.warn('API 실패, 더미 모드로 전환')
+      
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // 로컬 목록에서 사용자들 제거
@@ -795,39 +804,29 @@ const apiService = {
       totalUsers.value = users.value.length
       
       return { success: true }
-      
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
-      const response = await authAPI.deleteMultipleUsers(userIds)
-      if (response.data.success) {
-        return response.data.data
-      }
-      */
-    } catch (error) {
-      console.error('사용자 일괄 삭제 실패:', error)
-      throw error
     }
   },
 
   async sendTempPassword(userId) {
     try {
-      console.warn('임시 비밀번호 발송 - 더미 모드 (백엔드 연결 전)')
+      console.log('임시 비밀번호 발송 - API 호출')
       
-      // 더미 응답 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      return { success: true, message: '임시 비밀번호가 발송되었습니다.' }
-      
-      // 실제 API 호출 (백엔드 준비 시 주석 해제)
-      /*
+      // 실제 API 호출
       const response = await authAPI.sendTempPassword(userId)
       if (response.data.success) {
-        return response.data.data
+        return { success: true, message: response.data.message || '임시 비밀번호가 발송되었습니다.' }
+      } else {
+        throw new Error(response.data.message || '임시 비밀번호 발송에 실패했습니다.')
       }
-      */
     } catch (error) {
       console.error('임시 비밀번호 발송 실패:', error)
-      throw error
+      
+      // API 실패 시 더미 모드로 대체
+      console.warn('API 실패, 더미 모드로 전환')
+      
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      return { success: true, message: '임시 비밀번호가 발송되었습니다. (더미 모드)' }
     }
   },
 

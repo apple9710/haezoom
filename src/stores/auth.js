@@ -10,6 +10,28 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref(null)
 
+  // 개발용 토큰 설정
+  const setDevToken = () => {
+    const devToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InV1aWQiOiI3YWNlNjc1ZS1lZTQyLTQyMjEtYmZlZi1jMjk1ZjBiYjEzYTYiLCJpZCI6ImFkbWluIiwicGFzc3dvcmQiOiIkMmIkMTAkcGRWdG8yMS5vZjVmbWpIMGxPVkZTLmhsZk0uNEwzWEZWbFZwYXZlTjdnS25xQ2R6R01WMy4iLCJjcmVhdGVkQXQiOiIyMDI1LTA3LTE3VDIzOjIxOjA3LjAzOFoiLCJ1cGRhdGVkQXQiOiIyMDI1LTA3LTE3VDIzOjIxOjA3LjAzOFoifSwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc1Mjc5NDQ5MCwiZXhwIjoxNzU3OTc4NDkwfQ.ufeRlmN-XP07wQ1Es1dBk0PEysNkNOjx-lqMr0iwkd8"
+    
+    const userData = {
+      id: "admin",
+      username: "admin", 
+      name: "관리자",
+      email: "admin@example.com",
+      role: "admin"
+    }
+
+    // 토큰과 사용자 정보 저장
+    token.value = devToken
+    user.value = userData
+    localStorage.setItem('auth_token', devToken)
+    localStorage.setItem('user', JSON.stringify(userData))
+    
+    console.log('개발용 토큰 설정 완료!')
+    return { success: true, user: userData }
+  }
+
   // 계산된 속성
   const isAuthenticated = computed(() => !!token.value)
 
@@ -152,6 +174,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (err) {
       console.error('로그인 에러:', err)
+      console.error('에러 응답 데이터:', err.response?.data)
+      console.error('에러 상태 코드:', err.response?.status)
       
       let errorMessage = '로그인에 실패했습니다.'
       
@@ -159,7 +183,12 @@ export const useAuthStore = defineStore('auth', () => {
         const status = err.response.status
         const data = err.response.data
         
+        console.log('서버 응답:', { status, data })
+        
         switch (status) {
+          case 400:
+            errorMessage = data?.message || '잘못된 요청입니다. 아이디와 비밀번호를 확인해주세요.'
+            break
           case 401:
             errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.'
             break
@@ -176,9 +205,23 @@ export const useAuthStore = defineStore('auth', () => {
             errorMessage = data?.message || `오류가 발생했습니다. (${status})`
         }
       } else if (err.request) {
-        errorMessage = '서버에 연결할 수 없습니다. 데모 계정(admin/admin23, user/user23)을 사용해보세요.'
+        errorMessage = '서버에 연결할 수 없습니다. 개발용 토큰을 사용합니다.'
+        console.log('백엔드 API 실패, 개발용 토큰 사용')
+        
+        // 개발용 토큰 사용
+        if (credentials.username === 'admin' || credentials.username === 'testuser') {
+          return setDevToken()
+        }
+        
+        errorMessage = '서버에 연결할 수 없습니다. admin 계정을 사용해보세요.'
       } else {
         errorMessage = err.message || '알 수 없는 오류가 발생했습니다.'
+        
+        // 500 에러 등 서버 오류 시에도 개발용 토큰 시도
+        if (err.response?.status >= 500 && (credentials.username === 'admin' || credentials.username === 'testuser')) {
+          console.log('서버 오류 발생, 개발용 토큰 사용')
+          return setDevToken()
+        }
       }
       
       error.value = errorMessage

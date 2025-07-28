@@ -18,6 +18,13 @@ const api = axios.create({
 // 요청 인터셉터 - 토큰 자동 추가
 api.interceptors.request.use(
   (config) => {
+    console.log('API 요청:', {
+      method: config.method,
+      url: config.url,
+      data: config.data,
+      headers: config.headers
+    })
+    
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -25,6 +32,7 @@ api.interceptors.request.use(
     return config
   },
   (error) => {
+    console.error('API 요청 에러:', error)
     return Promise.reject(error)
   }
 )
@@ -32,9 +40,22 @@ api.interceptors.request.use(
 // 응답 인터셉터 - 에러 처리 및 토큰 갱신
 api.interceptors.response.use(
   (response) => {
+    console.log('API 응답:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    })
     return response
   },
   async (error) => {
+    console.error('API 응답 에러:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    })
+    
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -72,15 +93,60 @@ api.interceptors.response.use(
 
 // API 함수들
 export const authAPI = {
-  // 로그인
-  login: (credentials) => {
-    // Basic Auth 헤더 생성
-    const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
-    return api.post('/auth/login', {}, {  // 빈 객체를 body로 전송
+  // 로그인 - 토큰 없이 요청
+  login: async (credentials) => {
+    console.log('로그인 API 요청:', credentials)
+    
+    // 로그인용 별도 인스턴스 생성 (토큰 없이)
+    const loginApi = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 10000,
       headers: {
-        Authorization: `Basic ${basicAuth}`
+        'Content-Type': 'application/json'
       }
     })
+    
+    // 방법 1: id/password 형태로 전송
+    try {
+      console.log('방법 1: id/password 형태로 로그인 시도')
+      const response = await loginApi.post('/auth/login', {
+        id: credentials.username,
+        password: credentials.password
+      })
+      console.log('로그인 성공:', response.data)
+      return response
+    } catch (error1) {
+      console.log('방법 1 실패:', error1.response?.status, error1.response?.data)
+      
+      // 방법 2: username/password 형태로 전송
+      try {
+        console.log('방법 2: username/password 형태로 로그인 시도')
+        const response = await loginApi.post('/auth/login', {
+          username: credentials.username,
+          password: credentials.password
+        })
+        console.log('로그인 성공:', response.data)
+        return response
+      } catch (error2) {
+        console.log('방법 2 실패:', error2.response?.status, error2.response?.data)
+        
+        // 방법 3: Basic Auth 헤더 사용
+        try {
+          console.log('방법 3: Basic Auth 헤더로 로그인 시도')
+          const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
+          const response = await loginApi.post('/auth/login', {}, {
+            headers: {
+              Authorization: `Basic ${basicAuth}`
+            }
+          })
+          console.log('로그인 성공:', response.data)
+          return response
+        } catch (error3) {
+          console.log('방법 3 실패:', error3.response?.status, error3.response?.data)
+          throw error1 // 첫 번째 에러를 던짐
+        }
+      }
+    }
   },
   
   // 사용자 등록 (관리자용)
