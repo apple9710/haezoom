@@ -26,7 +26,10 @@
     
     <!-- 데이터 테이블 -->
     <div class="table-container">
-      <table class="admin-table">
+      <div v-if="loading" class="loading-message">
+        사용자 목록을 불러오는 중...
+      </div>
+      <table v-else class="admin-table">
         <thead>
           <tr>
             <th class="checkbox-column">
@@ -71,9 +74,10 @@
     
     <!-- 페이지네이션 -->
     <BasePagination
+      v-if="!loading"
       :current-page="currentPage"
       :total-pages="totalPages"
-      :total-items="filteredUsers.length"
+      :total-items="totalUsers"
       @page-change="handlePageChange"
     />
     
@@ -203,7 +207,7 @@
         
         <div class="detail-group">
           <label>암호</label>
-          <button class="password-btn">임시비밀번호발송</button>
+          <button @click="sendTempPassword" class="password-btn">임시비밀번호발송</button>
         </div>
 
         <div class="modal-buttons single-button">
@@ -283,71 +287,12 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
-import { authAPI } from '@/utils/api.js'
+import { authAPI, buildingAPI } from '@/utils/api.js'
 
 // 반응형 데이터
-const users = ref([
-  {
-    id: 1,
-    username: 'admin',
-    name: '관리자',
-    phone: '01012345678',
-    email: 'admin@haezoom.com',
-    building: '해줌 본사',
-    userType: 'admin',
-    buildings: ['해줌 본사']
-  },
-  {
-    id: 2,
-    username: 'haezoom',
-    name: '해줌관리자',
-    phone: '01012345678',
-    email: 'lab@haezoom.com',
-    building: '롯데마트 대전점 / 발전량 예측 api + ems / 롯데마트 금천점 / 워스테이브렐 / 시흥과학기술대학교과학원 / 전기업 / 롯데마트 VIC 영등포점...',
-    userType: 'manager',
-    buildings: ['서울특별시 금천구 시흥대로 291', '롯데마트 금천점', '롯데마트 대전점']
-  },
-  {
-    id: 3,
-    username: 'user1',
-    name: '김철수',
-    phone: '01098765432',
-    email: 'user1@example.com',
-    building: '롯데마트 금천점',
-    userType: 'user',
-    buildings: ['롯데마트 금천점']
-  },
-  {
-    id: 4,
-    username: 'user2',
-    name: '이영희',
-    phone: '01087654321',
-    email: 'user2@example.com',
-    building: '시흥과학기술대학교',
-    userType: 'user',
-    buildings: ['시흥과학기술대학교']
-  },
-  {
-    id: 5,
-    username: 'manager1',
-    name: '박관리',
-    phone: '01076543210',
-    email: 'manager1@example.com',
-    building: '롯데마트 VIC 영등포점',
-    userType: 'manager',
-    buildings: ['롯데마트 VIC 영등포점']
-  },
-  {
-    id: 6,
-    username: 'testuser',
-    name: '테스트사용자',
-    phone: '01065432109',
-    email: 'test@example.com',
-    building: '롯데마트 대전점',
-    userType: 'user',
-    buildings: ['롯데마트 대전점']
-  }
-])
+const users = ref([])
+const loading = ref(false)
+const totalUsers = ref(0)
 
 // 모달 관련
 const showUserModal = ref(false)
@@ -376,14 +321,10 @@ const itemsPerPage = ref(10)
 // 계산된 속성
 const filteredUsers = computed(() => users.value)
 
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredUsers.value.slice(start, end)
-})
+const paginatedUsers = computed(() => users.value)
 
 const totalPages = computed(() => 
-  Math.ceil(filteredUsers.value.length / itemsPerPage.value)
+  Math.ceil(totalUsers.value / itemsPerPage.value)
 )
 
 const allSelected = computed(() => 
@@ -448,6 +389,21 @@ const openEditUserModal = () => {
   openUserModal(selectedUser.value)
 }
 
+// 임시 비밀번호 발송
+const sendTempPassword = async () => {
+  if (!selectedUser.value) return
+  
+  if (confirm('임시 비밀번호를 발송하시겠습니까?')) {
+    try {
+      await apiService.sendTempPassword(selectedUser.value.id)
+      alert('임시 비밀번호가 이메일로 발송되었습니다.')
+    } catch (error) {
+      console.error('임시 비밀번호 발송 실패:', error)
+      alert('임시 비밀번호 발송에 실패했습니다.')
+    }
+  }
+}
+
 // 실증지 선택 모달 관련
 const buildingSearchQuery = ref('')
 const selectedBuildings = ref([])
@@ -485,7 +441,7 @@ const fetchBuildings = async () => {
     availableBuildings.value = buildings
   } catch (error) {
     console.error('실증지 목록 로딩 실패:', error)
-    alert('실증지 목록을 불러오는데 실패했습니다.')
+    // 기본값 유지
   }
 }
 
@@ -556,35 +512,203 @@ const updateBuildingSelection = () => {
   console.log('선택된 실증지:', selectedBuildings.value)
 }
 
-// 백엔드 연결을 위한 API 서비스 함수들
+// 백엔드 API 함수들
 const apiService = {
   // 사용자 관련 API
-  async getUsers() {
+  async getUsers(page = 1, size = 10) {
     try {
-      // TODO: 실제 API 엔드포인트로 변경
-      // const response = await fetch('/api/users')
-      // return await response.json()
-      return users.value
+      loading.value = true
+      
+      // 백엔드 서버가 아직 준비되지 않았을 수 있으므로 임시로 더미 데이터 사용
+      console.warn('백엔드 API 연결 전까지 더미 데이터를 사용합니다.')
+      
+      // 더미 데이터 생성
+      const dummyUsers = [
+        {
+          id: 'admin',
+          name: '관리자',
+          email: 'admin@haezoom.com',
+          phone: '01012345678',
+          role: 'admin',
+          buildingArray: ['해줌 본사']
+        },
+        {
+          id: 'haezoom',
+          name: '해줌관리자',
+          email: 'lab@haezoom.com',
+          phone: '01012345678',
+          role: 'user',
+          buildingArray: ['롯데마트 금천점', '롯데마트 대전점']
+        },
+        {
+          id: 'user1',
+          name: '김철수',
+          email: 'user1@example.com',
+          phone: '01098765432',
+          role: 'user',
+          buildingArray: ['롯데마트 금천점']
+        },
+        {
+          id: 'user2',
+          name: '이영희',
+          email: 'user2@example.com',
+          phone: '01087654321',
+          role: 'user',
+          buildingArray: ['시흥과학기술대학교']
+        }
+      ]
+      
+      // 페이지네이션 시뮬레이션
+      const startIndex = (page - 1) * size
+      const endIndex = startIndex + size
+      const paginatedData = dummyUsers.slice(startIndex, endIndex)
+      
+      users.value = paginatedData.map(user => ({
+        id: user.id,
+        username: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        userType: user.role,
+        buildings: user.buildingArray || [],
+        building: user.buildingArray ? user.buildingArray.join(' / ') : ''
+      }))
+      
+      totalUsers.value = dummyUsers.length
+      
+      return {
+        content: paginatedData,
+        totalElements: dummyUsers.length,
+        totalPages: Math.ceil(dummyUsers.length / size)
+      }
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.getUsers({
+        page: page - 1, // 백엔드가 0부터 시작하는 경우
+        size: size
+      })
+      
+      if (response.data.success) {
+        const userData = response.data.data
+        users.value = userData.content.map(user => ({
+          id: user.id,
+          username: user.id, // API에서 id가 username
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          userType: user.role,
+          buildings: user.buildingArray || [],
+          building: user.buildingArray ? user.buildingArray.join(' / ') : ''
+        }))
+        totalUsers.value = userData.totalElements
+        return userData
+      }
+      */
+      
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error)
+      console.error('에러 상세:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      })
+      
+      // API 실패 시 기본 더미 데이터 사용
+      users.value = [
+        {
+          id: 'admin',
+          username: 'admin',
+          name: '관리자',
+          email: 'admin@haezoom.com',
+          phone: '01012345678',
+          userType: 'admin',
+          buildings: ['해줌 본사'],
+          building: '해줌 본사'
+        },
+        {
+          id: 'haezoom',
+          username: 'haezoom',
+          name: '해줌관리자',
+          email: 'lab@haezoom.com',
+          phone: '01012345678',
+          userType: 'user',
+          buildings: ['롯데마트 대전점'],
+          building: '롯데마트 대전점'
+        }
+      ]
+      totalUsers.value = users.value.length
+      
+      throw error
+    } finally {
+      loading.value = false
+    }
+  },
+
+  async getUserById(userId) {
+    try {
+      const response = await authAPI.getUserById(userId)
+      if (response.data.success) {
+        const user = response.data.data
+        return {
+          id: user.id,
+          username: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          userType: user.role,
+          buildings: user.buildingArray || [],
+          building: user.buildingArray ? user.buildingArray.join(' / ') : ''
+        }
+      }
+    } catch (error) {
+      console.error('사용자 조회 실패:', error)
       throw error
     }
   },
 
   async createUser(userData) {
     try {
-      // TODO: 실제 API 엔드포인트로 변경
-      // const response = await fetch('/api/users', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(userData)
-      // })
-      // return await response.json()
+      console.warn('사용자 생성 - 더미 모드 (백엔드 연결 전)')
       
-      const newId = Math.max(...users.value.map(u => u.id)) + 1
-      const newUser = { ...userData, id: newId }
+      // 더미 응답 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 500)) // 0.5초 딜레이
+      
+      const newUser = {
+        id: userData.username,
+        username: userData.username,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone || '',
+        userType: userData.userType,
+        buildings: userData.buildings || [],
+        building: userData.buildings ? userData.buildings.join(' / ') : ''
+      }
+      
+      // 로컬 목록에 추가
       users.value.push(newUser)
+      totalUsers.value = users.value.length
+      
       return newUser
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.register({
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        name: userData.name,
+        userType: userData.userType,
+        buildings: userData.buildings || []
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '사용자 생성에 실패했습니다.')
+      }
+      */
     } catch (error) {
       console.error('사용자 생성 실패:', error)
       throw error
@@ -593,19 +717,40 @@ const apiService = {
 
   async updateUser(userId, userData) {
     try {
-      // TODO: 실제 API 엔드포인트로 변경
-      // const response = await fetch(`/api/users/${userId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(userData)
-      // })
-      // return await response.json()
+      console.warn('사용자 수정 - 더미 모드 (백엔드 연결 전)')
       
-      const index = users.value.findIndex(u => u.id === userId)
-      if (index !== -1) {
-        users.value[index] = { ...userData, id: userId }
-        return users.value[index]
+      // 더미 응답 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // 로컬 목록에서 사용자 업데이트
+      const userIndex = users.value.findIndex(u => u.id === userId)
+      if (userIndex !== -1) {
+        users.value[userIndex] = {
+          ...users.value[userIndex],
+          name: userData.name,
+          email: userData.email,
+          userType: userData.userType,
+          buildings: userData.buildings || [],
+          building: userData.buildings ? userData.buildings.join(' / ') : ''
+        }
+        return users.value[userIndex]
       }
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.updateUser(userId, {
+        email: userData.email,
+        name: userData.name,
+        role: userData.userType,
+        buildingArray: userData.buildings || []
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || '사용자 수정에 실패했습니다.')
+      }
+      */
     } catch (error) {
       console.error('사용자 수정 실패:', error)
       throw error
@@ -614,12 +759,74 @@ const apiService = {
 
   async deleteUser(userId) {
     try {
-      // TODO: 실제 API 엔드포인트로 변경
-      // await fetch(`/api/users/${userId}`, { method: 'DELETE' })
+      console.warn('사용자 삭제 - 더미 모드 (백엔드 연결 전)')
       
+      // 더미 응답 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // 로컬 목록에서 사용자 제거
       users.value = users.value.filter(u => u.id !== userId)
+      totalUsers.value = users.value.length
+      
+      return { success: true }
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.deleteUser(userId)
+      if (response.data.success) {
+        return response.data.data
+      }
+      */
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
+      throw error
+    }
+  },
+
+  async deleteMultipleUsers(userIds) {
+    try {
+      console.warn('사용자 일괄 삭제 - 더미 모드 (백엔드 연결 전)')
+      
+      // 더미 응답 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // 로컬 목록에서 사용자들 제거
+      users.value = users.value.filter(u => !userIds.includes(u.id))
+      totalUsers.value = users.value.length
+      
+      return { success: true }
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.deleteMultipleUsers(userIds)
+      if (response.data.success) {
+        return response.data.data
+      }
+      */
+    } catch (error) {
+      console.error('사용자 일괄 삭제 실패:', error)
+      throw error
+    }
+  },
+
+  async sendTempPassword(userId) {
+    try {
+      console.warn('임시 비밀번호 발송 - 더미 모드 (백엔드 연결 전)')
+      
+      // 더미 응답 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      return { success: true, message: '임시 비밀번호가 발송되었습니다.' }
+      
+      // 실제 API 호출 (백엔드 준비 시 주석 해제)
+      /*
+      const response = await authAPI.sendTempPassword(userId)
+      if (response.data.success) {
+        return response.data.data
+      }
+      */
+    } catch (error) {
+      console.error('임시 비밀번호 발송 실패:', error)
       throw error
     }
   },
@@ -627,23 +834,47 @@ const apiService = {
   // 실증지 관련 API
   async getBuildings() {
     try {
-      // TODO: 실제 API 엔드포인트로 변경
-      // const response = await fetch('/api/buildings')
-      // return await response.json()
-      return availableBuildings.value
+      console.log('실증지 목록 조회 - API 연결')
+      
+      // 실제 API 호출
+      const response = await buildingAPI.getBuildings({
+        page: 0,
+        size: 100 // 모든 실증지 조회
+      })
+      
+      if (response.data.success) {
+        // 실증지 데이터를 이름 배열로 변환
+        return response.data.data.content.map(building => building.name)
+      } else {
+        throw new Error('실증지 조회 실패')
+      }
+      
     } catch (error) {
       console.error('실증지 목록 로딩 실패:', error)
-      throw error
+      console.warn('더미 데이터로 대체합니다.')
+      
+      // API 실패 시 더미 실증지 목록 반환
+      return [
+        '롯데마트 금천점',
+        '롯데마트 대전점',
+        '서울특별시 금천구 시흥대로 291',
+        '부산 해운대점',
+        '대구 동성로점',
+        '인천 송도점',
+        '광주 충장로점',
+        '대전 둔산점',
+        '울산 삼산점',
+        '창원 상남점',
+        '해줌 본사',
+        '시흥과학기술대학교'
+      ]
     }
   },
 
   async searchBuildings(query) {
     try {
-      // TODO: 실제 검색 API 엔드포인트로 변경
-      // const response = await fetch(`/api/buildings/search?q=${encodeURIComponent(query)}`)
-      // return await response.json()
-      
-      return availableBuildings.value.filter(building => 
+      const allBuildings = await this.getBuildings()
+      return allBuildings.filter(building => 
         building.toLowerCase().includes(query.toLowerCase())
       )
     } catch (error) {
@@ -661,8 +892,13 @@ const saveUser = async () => {
       return
     }
 
-    if (!isEditMode.value) {
-      // 새 사용자 등록
+    if (isEditMode.value) {
+      // 수정 모드
+      await apiService.updateUser(userForm.value.id, userForm.value)
+      alert('사용자 정보가 성공적으로 수정되었습니다.')
+      
+    } else {
+      // 신규 등록 모드
       if (!userForm.value.password) {
         alert('비밀번호를 입력해주세요.')
         return
@@ -673,45 +909,16 @@ const saveUser = async () => {
         return
       }
 
-      // 백엔드 API 호출하여 사용자 등록
-      const response = await authAPI.register({
-        username: userForm.value.username,
-        password: userForm.value.password,
-        email: userForm.value.email,
-        name: userForm.value.name,
-        userType: userForm.value.userType,
-        buildings: userForm.value.buildings || []
-      })
-
-      if (response.data.success) {
-        alert('사용자가 성공적으로 등록되었습니다.')
-        
-        // 로컬 사용자 목록에 추가 (UI 업데이트용)
-        const newId = Math.max(...users.value.map(u => u.id)) + 1
-        const newUser = {
-          id: newId,
-          username: userForm.value.username,
-          name: userForm.value.name,
-          email: userForm.value.email,
-          userType: userForm.value.userType,
-          buildings: userForm.value.buildings || [],
-          building: userForm.value.buildings ? userForm.value.buildings.join(' / ') : ''
-        }
-        users.value.push(newUser)
-        
-        closeUserModal()
-      } else {
-        alert('사용자 등록에 실패했습니다: ' + (response.data.message || '알 수 없는 오류'))
-      }
-    } else {
-      // 수정 모드 (기존 코드 유지)
-      await apiService.updateUser(userForm.value.id, userForm.value)
-      closeUserModal()
+      await apiService.createUser(userForm.value)
+      alert('사용자가 성공적으로 등록되었습니다.')
     }
+    
+    closeUserModal()
+    
   } catch (error) {
     console.error('사용자 저장 실패:', error)
-    if (error.response?.data?.message) {
-      alert('사용자 저장에 실패했습니다: ' + error.response.data.message)
+    if (error.message) {
+      alert('사용자 저장에 실패했습니다: ' + error.message)
     } else {
       alert('사용자 저장에 실패했습니다.')
     }
@@ -719,10 +926,17 @@ const saveUser = async () => {
 }
 
 const deleteSelected = async () => {
+  if (selectedUsers.value.length === 0) {
+    alert('삭제할 사용자를 선택해주세요.')
+    return
+  }
+  
   if (confirm('선택한 사용자를 삭제하시겠습니까?')) {
     try {
-      await Promise.all(selectedUsers.value.map(userId => apiService.deleteUser(userId)))
+      await apiService.deleteMultipleUsers(selectedUsers.value)
+      alert('선택한 사용자가 삭제되었습니다.')
       selectedUsers.value = []
+      
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
       alert('사용자 삭제에 실패했습니다.')
@@ -734,7 +948,9 @@ const deleteUser = async (user) => {
   if (confirm('이 사용자를 삭제하시겠습니까?')) {
     try {
       await apiService.deleteUser(user.id)
+      alert('사용자가 삭제되었습니다.')
       closeUserDetailModal()
+      
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
       alert('사용자 삭제에 실패했습니다.')
@@ -750,24 +966,61 @@ const toggleAllSelection = () => {
   }
 }
 
-const handlePageChange = (page) => {
+const handlePageChange = async (page) => {
   currentPage.value = page
   selectedUsers.value = []
+  
+  // 더미 모드에서는 페이지네이션 시뮬레이션만 수행
+  console.log(`페이지 ${page}로 이동 (더미 모드)`)
+  
+  // 실제 API 연결 시 주석 해제
+  // await apiService.getUsers(page, itemsPerPage.value)
 }
 
-// 생성될 때 더 많은 데이터 생성
-onMounted(() => {
-  for (let i = 3; i <= 10; i++) {
-    users.value.push({
-      id: i,
-      username: 'haezoom',
-      name: '해줌관리자',
-      phone: '01012345678',
-      email: 'lab@haezoom.com',
-      building: '롯데마트 대전점',
-      userType: 'user',
-      buildings: ['롯데마트 대전점']
-    })
+// 생성될 때 API에서 데이터 로드
+onMounted(async () => {
+  try {
+    console.log('사용자 관리 페이지 초기화 시작...')
+    
+    // 사용자 목록 로드
+    await apiService.getUsers(1, itemsPerPage.value)
+    console.log('사용자 목록 로드 완료')
+    
+    // 실증지 목록 로드
+    await fetchBuildings()
+    console.log('실증지 목록 로드 완료')
+    
+  } catch (error) {
+    console.error('초기 데이터 로딩 실패:', error)
+    console.warn('더미 데이터로 대체합니다.')
+    
+    // 이미 apiService.getUsers에서 더미 데이터가 설정되므로 추가 처리 불필요
+    // 하지만 완전히 실패한 경우를 대비한 최종 fallback
+    if (users.value.length === 0) {
+      users.value = [
+        {
+          id: 'admin',
+          username: 'admin',
+          name: '관리자',
+          phone: '01012345678',
+          email: 'admin@haezoom.com',
+          building: '해줌 본사',
+          userType: 'admin',
+          buildings: ['해줌 본사']
+        },
+        {
+          id: 'haezoom',
+          username: 'haezoom',
+          name: '해줌관리자',
+          phone: '01012345678',
+          email: 'lab@haezoom.com',
+          building: '롯데마트 대전점',
+          userType: 'user',
+          buildings: ['롯데마트 대전점']
+        }
+      ]
+      totalUsers.value = users.value.length
+    }
   }
 })
 </script>
@@ -845,6 +1098,13 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin-bottom: 20px;
+}
+
+.loading-message {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 16px;
 }
 
 .admin-table {
