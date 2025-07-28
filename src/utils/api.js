@@ -95,6 +95,43 @@ export const authAPI = {
     })
   },
   
+  // 모든 사용자 조회 (페이지네이션)
+  getUsers: (params) => {
+    return api.get('/auth', { params })
+  },
+  
+  // 특정 사용자 조회
+  getUserById: (userId) => {
+    return api.get(`/auth/${userId}`)
+  },
+  
+  // 사용자 정보 수정
+  updateUser: (userId, userData) => {
+    return api.patch(`/auth/${userId}`, {
+      email: userData.email,
+      name: userData.name,
+      role: userData.userType,
+      buildingArray: userData.buildings || []
+    })
+  },
+  
+  // 사용자 삭제
+  deleteUser: (userId) => {
+    return api.delete(`/auth/${userId}`)
+  },
+  
+  // 다수 사용자 일괄 삭제
+  deleteMultipleUsers: (userIds) => {
+    return api.delete('/auth', {
+      data: { userIds }
+    })
+  },
+  
+  // 임시 비밀번호 발급
+  sendTempPassword: (userId) => {
+    return api.post('/auth/tempPwd', { userId })
+  },
+  
   // 토큰 갱신
   refreshToken: (refreshToken) => {
     return api.post('/auth/refreshToken', { refreshToken })
@@ -112,10 +149,42 @@ export const codeAPI = {
   }
 }
 
+export const electricRateAPI = {
+  // 전기요금제 목록 조회
+  getElectricRatePlans: () => {
+    return codeAPI.getGroupCode('ELECT_RATE_PLAN')
+  },
+  
+  // 특정 전기요금제의 전력구분 조회
+  getPowerDivisionsByPlan: (planCode) => {
+    return codeAPI.getGroupCode(planCode)
+  }
+}
+
 export const buildingAPI = {
-  // 건물 목록 조회 (그룹코드 기반)
-  getBuildings: () => {
-    return codeAPI.getGroupCode('BUILDING')
+  // 실증지 목록 조회 (페이지네이션)
+  getBuildings: (params) => {
+    return api.get('/building', { params })
+  },
+  
+  // 특정 실증지 조회
+  getBuildingById: (buildingId) => {
+    return api.get(`/building/${buildingId}`)
+  },
+  
+  // 실증지 생성
+  createBuilding: (buildingData) => {
+    return api.post('/building', buildingData)
+  },
+  
+  // 실증지 수정
+  updateBuilding: (buildingId, buildingData) => {
+    return api.patch(`/building/${buildingId}`, buildingData)
+  },
+  
+  // 실증지 삭제
+  deleteBuilding: (buildingId) => {
+    return api.delete(`/building/${buildingId}`)
   }
 }
 
