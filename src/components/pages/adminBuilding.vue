@@ -3,7 +3,10 @@
   <div class="admin-buildings">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <h1>실증지 관리</h1>
+      <div class="page-title-section">
+        <h1>실증지 관리</h1>
+        <span class="total-count">총 {{ totalBuildings }}개</span>
+      </div>
       <div class="header-actions">
         <!-- <button @click="showFilter = !showFilter" class="btn btn-secondary">
           <img src="@/assets/images/manage_search.png" alt="필터" class="btn-icon" />
@@ -128,6 +131,7 @@
       :current-page="currentPage"
       :total-items="totalItems"
       :items-per-page="itemsPerPage"
+      :total-pages="totalPages"
       @page-change="handlePageChange"
     />
     
@@ -216,24 +220,30 @@
         <div class="form-row">
           <div class="form-group">
             <label>사용자 선택</label>
-            <select v-model="buildingForm.status" class="form-select" @click="openUserSelectModal">
-              <option value="">사용자 선택</option>
-              <!-- <option value="위험 설정">위험 설정</option>
-              <option value="수정">수정</option>
-              <option value="삭제">삭제</option> -->
-            </select>
+            <input 
+              type="text" 
+              :value="buildingForm.selectedUsersText || ''"
+              placeholder="사용자를 선택해주세요"
+              readonly
+              class="form-input"
+              @click="openUserSelectModal"
+              style="cursor: pointer;"
+            />
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label>전기요금제 선택</label>
-            <select v-model="buildingForm.electricPlan" class="form-select" @click="openElectricPlanModal">
-              <option value="">전기요금제 선택</option>
-              <option value="plan1">요금제 1</option>
-              <option value="plan2">요금제 2</option>
-              <option value="plan3">요금제 3</option>
-            </select>
+            <input 
+              type="text" 
+              :value="buildingForm.electricPlanText || ''"
+              placeholder="전기요금제를 선택해주세요"
+              readonly
+              class="form-input"
+              @click="openElectricPlanModal"
+              style="cursor: pointer;"
+            />
           </div>
         </div>
 
@@ -276,33 +286,21 @@
             <div class="table-cell">ID</div>
             <div class="table-cell">이름</div>
           </div>
-          <div class="table-row">
+          <div 
+            v-for="user in availableUsers" 
+            :key="user.id"
+            class="table-row"
+            :class="{ selected: selectedUsers.includes(user.id) }"
+          >
             <div class="table-cell">
-              <input type="checkbox" />
+              <input 
+                type="checkbox" 
+                :checked="selectedUsers.includes(user.id)"
+                @change="toggleUserSelection(user.id)"
+              />
             </div>
-            <div class="table-cell">haezoom</div>
-            <div class="table-cell">해줌관리자</div>
-          </div>
-          <div class="table-row selected">
-            <div class="table-cell">
-              <input type="checkbox" checked />
-            </div>
-            <div class="table-cell">lottemart</div>
-            <div class="table-cell">롯데마트</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell">
-              <input type="checkbox" />
-            </div>
-            <div class="table-cell">bems</div>
-            <div class="table-cell">bems</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell">
-              <input type="checkbox" />
-            </div>
-            <div class="table-cell">test1234</div>
-            <div class="table-cell">test</div>
+            <div class="table-cell">{{ user.username }}</div>
+            <div class="table-cell">{{ user.name }}</div>
           </div>
         </div>
 
@@ -324,34 +322,42 @@
         <div class="form-row">
           <div class="form-group">
             <label>전기요금제 선택</label>
-            <select v-model="selectedElectricPlan" class="form-select">
+            <select v-model="selectedElectricPlan" @change="onElectricPlanChange" class="form-select">
               <option value="">전기요금제 선택</option>
-              <option value="general">일반용 선택</option>
-              <option value="commercial">상업용 선택</option>
-              <option value="industrial">산업용 선택</option>
+              <option 
+                v-for="plan in availableElectricPlans" 
+                :key="plan.code" 
+                :value="plan.code"
+              >
+                {{ plan.name }}
+              </option>
             </select>
           </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row" v-if="selectedElectricPlan">
           <div class="form-group">
-            <label>종료시간</label>
-            <select v-model="selectedEndTime" class="form-select">
+            <label>전력구분</label>
+            <select v-model="selectedPowerDivision" class="form-select">
               <option value="">전력구분 선택</option>
-              <option value="peak">첨두구분</option>
-              <option value="middle">중간구분</option>
-              <option value="base">기저구분</option>
+              <option 
+                v-for="division in currentPowerDivisions" 
+                :key="division.code" 
+                :value="division.code"
+              >
+                {{ division.name }}
+              </option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>감점임 임계</label>
+            <label>검침일</label>
             <input 
-              v-model="reductionThreshold" 
+              v-model="meterReadingDay" 
               type="number" 
-              placeholder="30"
+              placeholder="15"
               class="form-input"
             />
           </div>
@@ -540,11 +546,17 @@ API 엔드포인트:
 */
 
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import BaseModal from '@/components/common/BaseModal.vue'
 import BasePagination from '@/components/common/BasePagination.vue'
-import { buildingAPI, electricRateAPI } from '@/utils/api.js'
+import { buildingAPI, electricRateAPI, authAPI } from '@/utils/api.js'
 // 이미지 import (Vite 빌드 시 자동으로 최적화됨)
 import testImage from '@/assets/images/testimg.png'
+
+// 스토어와 라우터 설정
+const router = useRouter()
+const authStore = useAuthStore()
 
 // 반응형 데이터
 const buildings = ref([])
@@ -554,6 +566,10 @@ const totalBuildings = ref(0)
 // 전기요금제 관련 데이터
 const electricRatePlans = ref([])
 const powerDivisions = ref([])
+
+// 사용자 관련 데이터
+const availableUsers = ref([])
+const selectedUsers = ref([])
 
 // 백엔드 연결을 위한 사용자 데이터 추가
 const connectedUsers = ref([]) // 각 실증지별 연결된 사용자 목록
@@ -574,9 +590,11 @@ const selectedBuildingDetail = ref(null)
 const selectedBuildingForWidget = ref(null)
 
 // 전기요금제 선택 관련
+const availableElectricPlans = ref([])
+const currentPowerDivisions = ref([])
 const selectedElectricPlan = ref('')
-const selectedEndTime = ref('')
-const reductionThreshold = ref('')
+const selectedPowerDivision = ref('')
+const meterReadingDay = ref('')
 const contractPower = ref('')
 
 // 실증지 폼 데이터
@@ -592,12 +610,18 @@ const buildingForm = ref({
   admin: '',
   memberCount: 0,
   status: '',
-  electricPlan: ''
+  electricRatePlan: '',
+  powerDivision: '',
+  meterReadingDay: '',
+  contractPower: '',
+  electricPlanText: '',
+  selectedUsers: [],
+  selectedUsersText: ''
 })
 
 // 페이지네이션
 const currentPage = ref(1)
-const itemsPerPage = ref(6)
+const itemsPerPage = ref(6) // 원래대로 6개씩
 
 // 계산된 속성
 const filteredBuildings = computed(() => {
@@ -610,93 +634,221 @@ const filteredBuildings = computed(() => {
 
 const paginatedBuildings = computed(() => filteredBuildings.value)
 
-const totalPages = computed(() => 
-  Math.ceil(totalBuildings.value / itemsPerPage.value)
-)
+// 백엔드에서 제공하는 totalPages 사용
+const totalPagesFromAPI = ref(1)
+const totalPages = computed(() => totalPagesFromAPI.value)
 
 const totalItems = computed(() => totalBuildings.value)
+
+// 디버깅용 함수들 (브라우저 콘솔에서 사용 가능)
+const debugInfo = () => {
+  console.log('=== 실증지 디버깅 정보 ===')
+  console.log('총 실증지 개수 (totalBuildings):', totalBuildings.value)
+  console.log('현재 페이지 (currentPage):', currentPage.value)
+  console.log('페이지당 항목 수 (itemsPerPage):', itemsPerPage.value)
+  console.log('총 페이지 수 (totalPages):', totalPages.value)
+  console.log('백엔드 totalPages (totalPagesFromAPI):', totalPagesFromAPI.value)
+  console.log('현재 표시된 실증지 수:', buildings.value.length)
+  console.log('현재 실증지 목록:', buildings.value)
+  return {
+    totalBuildings: totalBuildings.value,
+    currentPage: currentPage.value,
+    itemsPerPage: itemsPerPage.value,
+    totalPages: totalPages.value,
+    totalPagesFromAPI: totalPagesFromAPI.value,
+    currentBuildings: buildings.value.length,
+    buildings: buildings.value
+  }
+}
+
+// 전역으로 노출 (브라우저 콘솔에서 사용하기 위해)
+if (typeof window !== 'undefined') {
+  window.debugBuildingInfo = debugInfo
+  // 전체 실증지 개수 확인용 함수
+  window.getTotalBuildingsFromAPI = async () => {
+    try {
+      console.log('백엔드에서 전체 실증지 개수 조회 중...')
+      const result = await buildingAPI.getBuildings(0, 999) // 큰 수로 설정해서 전체 조회
+      console.log('API 응답:', result)
+      return {
+        totalElements: result.data?.totalElements || result.totalElements,
+        totalPages: result.data?.pageResponse?.totalPages || result.pageResponse?.totalPages,
+        actualCount: result.data?.content?.length || result.content?.length || 0,
+        buildings: result.data?.content || result.content || []
+      }
+    } catch (error) {
+      console.error('전체 실증지 조회 실패:', error)
+      return null
+    }
+  }
+}
 
 // 백엔드 API 함수들
 const apiService = {
   // 실증지 관련 API
-  async getBuildings(page = 1, size = 6) {
+  async getBuildings(page = 0, size = 6) { // 기본값 6개로 변경
     try {
       loading.value = true
       console.log('실증지 목록 조회 - API 연결')
       
-      const response = await buildingAPI.getBuildings({
-        page: page - 1, // 백엔드가 0부터 시작하는 경우
-        size: size
-      })
-      
-      if (response.data.success) {
-        const buildingData = response.data.data
-        buildings.value = buildingData.content.map(building => ({
-          id: building.id,
-          name: building.name,
-          phone: building.phone || '',
-          address: building.address,
-          description: building.description || '',
-          admin: 'Prodadmin(슈퍼관리자)', // 임시 값
-          memberCount: 3, // 임시 값
-          status: '수정', // 임시 값
-          type: building.name
-        }))
-        totalBuildings.value = buildingData.totalElements
-        return buildingData
+      // 토큰 확인
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        console.warn('토큰이 없습니다. 개발용 토큰을 설정합니다.')
+        authStore.setDevToken()
       }
-    } catch (error) {
-      console.error('실증지 목록 조회 실패:', error)
-      console.warn('더미 데이터로 대체합니다.')
       
-      // API 실패 시 더미 데이터 사용
-      buildings.value = [
-        {
-          id: 1,
-          name: '롯데마트 금천점',
-          type: '롯데마트 금천점',
-          phone: '0269602550',
-          address: '서울특별시 금천구 시흥대로 291',
-          description: '롯데마트 금천점 내 3층 임대방이다.',
-          admin: 'Prodadmin(슈퍼관리자)',
-          memberCount: 3,
-          status: '수정'
-        },
-        {
-          id: 2,
-          name: '롯데마트 대전점',
-          type: '롯데마트 대전점',
-          phone: '0423456789',
-          address: '대전광역시 서구 대덕대로 291',
-          description: '롯데마트 대전점 내 2층 임대방이다.',
-          admin: 'Prodadmin(슈퍼관리자)',
-          memberCount: 5,
-          status: '수정'
+      // Swagger 스펙에 맞는 API 호출
+      const response = await buildingAPI.getBuildings(page, size)
+      
+      console.log('실증지 목록 조회 성공:', response)
+      
+      // API 응답 데이터 처리
+      let apiData;
+      
+      // Mock API 응답인 경우 (response가 직접 데이터)
+      if (response.success === true && response.data) {
+        apiData = response;
+      }
+      // 실제 API 응답인 경우 (response.data가 데이터)
+      else if (response.data) {
+        apiData = response.data;
+      }
+      else {
+        apiData = response;
+      }
+      
+      console.log('처리된 API 데이터:', apiData);
+      
+      if (apiData && apiData.data) {
+        let buildingData;
+        
+        // Mock API 형식 (Array)
+        if (Array.isArray(apiData.data)) {
+          buildingData = {
+            content: apiData.data,
+            totalElements: apiData.data.length,
+            pageResponse: {
+              totalPages: Math.ceil(apiData.data.length / itemsPerPage.value)
+            }
+          };
         }
-      ]
-      totalBuildings.value = buildings.value.length
-      throw error
-    } finally {
-      loading.value = false
-    }
-  },
+        // 실제 API 형식 (Page 객체)
+        else {
+          buildingData = apiData.data;
+        }
+        
+        console.log('빌딩 데이터:', buildingData);
+        
+          // ID 순으로 정렬된 실증지 데이터
+          const sortedBuildings = buildingData.content
+            .sort((a, b) => a.id - b.id) // ID 오름차순 정렬
+            .map(building => ({
+              id: building.id,
+              name: building.name,
+              address: building.address || '',
+              description: building.description || '',
+              electricRatePlan: building.electricRatePlan || '',
+              powerDivision: building.powerDivision || '',
+              admin: 'Admin',
+              memberCount: 3,
+              status: '수정',
+              type: building.name
+            }))
+            
+          buildings.value = sortedBuildings
+          console.log('ID 순으로 정렬된 실증지:', sortedBuildings)
+          totalBuildings.value = buildingData.totalElements || 0
+          
+          // 백엔드에서 제공하는 totalPages 설정
+          console.log('페이지네이션 디버깅:', {
+            buildingData,
+            directTotalPages: buildingData.totalPages,
+            pageResponse: buildingData.pageResponse,
+            totalElements: buildingData.totalElements,
+            itemsPerPage: itemsPerPage.value,
+            계산된페이지수: Math.ceil((buildingData.totalElements || 0) / itemsPerPage.value)
+          })
+          
+          // 백엔드에서 직접 totalPages 제공하는 경우 (Spring Boot Pageable 응답)
+          if (buildingData.totalPages !== undefined) {
+            totalPagesFromAPI.value = buildingData.totalPages
+            console.log('백엔드 direct totalPages 사용:', buildingData.totalPages)
+          }
+          // pageResponse 객체에서 totalPages 제공하는 경우
+          else if (buildingData.pageResponse && buildingData.pageResponse.totalPages) {
+            totalPagesFromAPI.value = buildingData.pageResponse.totalPages
+            console.log('백엔드 pageResponse totalPages 사용:', buildingData.pageResponse.totalPages)
+          } 
+          // fallback: 계산된 페이지 수
+          else {
+            totalPagesFromAPI.value = Math.ceil((buildingData.totalElements || 0) / itemsPerPage.value)
+            console.log('계산된 totalPages 사용:', totalPagesFromAPI.value)
+          }
+          
+          return buildingData
+        }
+      } catch (error) {
+        console.error('실증지 목록 조회 실패:', error)
+        
+        // 401 에러인 경우 인증 문제
+        if (error.response?.status === 401) {
+          console.warn('인증 실패: 개발용 토큰으로 재시도합니다.')
+          authStore.setDevToken()
+          // 재시도
+          try {
+            const response = await buildingAPI.getBuildings(page, size)
+            console.log('재시도 성공:', response.data)
+            return response.data
+          } catch (retryError) {
+            console.error('재시도 실패:', retryError)
+          }
+        }
+        
+        // 사용자에게 에러 메시지 표시
+        let errorMessage = '실증지 목록을 불러오는 데 실패했습니다.'
+        
+        if (error.response?.status === 401) {
+          errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.'
+        } else if (error.response?.status === 403) {
+          errorMessage = '실증지 목록을 조회할 권한이 없습니다.'
+        } else if (error.response?.status === 500) {
+          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+          errorMessage = '네트워크 연결을 확인해주세요.'
+        }
+        
+        alert(errorMessage)
+        
+        // 빈 데이터로 초기화
+        buildings.value = []
+        totalBuildings.value = 0
+        
+        throw error
+      } finally {
+        loading.value = false
+      }
+    },
 
   async createBuilding(buildingData) {
     try {
       console.log('실증지 생성 - API 연결')
+      console.log('전송할 데이터:', buildingData)
       
+      // Swagger 스펙에 맞는 API 호출 (정확한 필드명 사용)
       const response = await buildingAPI.createBuilding({
         name: buildingData.name,
-        phone: buildingData.phone,
-        address: buildingData.address,
-        description: buildingData.description
+        address: buildingData.address || '',
+        comment: buildingData.description || buildingData.comment || '',
+        electRatePlanCode: buildingData.electricRatePlan || '',
+        powerClassCode: buildingData.powerDivision || '',
+        threshold: buildingData.threshold || '15',  // 검침일 기본값 15
+        contractPower: buildingData.contractPower || '0',
+        userIds: buildingData.selectedUserIds || []
       })
       
-      if (response.data.success) {
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '실증지 생성에 실패했습니다.')
-      }
+      console.log('실증지 생성 성공:', response.data)
+      return response.data.data
     } catch (error) {
       console.error('실증지 생성 실패:', error)
       throw error
@@ -706,19 +858,22 @@ const apiService = {
   async updateBuilding(buildingId, buildingData) {
     try {
       console.log('실증지 수정 - API 연결')
+      console.log('수정할 데이터:', buildingData)
       
+      // Swagger 스펙에 맞는 API 호출 (정확한 필드명 사용)
       const response = await buildingAPI.updateBuilding(buildingId, {
         name: buildingData.name,
-        phone: buildingData.phone,
-        address: buildingData.address,
-        description: buildingData.description
+        address: buildingData.address || '',
+        comment: buildingData.description || buildingData.comment || '',
+        electRatePlanCode: buildingData.electricRatePlan || '',
+        powerClassCode: buildingData.powerDivision || '',
+        threshold: buildingData.threshold || '15',  // 검침일 기본값 15
+        contractPower: buildingData.contractPower || '0',
+        userIds: buildingData.selectedUserIds || []
       })
       
-      if (response.data.success) {
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '실증지 수정에 실패했습니다.')
-      }
+      console.log('실증지 수정 성공:', response.data)
+      return response.data.data
     } catch (error) {
       console.error('실증지 수정 실패:', error)
       throw error
@@ -730,9 +885,8 @@ const apiService = {
       console.log('실증지 삭제 - API 연결')
       
       const response = await buildingAPI.deleteBuilding(buildingId)
-      if (response.data.success) {
-        return response.data.data
-      }
+      console.log('실증지 삭제 성공:', response.data)
+      return response.data.data
     } catch (error) {
       console.error('실증지 삭제 실패:', error)
       throw error
@@ -745,19 +899,31 @@ const apiService = {
       console.log('전기요금제 목록 조회 - API 연결')
       
       const response = await electricRateAPI.getElectricRatePlans()
-      if (response.data.success) {
-        return response.data.data.map(plan => ({
+      console.log('전기요금제 목록 조회 성공:', response.data)
+      
+      if (response.data && response.data.data && response.data.data.codes) {
+        return response.data.data.codes.map(plan => ({
           code: plan.code,
           name: plan.codeName
         }))
+      } else {
+        throw new Error('전기요금제 데이터가 없습니다.')
       }
     } catch (error) {
       console.error('전기요금제 목록 조회 실패:', error)
       // 실패 시 더미 데이터 반환
       return [
-        { code: 'general', name: '일반용' },
-        { code: 'commercial', name: '상업용' },
-        { code: 'industrial', name: '산업용' }
+        { code: 'GENERAL_A1', name: '일반용(갑) Ⅰ' },
+        { code: 'GENERAL_A2', name: '일반용(갑) Ⅱ' },
+        { code: 'GENERAL_B', name: '일반용(을)' },
+        { code: 'INDUSTRY_A1', name: '산업용(갑) Ⅰ' },
+        { code: 'INDUSTRY_A2', name: '산업용(갑) Ⅱ' },
+        { code: 'INDUSTRY_B', name: '산업용(을)' },
+        { code: 'EDUCATION_A', name: '교육용(갑)' },
+        { code: 'EDUCATION_B', name: '교육용(을)' },
+        { code: 'AGRICULTURE_A', name: '농사용(갑)' },
+        { code: 'AGRICULTURE_B', name: '농사용(을)' },
+        { code: 'RESIDENTIAL', name: '주택용' }
       ]
     }
   },
@@ -767,19 +933,120 @@ const apiService = {
       console.log('전력구분 목록 조회 - API 연결')
       
       const response = await electricRateAPI.getPowerDivisionsByPlan(planCode)
-      if (response.data.success) {
-        return response.data.data.map(division => ({
+      console.log('전력구분 목록 조회 성공:', response.data)
+      
+      if (response.data && response.data.data && response.data.data.codes) {
+        return response.data.data.codes.map(division => ({
           code: division.code,
           name: division.codeName
         }))
+      } else {
+        throw new Error('전력구분 데이터가 없습니다.')
       }
     } catch (error) {
       console.error('전력구분 목록 조회 실패:', error)
+      // 실패 시 더미 데이터 반환 (요금제별로 다른 옵션)
+      return this.getDefaultPowerDivisions(planCode)
+    }
+  },
+
+  // 요금제별 기본 전력구분 반환
+  getDefaultPowerDivisions(planCode) {
+    const divisions = {
+      'GENERAL_A1': [
+        { code: 'LOW_VOLTAGE', name: '저압' },
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'GENERAL_A2': [
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'GENERAL_B': [
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_A3', name: '고압A(Ⅲ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' },
+        { code: 'HIGH_B3', name: '고압B(Ⅲ)' }
+      ],
+      'INDUSTRY_A1': [
+        { code: 'LOW_VOLTAGE', name: '저압' },
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'INDUSTRY_A2': [
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'INDUSTRY_B': [
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'EDUCATION_A': [
+        { code: 'LOW_VOLTAGE', name: '저압' },
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'EDUCATION_B': [
+        { code: 'HIGH_A1', name: '고압A(Ⅰ)' },
+        { code: 'HIGH_A2', name: '고압A(Ⅱ)' },
+        { code: 'HIGH_B1', name: '고압B(Ⅰ)' },
+        { code: 'HIGH_B2', name: '고압B(Ⅱ)' }
+      ],
+      'AGRICULTURE_A': [],
+      'AGRICULTURE_B': [
+        { code: 'LOW_VOLTAGE', name: '저압' },
+        { code: 'HIGH_A', name: '고압A' },
+        { code: 'HIGH_B', name: '고압B' }
+      ],
+      'RESIDENTIAL': [
+        { code: 'LOW_VOLTAGE', name: '저압' },
+        { code: 'HIGH_VOLTAGE', name: '고압' }
+      ]
+    }
+    
+    return divisions[planCode] || []
+  },
+
+  // 사용자 관련 API
+  async getUsers() {
+    try {
+      console.log('사용자 목록 조회 - API 연결')
+      
+      const response = await authAPI.getUsers(0, 100) // 모든 사용자 조회
+      console.log('사용자 목록 조회 성공:', response.data)
+      
+      if (response.data && response.data.data && response.data.data.content) {
+        return response.data.data.content.map(user => ({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email
+        }))
+      } else {
+        throw new Error('사용자 데이터가 없습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 목록 조회 실패:', error)
       // 실패 시 더미 데이터 반환
       return [
-        { code: 'peak', name: '첨두구분' },
-        { code: 'middle', name: '중간구분' },
-        { code: 'base', name: '기저구분' }
+        { id: '1', username: 'haezoom', name: '해줌관리자', email: 'haezoom@example.com' },
+        { id: '2', username: 'lottemart', name: '롯데마트', email: 'lotte@example.com' },
+        { id: '3', username: 'bems', name: 'bems', email: 'bems@example.com' },
+        { id: '4', username: 'test1234', name: 'test', email: 'test@example.com' }
       ]
     }
   }
@@ -802,7 +1069,7 @@ const fetchBuildingUsers = async (buildingId) => {
 
 const fetchAllBuildings = async () => {
   try {
-    await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+    await apiService.getBuildings(currentPage.value - 1, itemsPerPage.value)
   } catch (error) {
     console.error('실증지 데이터 조회 실패:', error)
   }
@@ -847,7 +1114,13 @@ const openBuildingModal = (building = null) => {
       admin: 'Prodadmin(슈퍼관리자)',
       memberCount: 0,
       status: '',
-      electricPlan: ''
+      electricRatePlan: '',
+      powerDivision: '',
+      meterReadingDay: '',
+      contractPower: '',
+      electricPlanText: '',
+      selectedUsers: [],
+      selectedUsersText: ''
     }
   }
   showBuildingModal.value = true
@@ -893,31 +1166,111 @@ const removeImage = () => {
 }
 
 // 사용자 선택 모달
-const openUserSelectModal = () => {
+const openUserSelectModal = async () => {
+  // 사용자 목록 로드
+  try {
+    availableUsers.value = await apiService.getUsers()
+  } catch (error) {
+    console.error('사용자 목록 로드 실패:', error)
+  }
+  
   showUserSelectModal.value = true
 }
 
 const closeUserSelectModal = () => {
   showUserSelectModal.value = false
+  selectedUsers.value = []
 }
 
 const selectUsers = () => {
-  // 선택된 사용자 처리 로직
+  // 선택된 사용자들을 건물 폼에 적용
+  buildingForm.value.selectedUsers = [...selectedUsers.value]
+  
+  // 표시용 텍스트 설정
+  const userNames = selectedUsers.value.map(userId => {
+    const user = availableUsers.value.find(u => u.id === userId)
+    return user ? `${user.name}(${user.username})` : userId
+  })
+  buildingForm.value.selectedUsersText = userNames.join(', ')
+  
   closeUserSelectModal()
 }
 
+const toggleUserSelection = (userId) => {
+  const index = selectedUsers.value.indexOf(userId)
+  if (index > -1) {
+    selectedUsers.value.splice(index, 1)
+  } else {
+    selectedUsers.value.push(userId)
+  }
+}
+
 // 전기요금제 선택 모달
-const openElectricPlanModal = () => {
+const openElectricPlanModal = async () => {
+  // 전기요금제 목록 로드
+  try {
+    availableElectricPlans.value = await apiService.getElectricRatePlans()
+  } catch (error) {
+    console.error('전기요금제 로드 실패:', error)
+    availableElectricPlans.value = []
+  }
+  
   showElectricPlanModal.value = true
 }
 
 const closeElectricPlanModal = () => {
   showElectricPlanModal.value = false
+  selectedElectricPlan.value = ''
+  selectedPowerDivision.value = ''
+  meterReadingDay.value = ''
+  contractPower.value = ''
+  currentPowerDivisions.value = []
+}
+
+// 전기요금제 변경 시 전력구분 로드
+const onElectricPlanChange = async () => {
+  if (selectedElectricPlan.value) {
+    try {
+      currentPowerDivisions.value = await apiService.getPowerDivisions(selectedElectricPlan.value)
+      selectedPowerDivision.value = '' // 초기화
+    } catch (error) {
+      console.error('전력구분 로드 실패:', error)
+      currentPowerDivisions.value = []
+    }
+  } else {
+    currentPowerDivisions.value = []
+    selectedPowerDivision.value = ''
+  }
 }
 
 const saveElectricPlan = () => {
   // 전기요금제 설정 저장 로직
-  buildingForm.value.electricPlan = selectedElectricPlan.value
+  if (!selectedElectricPlan.value) {
+    alert('전기요금제를 선택해주세요.')
+    return
+  }
+  
+  const selectedPlan = availableElectricPlans.value.find(plan => plan.code === selectedElectricPlan.value)
+  const selectedDivision = currentPowerDivisions.value.find(div => div.code === selectedPowerDivision.value)
+  
+  buildingForm.value.electricRatePlan = selectedElectricPlan.value
+  buildingForm.value.powerDivision = selectedPowerDivision.value
+  buildingForm.value.threshold = meterReadingDay.value  // meterReadingDay를 threshold로 저장
+  buildingForm.value.contractPower = contractPower.value
+  
+  // 표시용 텍스트 설정
+  buildingForm.value.electricPlanText = selectedPlan ? selectedPlan.name : ''
+  if (selectedDivision) {
+    buildingForm.value.electricPlanText += ` - ${selectedDivision.name}`
+  }
+  
+  console.log('전기요금제 설정 저장:', {
+    electricRatePlan: selectedElectricPlan.value,
+    powerDivision: selectedPowerDivision.value,
+    threshold: meterReadingDay.value,  // 검침일이 threshold로 저장됨
+    contractPower: contractPower.value
+  })
+  
   closeElectricPlanModal()
 }
 
@@ -933,17 +1286,15 @@ const saveBuilding = async () => {
       // 수정
       await apiService.updateBuilding(buildingForm.value.id, buildingForm.value)
       alert('실증지 정보가 성공적으로 수정되었습니다.')
-      
-      // 목록 새로고침
-      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
-      
+      // 현재 페이지 유지
+      await apiService.getBuildings(currentPage.value - 1, itemsPerPage.value)
     } else {
       // 추가
       await apiService.createBuilding(buildingForm.value)
       alert('실증지가 성공적으로 등록되었습니다.')
-      
-      // 목록 새로고침
-      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      // 새로 추가된 항목을 보기 위해 첫 번째 페이지로 이동
+      currentPage.value = 1
+      await apiService.getBuildings(0, itemsPerPage.value)
     }
     
     closeBuildingModal()
@@ -964,8 +1315,8 @@ const deleteBuildingConfirm = async (building) => {
       await apiService.deleteBuilding(building.id)
       alert('실증지가 삭제되었습니다.')
       
-      // 목록 새로고침
-      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      // 목록 새로고침 (currentPage는 1-based이므로 0-based로 변환)
+      await apiService.getBuildings(currentPage.value - 1, itemsPerPage.value)
       
     } catch (error) {
       console.error('실증지 삭제 실패:', error)
@@ -991,8 +1342,8 @@ const deleteSelected = async () => {
       alert('선택한 실증지가 삭제되었습니다.')
       selectedBuildings.value = []
       
-      // 목록 새로고침
-      await apiService.getBuildings(currentPage.value, itemsPerPage.value)
+      // 목록 새로고침 (currentPage는 1-based이므로 0-based로 변환)
+      await apiService.getBuildings(currentPage.value - 1, itemsPerPage.value)
       
     } catch (error) {
       console.error('실증지 삭제 실패:', error)
@@ -1002,14 +1353,44 @@ const deleteSelected = async () => {
 }
 
 const handlePageChange = async (page) => {
+  const previousPage = currentPage.value
+  
   try {
-    await apiService.getBuildings(page, itemsPerPage.value)
+    console.log(`페이지 변경: ${previousPage} → ${page}`)
+    currentPage.value = page
+    const result = await apiService.getBuildings(page - 1, itemsPerPage.value)
+    
+    // totalPages 업데이트
+    console.log('handlePageChange result:', result)
+    if (result && result.totalPages !== undefined) {
+      totalPagesFromAPI.value = result.totalPages
+      console.log(`페이지 ${page}에서 direct totalPages 업데이트:`, totalPagesFromAPI.value)
+    } else if (result && result.pageResponse && result.pageResponse.totalPages) {
+      totalPagesFromAPI.value = result.pageResponse.totalPages
+      console.log(`페이지 ${page}에서 pageResponse totalPages 업데이트:`, totalPagesFromAPI.value)
+    }
   } catch (error) {
     console.error('페이지 변경 중 오류:', error)
+    
+    // 페이지를 이전 상태로 되돌림
+    currentPage.value = previousPage
+    console.log(`페이지 에러로 인해 ${page} → ${previousPage}로 되돌림`)
+    
+    // 사용자에게 에러 메시지 표시
+    let errorMessage = '페이지를 불러오는 데 실패했습니다.'
+    
+    if (error.response?.status === 500) {
+      errorMessage = `${page}페이지에 데이터가 없습니다. 총 ${totalPagesFromAPI.value}페이지까지 있습니다.`
+      console.warn(`존재하지 않는 페이지 ${page} 요청 (총 ${totalPagesFromAPI.value}페이지)`)
+    } else if (error.response?.status === 404) {
+      errorMessage = '요청한 페이지를 찾을 수 없습니다.'
+    } else if (!error.response) {
+      errorMessage = '네트워크 연결을 확인해주세요.'
+    }
+    
+    alert(errorMessage)
   }
-}
-
-// 이미지 경로 반환 함수
+}// 이미지 경로 반환 함수
 const getImagePath = (buildingId) => {
   // import된 이미지 사용 (개발/배포 환경 모두 지원)
   return testImage
@@ -1035,6 +1416,23 @@ const getConnectedUsers = (building) => {
 
 // 생성될 때 더 많은 데이터 생성
 onMounted(async () => {
+  // 인증 확인 - 토큰이 없으면 개발용 토큰 설정
+  if (!authStore.isAuthenticated) {
+    console.log('토큰이 없습니다. 개발용 토큰을 설정합니다.')
+    authStore.setDevToken()
+  }
+  
+  console.log('인증 상태 확인 완료:', authStore.user)
+  
+  // 다른 API 먼저 테스트 (인증 확인용)
+  try {
+    console.log('사용자 API 테스트 중...')
+    const usersResponse = await authAPI.getUsers(0, 5)
+    console.log('사용자 API 성공:', usersResponse.data)
+  } catch (userError) {
+    console.error('사용자 API 실패:', userError.response?.status, userError.response?.data)
+  }
+  
   // 임시 데이터 생성 (개발용)
   for (let i = 3; i <= 9; i++) {
     buildings.value.push({
@@ -1051,7 +1449,33 @@ onMounted(async () => {
   }
   
   // 실제 백엔드 API 연결
-  await apiService.getBuildings(1, itemsPerPage.value)
+  try {
+    const result = await apiService.getBuildings(0, itemsPerPage.value)
+    
+    // totalPages 업데이트
+    console.log('onMounted result:', result)
+    if (result && result.totalPages !== undefined) {
+      totalPagesFromAPI.value = result.totalPages
+      console.log('초기 로딩 - direct totalPages 설정:', totalPagesFromAPI.value)
+    } else if (result && result.pageResponse && result.pageResponse.totalPages) {
+      totalPagesFromAPI.value = result.pageResponse.totalPages
+      console.log('초기 로딩 - pageResponse totalPages 설정:', totalPagesFromAPI.value)
+    }
+  } catch (error) {
+    console.error('초기 데이터 로딩 실패:', error)
+    
+    let errorMessage = '실증지 데이터를 불러오는 데 실패했습니다.'
+    
+    if (error.response?.status === 401) {
+      errorMessage = '인증이 필요합니다. 다시 로그인해주세요.'
+    } else if (error.response?.status === 500) {
+      errorMessage = '서버에 문제가 발생했습니다. 관리자에게 문의하세요.'
+    } else if (!error.response) {
+      errorMessage = '네트워크 연결을 확인해주세요.'
+    }
+    
+    alert(errorMessage)
+  }
 })
 </script>
 
@@ -1067,11 +1491,26 @@ img{
   padding-bottom: 15px;
 }
 
+.page-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .page-header h1 {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
   color: #333;
+}
+
+.total-count {
+  padding: 4px 12px;
+  background: #E3F2FD;
+  color: #1976D2;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .header-actions {

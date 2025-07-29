@@ -515,71 +515,41 @@ const updateBuildingSelection = () => {
 // 백엔드 API 함수들
 const apiService = {
   // 사용자 관련 API
-  async getUsers(page = 1, size = 10) {
+  async getUsers(page = 0, size = 10, name = '', role = '') {
     try {
       loading.value = true
       
-      // 백엔드 서버가 아직 준비되지 않았을 수 있으므로 임시로 더미 데이터 사용
-      console.warn('백엔드 API 연결 전까지 더미 데이터를 사용합니다.')
+      console.log('사용자 목록 조회 - 실제 API 호출')
       
-      // 더미 데이터 생성
-      const dummyUsers = [
-        {
-          id: 'admin',
-          name: '관리자',
-          email: 'admin@haezoom.com',
-          phone: '01012345678',
-          role: 'admin',
-          buildingArray: ['해줌 본사']
-        },
-        {
-          id: 'haezoom',
-          name: '해줌관리자',
-          email: 'lab@haezoom.com',
-          phone: '01012345678',
-          role: 'user',
-          buildingArray: ['롯데마트 금천점', '롯데마트 대전점']
-        },
-        {
-          id: 'user1',
-          name: '김철수',
-          email: 'user1@example.com',
-          phone: '01098765432',
-          role: 'user',
-          buildingArray: ['롯데마트 금천점']
-        },
-        {
-          id: 'user2',
-          name: '이영희',
-          email: 'user2@example.com',
-          phone: '01087654321',
-          role: 'user',
-          buildingArray: ['시흥과학기술대학교']
+      // 실제 백엔드 API 호출
+      const response = await authAPI.getUsers(page, size, name, role)
+      console.log('사용자 목록 조회 성공:', response.data)
+      
+      if (response.data && response.data.data) {
+        const apiData = response.data.data
+        
+        // API 응답을 화면 표시용 형식으로 변환
+        users.value = apiData.content.map(user => ({
+          id: user.userId || user.id,
+          username: user.id || user.username,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          userType: user.role,
+          buildings: user.buildingArray || [],
+          building: user.buildingArray ? user.buildingArray.join(' / ') : '',
+          createdAt: user.createdAt
+        }))
+        
+        totalUsers.value = apiData.totalElements || 0
+        
+        return {
+          content: users.value,
+          totalElements: totalUsers.value,
+          totalPages: apiData.totalPages || 0
         }
-      ]
-      
-      // 페이지네이션 시뮬레이션
-      const startIndex = (page - 1) * size
-      const endIndex = startIndex + size
-      const paginatedData = dummyUsers.slice(startIndex, endIndex)
-      
-      users.value = paginatedData.map(user => ({
-        id: user.id,
-        username: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        userType: user.role,
-        buildings: user.buildingArray || [],
-        building: user.buildingArray ? user.buildingArray.join(' / ') : ''
-      }))
-      
-      totalUsers.value = dummyUsers.length
-      
-      return {
-        content: paginatedData,
-        totalElements: dummyUsers.length,
-        totalPages: Math.ceil(dummyUsers.length / size)
+      } else {
+        throw new Error('API 응답 형식이 올바르지 않습니다.')
       }
       
     } catch (error) {
@@ -591,30 +561,9 @@ const apiService = {
         config: error.config
       })
       
-      // API 실패 시 기본 더미 데이터 사용
-      users.value = [
-        {
-          id: 'admin',
-          username: 'admin',
-          name: '관리자',
-          email: 'admin@haezoom.com',
-          phone: '01012345678',
-          userType: 'admin',
-          buildings: ['해줌 본사'],
-          building: '해줌 본사'
-        },
-        {
-          id: 'haezoom',
-          username: 'haezoom',
-          name: '해줌관리자',
-          email: 'lab@haezoom.com',
-          phone: '01012345678',
-          userType: 'user',
-          buildings: ['롯데마트 대전점'],
-          building: '롯데마트 대전점'
-        }
-      ]
-      totalUsers.value = users.value.length
+      // API 실패 시에도 빈 배열로 설정
+      users.value = []
+      totalUsers.value = 0
       
       throw error
     } finally {
@@ -648,42 +597,30 @@ const apiService = {
     try {
       console.log('사용자 생성 - API 호출')
       
-      // 실제 API 호출
+      // Swagger 스펙에 맞는 API 호출
       const response = await authAPI.register({
         username: userData.username,
         password: userData.password,
-        email: userData.email,
         name: userData.name,
-        buildings: userData.buildings || [],
-        userType: userData.userType
+        email: userData.email || '',
+        phone: userData.phone || '',
+        company: userData.company || '',
+        authority: userData.userType || 'USER'
       })
       
-      if (response.data.success) {
-        const newUser = {
-          id: userData.username,
-          username: userData.username,
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone || '',
-          userType: userData.userType,
-          buildings: userData.buildings || [],
-          building: userData.buildings ? userData.buildings.join(' / ') : ''
-        }
-        
-        // 목록 새로고침
-        await apiService.getUsers(currentPage.value, itemsPerPage.value)
-        
-        return newUser
-      } else {
-        throw new Error(response.data.message || '사용자 생성에 실패했습니다.')
-      }
+      console.log('사용자 생성 성공:', response.data)
+      
+      // 목록 새로고침
+      await apiService.getUsers(currentPage.value, itemsPerPage.value)
+      
+      return response.data.data
     } catch (error) {
       console.error('사용자 생성 실패:', error)
       
       // API 실패 시 더미 모드로 대체
       console.warn('API 실패, 더미 모드로 전환')
       
-      await new Promise(resolve => setTimeout(resolve, 500)) // 0.5초 딜레이
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       const newUser = {
         id: userData.username,
@@ -691,9 +628,8 @@ const apiService = {
         name: userData.name,
         email: userData.email,
         phone: userData.phone || '',
-        userType: userData.userType,
-        buildings: userData.buildings || [],
-        building: userData.buildings ? userData.buildings.join(' / ') : ''
+        company: userData.company || '',
+        authority: userData.userType || 'USER'
       }
       
       // 로컬 목록에 추가
@@ -708,21 +644,22 @@ const apiService = {
     try {
       console.log('사용자 수정 - API 호출')
       
-      // 실제 API 호출
+      // Swagger 스펙에 맞는 API 호출
       const response = await authAPI.updateUser(userId, {
-        email: userData.email,
+        username: userData.username,
+        password: userData.password, // 비밀번호는 수정시에는 선택사항
         name: userData.name,
-        role: userData.userType,
-        buildingArray: userData.buildings || []
+        email: userData.email || '',
+        phone: userData.phone || '',
+        company: userData.company || '',
+        authority: userData.userType || userData.authority || 'USER'
       })
       
-      if (response.data.success) {
-        // 목록 새로고침
-        await apiService.getUsers(currentPage.value, itemsPerPage.value)
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '사용자 수정에 실패했습니다.')
-      }
+      console.log('사용자 수정 성공:', response.data)
+      
+      // 목록 새로고침
+      await apiService.getUsers(currentPage.value, itemsPerPage.value)
+      return response.data.data
     } catch (error) {
       console.error('사용자 수정 실패:', error)
       
@@ -738,9 +675,9 @@ const apiService = {
           ...users.value[userIndex],
           name: userData.name,
           email: userData.email,
-          userType: userData.userType,
-          buildings: userData.buildings || [],
-          building: userData.buildings ? userData.buildings.join(' / ') : ''
+          phone: userData.phone || '',
+          company: userData.company || '',
+          authority: userData.userType || userData.authority || 'USER'
         }
         return users.value[userIndex]
       }
@@ -755,13 +692,11 @@ const apiService = {
       
       // 실제 API 호출
       const response = await authAPI.deleteUser(userId)
-      if (response.data.success) {
-        // 목록 새로고침
-        await apiService.getUsers(currentPage.value, itemsPerPage.value)
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '사용자 삭제에 실패했습니다.')
-      }
+      console.log('사용자 삭제 성공:', response.data)
+      
+      // 목록 새로고침
+      await apiService.getUsers(currentPage.value, itemsPerPage.value)
+      return response.data.data
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
       
@@ -782,15 +717,13 @@ const apiService = {
     try {
       console.log('사용자 일괄 삭제 - API 호출')
       
-      // 실제 API 호출
+      // Swagger 스펙에 맞는 API 호출 (DeleteUsersReqDto)
       const response = await authAPI.deleteMultipleUsers(userIds)
-      if (response.data.success) {
-        // 목록 새로고침
-        await apiService.getUsers(currentPage.value, itemsPerPage.value)
-        return response.data.data
-      } else {
-        throw new Error(response.data.message || '사용자 일괄 삭제에 실패했습니다.')
-      }
+      console.log('사용자 일괄 삭제 성공:', response.data)
+      
+      // 목록 새로고침
+      await apiService.getUsers(currentPage.value, itemsPerPage.value)
+      return response.data.data
     } catch (error) {
       console.error('사용자 일괄 삭제 실패:', error)
       
@@ -833,40 +766,26 @@ const apiService = {
   // 실증지 관련 API
   async getBuildings() {
     try {
-      console.log('실증지 목록 조회 - API 연결')
+      console.log('실증지 목록 조회 - 실제 API 호출')
       
-      // 실제 API 호출
-      const response = await buildingAPI.getBuildings({
-        page: 0,
-        size: 100 // 모든 실증지 조회
-      })
+      // 실제 API 호출 (0-based 페이지, 100개 조회)
+      const response = await buildingAPI.getBuildings(0, 100)
       
-      if (response.data.success) {
+      console.log('실증지 목록 조회 성공:', response.data)
+      
+      if (response.data && response.data.data && response.data.data.content) {
         // 실증지 데이터를 이름 배열로 변환
         return response.data.data.content.map(building => building.name)
       } else {
-        throw new Error('실증지 조회 실패')
+        console.warn('실증지 조회 응답이 비어있습니다.')
+        return []
       }
       
     } catch (error) {
       console.error('실증지 목록 로딩 실패:', error)
-      console.warn('더미 데이터로 대체합니다.')
       
-      // API 실패 시 더미 실증지 목록 반환
-      return [
-        '롯데마트 금천점',
-        '롯데마트 대전점',
-        '서울특별시 금천구 시흥대로 291',
-        '부산 해운대점',
-        '대구 동성로점',
-        '인천 송도점',
-        '광주 충장로점',
-        '대전 둔산점',
-        '울산 삼산점',
-        '창원 상남점',
-        '해줌 본사',
-        '시흥과학기술대학교'
-      ]
+      // API 실패 시 빈 배열 반환
+      return []
     }
   },
 
@@ -969,11 +888,10 @@ const handlePageChange = async (page) => {
   currentPage.value = page
   selectedUsers.value = []
   
-  // 더미 모드에서는 페이지네이션 시뮬레이션만 수행
-  console.log(`페이지 ${page}로 이동 (더미 모드)`)
+  console.log(`페이지 ${page}로 이동`)
   
-  // 실제 API 연결 시 주석 해제
-  // await apiService.getUsers(page, itemsPerPage.value)
+  // 1-based 페이지를 0-based로 변환하여 API 호출
+  await apiService.getUsers(page - 1, itemsPerPage.value)
 }
 
 // 생성될 때 API에서 데이터 로드
@@ -981,8 +899,8 @@ onMounted(async () => {
   try {
     console.log('사용자 관리 페이지 초기화 시작...')
     
-    // 사용자 목록 로드
-    await apiService.getUsers(1, itemsPerPage.value)
+    // 사용자 목록 로드 (0-based 페이지)
+    await apiService.getUsers(0, itemsPerPage.value)
     console.log('사용자 목록 로드 완료')
     
     // 실증지 목록 로드
@@ -991,35 +909,8 @@ onMounted(async () => {
     
   } catch (error) {
     console.error('초기 데이터 로딩 실패:', error)
-    console.warn('더미 데이터로 대체합니다.')
-    
-    // 이미 apiService.getUsers에서 더미 데이터가 설정되므로 추가 처리 불필요
-    // 하지만 완전히 실패한 경우를 대비한 최종 fallback
-    if (users.value.length === 0) {
-      users.value = [
-        {
-          id: 'admin',
-          username: 'admin',
-          name: '관리자',
-          phone: '01012345678',
-          email: 'admin@haezoom.com',
-          building: '해줌 본사',
-          userType: 'admin',
-          buildings: ['해줌 본사']
-        },
-        {
-          id: 'haezoom',
-          username: 'haezoom',
-          name: '해줌관리자',
-          phone: '01012345678',
-          email: 'lab@haezoom.com',
-          building: '롯데마트 대전점',
-          userType: 'user',
-          buildings: ['롯데마트 대전점']
-        }
-      ]
-      totalUsers.value = users.value.length
-    }
+    // API 실패 시 에러 메시지 표시
+    alert('데이터를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.')
   }
 })
 </script>

@@ -55,19 +55,41 @@ const props = defineProps({
   itemsPerPage: {
     type: Number,
     default: 10
+  },
+  totalPages: {
+    type: Number,
+    required: false
   }
 })
 
 const emit = defineEmits(['page-change'])
 
-const totalPages = computed(() => Math.ceil(props.totalItems / props.itemsPerPage))
+// totalPages prop이 있으면 사용하고, 없으면 계산
+const computedTotalPages = computed(() => {
+  if (props.totalPages && props.totalPages > 0) {
+    console.log('BasePagination: 백엔드 totalPages 사용:', props.totalPages)
+    return props.totalPages
+  }
+  const calculated = Math.ceil(props.totalItems / props.itemsPerPage)
+  console.log('BasePagination: 계산된 totalPages 사용:', calculated, '(totalItems:', props.totalItems, ', itemsPerPage:', props.itemsPerPage, ')')
+  return calculated
+})
+
 const startItem = computed(() => (props.currentPage - 1) * props.itemsPerPage + 1)
 const endItem = computed(() => Math.min(props.currentPage * props.itemsPerPage, props.totalItems))
 
 const visiblePages = computed(() => {
   const pages = []
+  const totalPagesValue = computedTotalPages.value
   const start = Math.max(1, props.currentPage - 5)
-  const end = Math.min(totalPages.value, props.currentPage + 5)
+  const end = Math.min(totalPagesValue, props.currentPage + 5)
+  
+  console.log('BasePagination visiblePages 계산:', {
+    currentPage: props.currentPage,
+    totalPages: totalPagesValue,
+    start,
+    end
+  })
   
   for (let i = start; i <= end; i++) {
     pages.push(i)
@@ -77,8 +99,21 @@ const visiblePages = computed(() => {
 })
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value && page !== props.currentPage) {
+  const totalPagesValue = computedTotalPages.value
+  console.log(`BasePagination goToPage: ${page}, totalPages: ${totalPagesValue}, currentPage: ${props.currentPage}`)
+  
+  // totalPages가 0이면 페이지 이동 불가
+  if (totalPagesValue === 0) {
+    console.warn('BasePagination: totalPages가 0이므로 페이지 이동 불가')
+    return
+  }
+  
+  // 유효한 페이지 범위 체크
+  if (page >= 1 && page <= totalPagesValue && page !== props.currentPage) {
+    console.log(`BasePagination: 페이지 ${page}로 이동`)
     emit('page-change', page)
+  } else {
+    console.warn(`BasePagination: 유효하지 않은 페이지 이동 시도 - page: ${page}, totalPages: ${totalPagesValue}`)
   }
 }
 </script>
