@@ -1034,12 +1034,13 @@ onMounted(async () => {
 }
 
 .btn-edit {
-  background-color: #3498db;
+  margin: 0 auto;
+  background-color: #000;
   color: white;
 }
 
 .btn-edit:hover {
-  background-color: #2980b9;
+  background-color: #424242;
 }
 
 /* 사용자 폼 스타일 */
