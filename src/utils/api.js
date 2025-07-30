@@ -322,6 +322,17 @@ export const buildingAPI = {
     } catch (error) {
       console.error('❌ Building API 실패:', error.response?.status, error.response?.data)
       
+      // 에러 종류에 따른 상세 분석
+      if (error.response?.status === 400) {
+        console.error('🚫 400 에러: pageSize 제한 위반 가능성')
+        console.error('현재 요청 pageSize:', size)
+        console.error('에러 메시지:', error.response?.data?.message)
+      } else if (error.response?.status === 500) {
+        console.warn('⚠️ 500 에러: 서버 내부 오류 - pageSize 처리 불가능 또는 데이터베이스 제한')
+        console.warn('현재 요청 pageSize:', size)
+        console.warn('백엔드에서 지원하는 최대 pageSize를 확인하세요')
+      }
+      
       // 500 에러 특별 처리
       if (error.response?.status === 500) {
         console.warn('서버 내부 오류 - 존재하지 않는 페이지일 가능성 높음')
