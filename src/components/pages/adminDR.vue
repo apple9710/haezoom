@@ -6,6 +6,7 @@
       <h1>DR 관리</h1>
       <div class="header-actions">
         <button @click="openDRModal()" class="btn">
+          <img src="@/assets/images/add.svg" alt="추가" class="btn-icon" />
 
           DR 추가
         </button>
@@ -321,7 +322,7 @@ onMounted(() => {
 
 .btn-danger {
   background-color: #e74c3c;
-  color: white;
+  color: #333;
 }
 
 .btn-danger:hover {
@@ -329,7 +330,7 @@ onMounted(() => {
 }
 
 .btn-danger:disabled {
-  background-color: #bdc3c7;
+  background-color: #fff;
   cursor: not-allowed;
 }
 
@@ -378,12 +379,12 @@ onMounted(() => {
 }
 
 .btn-edit {
-  background-color: #3498db;
+  background-color: #000;
   color: white;
 }
 
 .btn-edit:hover {
-  background-color: #2980b9;
+  background-color: #424242;
 }
 
 .status-badge {
@@ -394,12 +395,12 @@ onMounted(() => {
 }
 
 .status-complete {
-  background-color: #27ae60;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .status-pending {
-  background-color: #f39c12;
+  background-color: var(--color-primary-light);
   color: white;
 }
 
