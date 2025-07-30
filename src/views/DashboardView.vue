@@ -363,7 +363,8 @@
             </div>
           </div>
 
-          <div class="input-grid">
+          <!-- 이미지 위젯, 페이지링크 위젯이 아닌 경우에만 단위 입력 표시 -->
+          <div v-if="!widgetOptions.other || (widgetOptions.other.type !== 'page-link' && widgetOptions.other.type !== 'image-widget')" class="input-grid">
             <p>단위</p>
             <div class="input-box">
               <input
@@ -375,7 +376,8 @@
             </div>
           </div>
 
-          <div class="input-grid">
+          <!-- 이미지 위젯, 페이지링크 위젯이 아닌 경우에만 기간 설정 표시 -->
+          <div v-if="!widgetOptions.other || (widgetOptions.other.type !== 'page-link' && widgetOptions.other.type !== 'image-widget')" class="input-grid">
             <p>기간</p>
             <div class="input-box period-selection">
               <div 
@@ -401,8 +403,8 @@
             </div>
           </div>
 
-          <!-- 사용자임의 선택 시 날짜 범위 입력 -->
-          <div v-if="widgetOptions.selectedPeriod === 'custom'" class="input-grid">
+          <!-- 사용자임의 선택 시 날짜 범위 입력 (이미지 위젯, 페이지링크 위젯이 아닌 경우에만) -->
+          <div v-if="widgetOptions.selectedPeriod === 'custom' && (!widgetOptions.other || (widgetOptions.other.type !== 'page-link' && widgetOptions.other.type !== 'image-widget'))" class="input-grid">
             <p class="period-label">기간 설정</p>
             <div class="input-box custom-period">
               <div class="date-range-inputs">
@@ -427,28 +429,105 @@
             </div>
           </div>
 
-          <div class="input-grid">
+          <!-- 이미지 위젯, 페이지링크 위젯이 아닌 경우에만 업데이트 주기 표시 -->
+          <div v-if="!widgetOptions.other || (widgetOptions.other.type !== 'page-link' && widgetOptions.other.type !== 'image-widget')" class="input-grid">
             <p>업데이트 주기</p>
             <div class="input-box">
-              <div
-                v-for="(option, index) in widgetOptions.cycle"
-                :key="index"
-                class="widget-option-item"
-                @click="widgetOptions.selectedCycle = option"
-              >
-                <input
-                  type="radio"
-                  name="cycle"
-                  :value="option"
-                  v-model="widgetOptions.selectedCycle"
-                  :id="`cycle-${index}`"
-                />
-                <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
+              <!-- 배열인 경우: 선택 가능한 옵션들 표시 -->
+              <template v-if="Array.isArray(widgetOptions.cycle)">
+                <div
+                  v-for="(option, index) in widgetOptions.cycle"
+                  :key="index"
+                  class="widget-option-item"
+                  @click="widgetOptions.selectedCycle = option"
+                >
+                  <input
+                    type="radio"
+                    name="cycle"
+                    :value="option"
+                    v-model="widgetOptions.selectedCycle"
+                    :id="`cycle-${index}`"
+                  />
+                  <label :for="`cycle-${index}`">{{ widgetChar(option) }}</label>
+                </div>
+              </template>
+              
+              <!-- 고정 문자열인 경우: 읽기 전용 표시 -->
+              <template v-else>
+                <div class="widget-option-readonly">
+                  <span class="readonly-label">{{ widgetOptions.cycle }}</span>
+                  <span class="readonly-desc">(변경 불가)</span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 페이지링크 위젯인 경우에만 URL 설정 표시 -->
+          <div v-if="widgetOptions.other && widgetOptions.other.type === 'page-link'" class="input-grid">
+            <p>페이지 URL <span class="required-mark">*</span></p>
+            <div class="input-box">
+              <input
+                type="url"
+                v-model="widgetOptions.pageUrl"
+                placeholder="https://example.com"
+                class="widget-input"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- 이미지 위젯인 경우에만 이미지 업로드 표시 -->
+          <div v-if="widgetOptions.other && widgetOptions.other.type === 'image-widget'" class="input-grid">
+            <p>이미지 파일 <span class="required-mark">*</span></p>
+            <div class="input-box">
+              <div class="image-upload-container">
+                <!-- 파일 업로드 영역 -->
+                <div class="file-upload-section">
+                  <input 
+                    ref="imageFileInput"
+                    type="file" 
+                    accept="image/*"
+                    @change="handleImageFileUpload"
+                    class="file-input"
+                    id="image-file-input"
+                  />
+                  <label for="image-file-input" class="file-upload-label">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">
+                      <span class="upload-title">이미지 파일 선택</span>
+                      <span class="upload-subtitle">클릭하거나 파일을 드래그하여 업로드</span>
+                    </div>
+                  </label>
+                </div>
+                
+                <!-- 선택된 파일 정보 -->
+                <div v-if="widgetOptions.selectedFile" class="selected-file-info">
+                  <div class="file-info">
+                    <span class="file-name">{{ widgetOptions.selectedFile.name }}</span>
+                    <span class="file-size">({{ formatFileSize(widgetOptions.selectedFile.size) }})</span>
+                    <button @click="clearSelectedFile" class="clear-file-btn">✕</button>
+                  </div>
+                </div>
+                
+                <!-- 이미지 미리보기 -->
+                <div v-if="widgetOptions.imageUrl" class="image-preview-section">
+                  <label class="input-label">미리보기</label>
+                  <div class="selected-image-preview">
+                    <img 
+                      :src="widgetOptions.imageUrl" 
+                      alt="선택된 이미지"
+                      @error="handleImageError"
+                      @load="handleImageLoad"
+                    />
+                    <button @click="clearSelectedImage" class="clear-img-btn">✕</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="input-grid">
+          <!-- 페이지링크, 이미지 위젯이 아닌 경우에만 데이터 타입 표시 -->
+          <div v-if="!widgetOptions.other || (widgetOptions.other.type !== 'page-link' && widgetOptions.other.type !== 'image-widget')" class="input-grid">
             <p>데이터 타입 <span class="required-mark">*</span></p>
             <div class="input-box">
               <div 
@@ -669,7 +748,7 @@ const widgetMaxGridSizes = {
   'status-widget': { width: 3, height: 2 },    // 최소 2x2, 최대 3x2
   'alarm-widget': { width:4 , height: 6 },    // 최소 2x3, 최대 4x6
   'energy-report': { width: 16, height: 6 },  // 최소 8x6, 최대 16x6
-  'page-link': { width: 4, height: 6 },
+  'page-link': { width: 4, height: 2 },
   'image-widget': { width: 6, height: 6 },
 }
 
@@ -801,6 +880,9 @@ const widgetOptions = reactive({
   startDate: '',
   endDate: '',
   selectedDataType: '',
+  pageUrl: '', // 페이지링크 위젯용 URL 필드
+  imageUrl: '', // 이미지 위젯용 이미지 URL 필드
+  selectedFile: null, // 선택된 이미지 파일
   editingWidget: null, // 수정 중인 위젯
   isEditing: false,    // 수정 모드 여부
   other: null
@@ -1136,6 +1218,16 @@ const updateExistingWidget = (existingWidget, widgetTemplate) => {
     updateCycle: widgetOptions.selectedCycle
   }
 
+  // 페이지링크 위젯인 경우 URL 업데이트
+  if (existingWidget.type === 'page-link') {
+    existingWidget.config.url = widgetOptions.pageUrl || existingWidget.config.url
+  }
+
+  // 이미지 위젯인 경우 이미지 URL 업데이트
+  if (existingWidget.type === 'image-widget') {
+    existingWidget.config.imageUrl = widgetOptions.imageUrl || existingWidget.config.imageUrl
+  }
+
   // 실시간 데이터 업데이트 재시작 (설정이 변경되었을 수 있으므로)
   const isControlWidget = existingWidget.type.includes('control')
   if (!isControlWidget) {
@@ -1191,6 +1283,36 @@ const addNewWidget = (widget) => {
         selectedPeriod: widgetOptions.selectedPeriod,
         startDate: widgetOptions.startDate,
         endDate: widgetOptions.endDate
+      }
+    }
+
+    if (widgetType === 'page-link') {
+      return {
+        ...baseConfig,
+        title: widgetOptions.widgetName || '페이지 링크',
+        url: widgetOptions.pageUrl || 'https://example.com',
+        buttonText: '페이지로 이동',
+        showQrCode: false,
+        showStats: false,
+        showHistory: false,
+        checkInterval: 300000 // 5분
+      }
+    }
+
+    if (widgetType === 'image-widget') {
+      return {
+        ...baseConfig,
+        title: widgetOptions.widgetName || '이미지',
+        imageUrl: widgetOptions.imageUrl || '',
+        alt: '이미지',
+        imageStyle: 'contain',
+        showOverlay: false,
+        overlayTitle: '',
+        overlayDescription: '',
+        showInfo: true,
+        showStatus: false,
+        showUpdateTime: false,
+        imageDescription: ''
       }
     }
 
@@ -1301,6 +1423,8 @@ const configureWidget = (widget) => {
   widgetOptions.startDate = widget.config?.startDate || ''
   widgetOptions.endDate = widget.config?.endDate || ''
   widgetOptions.selectedDataType = widget.selectedDataType || dumyData[0] || ''
+  widgetOptions.pageUrl = widget.config?.url || '' // 페이지링크 위젯 URL 설정
+  widgetOptions.imageUrl = widget.config?.imageUrl || '' // 이미지 위젯 URL 설정
   
   // 수정할 위젯 정보 저장
   widgetOptions.editingWidget = widget
@@ -1495,6 +1619,9 @@ const closeWidgetSelector = () => {
   widgetOptions.startDate = ''
   widgetOptions.endDate = ''
   widgetOptions.selectedDataType = ''
+  widgetOptions.pageUrl = '' // 페이지 URL 초기화
+  widgetOptions.imageUrl = '' // 이미지 URL 초기화
+  widgetOptions.selectedFile = null // 선택된 파일 초기화
   widgetOptions.editingWidget = null  // 편집 상태 초기화
   widgetOptions.isEditing = false     // 편집 모드 초기화
   widgetOptions.other = null
@@ -1516,6 +1643,9 @@ const changeShowWidget = (widget) => {
   widgetOptions.startDate = '' // 시작일 초기화
   widgetOptions.endDate = '' // 종료일 초기화
   widgetOptions.selectedDataType = '' // 데이터 타입 초기화
+  widgetOptions.pageUrl = '' // 페이지 URL 초기화
+  widgetOptions.imageUrl = '' // 이미지 URL 초기화
+  widgetOptions.selectedFile = null // 선택된 파일 초기화
   widgetOptions.other = widget
 }
 
@@ -1527,8 +1657,34 @@ const validateRequiredFields = () => {
     errors.push('명칭을 입력해주세요.')
   }
   
-  if (!widgetOptions.selectedDataType) {
-    errors.push('데이터 타입을 선택해주세요.')
+  // 페이지링크, 이미지 위젯이 아닌 경우에만 데이터 타입 검증
+  if (widgetOptions.other && 
+      widgetOptions.other.type !== 'page-link' && 
+      widgetOptions.other.type !== 'image-widget') {
+    if (!widgetOptions.selectedDataType) {
+      errors.push('데이터 타입을 선택해주세요.')
+    }
+  }
+  
+  // 페이지링크 위젯인 경우 URL 검증
+  if (widgetOptions.other && widgetOptions.other.type === 'page-link') {
+    if (!widgetOptions.pageUrl.trim()) {
+      errors.push('페이지 URL을 입력해주세요.')
+    } else {
+      // URL 형식 검증
+      try {
+        new URL(widgetOptions.pageUrl)
+      } catch {
+        errors.push('올바른 URL 형식을 입력해주세요. (예: https://example.com)')
+      }
+    }
+  }
+  
+  // 이미지 위젯인 경우 파일 선택 검증
+  if (widgetOptions.other && widgetOptions.other.type === 'image-widget') {
+    if (!widgetOptions.selectedFile && !widgetOptions.imageUrl) {
+      errors.push('이미지 파일을 선택해주세요.')
+    }
   }
   
   return errors
@@ -1549,6 +1705,65 @@ const removeWidget = (widget) => {
       saveDashboard()
     }
   }
+}
+
+// 이미지 파일 업로드 관련 메서드들
+const handleImageFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // 파일 타입 검증
+  if (!file.type.startsWith('image/')) {
+    alert('이미지 파일만 업로드할 수 있습니다.')
+    return
+  }
+  
+  // 파일 크기 검증 (10MB 제한)
+  const maxSize = 10 * 1024 * 1024 // 10MB
+  if (file.size > maxSize) {
+    alert('파일 크기는 10MB 이하여야 합니다.')
+    return
+  }
+  
+  widgetOptions.selectedFile = file
+  
+  // 파일을 Base64로 변환하여 미리보기 표시
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    widgetOptions.imageUrl = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const clearSelectedFile = () => {
+  widgetOptions.selectedFile = null
+  widgetOptions.imageUrl = ''
+  // 파일 input 초기화
+  const fileInput = document.getElementById('image-file-input')
+  if (fileInput) {
+    fileInput.value = ''
+  }
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const clearSelectedImage = () => {
+  clearSelectedFile()
+}
+
+const handleImageError = (event) => {
+  console.error('이미지 로드 오류:', event.target.src)
+  alert('이미지를 불러올 수 없습니다.')
+}
+
+const handleImageLoad = (event) => {
+  console.log('이미지 로드 성공:', event.target.src)
 }
 
 // 위젯 크기 조절 모달 열기
