@@ -381,6 +381,7 @@ onMounted(() => {
 .btn-edit {
   background-color: #000;
   color: white;
+  margin: 0 auto;
 }
 
 .btn-edit:hover {
