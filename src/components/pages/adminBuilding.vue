@@ -3,9 +3,14 @@
   <div class="admin-buildings">
     <!-- 페이지 헤더 -->
     <div class="page-header">
-      <div class="page-title-section">
+      <div class="header-title-section">
         <h1>실증지 관리</h1>
-        <span class="total-count">총 {{ totalBuildings }}개</span>
+        <div class="buildings-count-info">
+          <span class="total-count">총 {{ totalBuildings }}개의 실증지</span>
+          <span class="current-page-info">
+            ({{ currentPage }}페이지 / {{ totalPages }}페이지, 현재 {{ buildings.length }}개 표시)
+          </span>
+        </div>
       </div>
       <div class="header-actions">
         <!-- <button @click="showFilter = !showFilter" class="btn btn-secondary">
@@ -131,7 +136,6 @@
       :current-page="currentPage"
       :total-items="totalItems"
       :items-per-page="itemsPerPage"
-      :total-pages="totalPages"
       @page-change="handlePageChange"
     />
     
@@ -621,7 +625,8 @@ const buildingForm = ref({
 
 // 페이지네이션
 const currentPage = ref(1)
-const itemsPerPage = ref(6) // 원래대로 6개씩
+const itemsPerPage = ref(6) // 안정적인 크기로 설정
+const backendTotalPages = ref(0) // 백엔드에서 제공하는 실제 페이지 수
 
 // 계산된 속성
 const filteredBuildings = computed(() => {
@@ -634,59 +639,26 @@ const filteredBuildings = computed(() => {
 
 const paginatedBuildings = computed(() => filteredBuildings.value)
 
-// 백엔드에서 제공하는 totalPages 사용
-const totalPagesFromAPI = ref(1)
-const totalPages = computed(() => totalPagesFromAPI.value)
+// 백엔드에서 제공하는 페이지 수를 우선 사용, 없으면 보수적으로 계산
+const totalPages = computed(() => {
+  if (backendTotalPages.value > 0) {
+    return backendTotalPages.value
+  }
+  
+  // 백엔드 totalPages가 없으면 보수적으로 계산
+  // 2페이지부터는 1개씩이므로 첫 페이지 이후 남은 데이터 개수만큼 페이지 추가
+  const firstPageItems = Math.min(itemsPerPage.value, totalBuildings.value)
+  const remainingItems = Math.max(0, totalBuildings.value - firstPageItems)
+  
+  return remainingItems > 0 ? 1 + remainingItems : 1
+})
 
 const totalItems = computed(() => totalBuildings.value)
-
-// 디버깅용 함수들 (브라우저 콘솔에서 사용 가능)
-const debugInfo = () => {
-  console.log('=== 실증지 디버깅 정보 ===')
-  console.log('총 실증지 개수 (totalBuildings):', totalBuildings.value)
-  console.log('현재 페이지 (currentPage):', currentPage.value)
-  console.log('페이지당 항목 수 (itemsPerPage):', itemsPerPage.value)
-  console.log('총 페이지 수 (totalPages):', totalPages.value)
-  console.log('백엔드 totalPages (totalPagesFromAPI):', totalPagesFromAPI.value)
-  console.log('현재 표시된 실증지 수:', buildings.value.length)
-  console.log('현재 실증지 목록:', buildings.value)
-  return {
-    totalBuildings: totalBuildings.value,
-    currentPage: currentPage.value,
-    itemsPerPage: itemsPerPage.value,
-    totalPages: totalPages.value,
-    totalPagesFromAPI: totalPagesFromAPI.value,
-    currentBuildings: buildings.value.length,
-    buildings: buildings.value
-  }
-}
-
-// 전역으로 노출 (브라우저 콘솔에서 사용하기 위해)
-if (typeof window !== 'undefined') {
-  window.debugBuildingInfo = debugInfo
-  // 전체 실증지 개수 확인용 함수
-  window.getTotalBuildingsFromAPI = async () => {
-    try {
-      console.log('백엔드에서 전체 실증지 개수 조회 중...')
-      const result = await buildingAPI.getBuildings(0, 999) // 큰 수로 설정해서 전체 조회
-      console.log('API 응답:', result)
-      return {
-        totalElements: result.data?.totalElements || result.totalElements,
-        totalPages: result.data?.pageResponse?.totalPages || result.pageResponse?.totalPages,
-        actualCount: result.data?.content?.length || result.content?.length || 0,
-        buildings: result.data?.content || result.content || []
-      }
-    } catch (error) {
-      console.error('전체 실증지 조회 실패:', error)
-      return null
-    }
-  }
-}
 
 // 백엔드 API 함수들
 const apiService = {
   // 실증지 관련 API
-  async getBuildings(page = 0, size = 6) { // 기본값 6개로 변경
+  async getBuildings(page = 0, size = 6) {
     try {
       loading.value = true
       console.log('실증지 목록 조회 - API 연결')
@@ -727,10 +699,7 @@ const apiService = {
         if (Array.isArray(apiData.data)) {
           buildingData = {
             content: apiData.data,
-            totalElements: apiData.data.length,
-            pageResponse: {
-              totalPages: Math.ceil(apiData.data.length / itemsPerPage.value)
-            }
+            totalElements: apiData.data.length
           };
         }
         // 실제 API 형식 (Page 객체)
@@ -740,52 +709,43 @@ const apiService = {
         
         console.log('빌딩 데이터:', buildingData);
         
-          // ID 순으로 정렬된 실증지 데이터
-          const sortedBuildings = buildingData.content
-            .sort((a, b) => a.id - b.id) // ID 오름차순 정렬
-            .map(building => ({
-              id: building.id,
-              name: building.name,
-              address: building.address || '',
-              description: building.description || '',
-              electricRatePlan: building.electricRatePlan || '',
-              powerDivision: building.powerDivision || '',
-              admin: 'Admin',
-              memberCount: 3,
-              status: '수정',
-              type: building.name
-            }))
-            
-          buildings.value = sortedBuildings
-          console.log('ID 순으로 정렬된 실증지:', sortedBuildings)
+        // 실증지 개수 정보 출력
+        console.log('📊 실증지 현황:');
+        console.log(`  전체 실증지 개수 (totalElements): ${buildingData.totalElements || 0}개`);
+        console.log(`  현재 페이지 표시 개수 (content.length): ${buildingData.content?.length || 0}개`);
+        console.log(`  백엔드 제공 총 페이지 수 (totalPages): ${buildingData.totalPages || 0}페이지`);
+        console.log(`  백엔드 제공 페이지 크기 (size): ${buildingData.size || 0}개`);
+        console.log(`  백엔드 제공 현재 페이지 번호 (number): ${buildingData.number || 0} (0-based)`);
+        console.log(`  현재 페이지: ${currentPage.value}페이지`);
+        console.log('🔍 데이터 분석:');
+        console.log(`  실제 표시되는 실증지들:`, buildingData.content?.map(b => `${b.buildingId}:${b.name}`) || []);
+        
+        // 페이지네이션 계산 검증
+        const frontendCalculatedPages = Math.ceil((buildingData.totalElements || 0) / itemsPerPage.value);
+        const backendProvidedPages = buildingData.totalPages || 0;
+        console.log('🧮 페이지네이션 계산 비교:');
+        console.log(`  프론트엔드 계산: ${buildingData.totalElements}÷${itemsPerPage.value} = ${frontendCalculatedPages}페이지`);
+        console.log(`  백엔드 제공: ${backendProvidedPages}페이지`);
+        if (frontendCalculatedPages !== backendProvidedPages) {
+          console.warn('⚠️ 페이지 수 불일치 발견!');
+        }
+        
+          buildings.value = buildingData.content.map(building => ({
+            id: building.id,
+            name: building.name,
+            address: building.address || '',
+            description: building.description || '',
+            electricRatePlan: building.electricRatePlan || '',
+            powerDivision: building.powerDivision || '',
+            admin: 'Admin',
+            memberCount: 3,
+            status: '수정',
+            type: building.name
+          }))
           totalBuildings.value = buildingData.totalElements || 0
-          
-          // 백엔드에서 제공하는 totalPages 설정
-          console.log('페이지네이션 디버깅:', {
-            buildingData,
-            directTotalPages: buildingData.totalPages,
-            pageResponse: buildingData.pageResponse,
-            totalElements: buildingData.totalElements,
-            itemsPerPage: itemsPerPage.value,
-            계산된페이지수: Math.ceil((buildingData.totalElements || 0) / itemsPerPage.value)
-          })
-          
-          // 백엔드에서 직접 totalPages 제공하는 경우 (Spring Boot Pageable 응답)
-          if (buildingData.totalPages !== undefined) {
-            totalPagesFromAPI.value = buildingData.totalPages
-            console.log('백엔드 direct totalPages 사용:', buildingData.totalPages)
-          }
-          // pageResponse 객체에서 totalPages 제공하는 경우
-          else if (buildingData.pageResponse && buildingData.pageResponse.totalPages) {
-            totalPagesFromAPI.value = buildingData.pageResponse.totalPages
-            console.log('백엔드 pageResponse totalPages 사용:', buildingData.pageResponse.totalPages)
-          } 
-          // fallback: 계산된 페이지 수
-          else {
-            totalPagesFromAPI.value = Math.ceil((buildingData.totalElements || 0) / itemsPerPage.value)
-            console.log('계산된 totalPages 사용:', totalPagesFromAPI.value)
-          }
-          
+          backendTotalPages.value = buildingData.totalPages || 0 // 백엔드 페이지 수 저장
+          console.log(`✅ 총 ${totalBuildings.value}개의 실증지가 저장되어 있습니다.`);
+          console.log(`📄 백엔드 제공 총 페이지 수: ${backendTotalPages.value}페이지`);
           return buildingData
         }
       } catch (error) {
@@ -1355,33 +1315,52 @@ const deleteSelected = async () => {
 const handlePageChange = async (page) => {
   const previousPage = currentPage.value
   
+  console.log(`🔄 페이지 변경 시도: ${previousPage} → ${page}`)
+  console.log(`📊 현재 상태:`)
+  console.log(`  - 전체 실증지: ${totalBuildings.value}개`)
+  console.log(`  - 페이지당 기본 항목: ${itemsPerPage.value}개`)
+  console.log(`  - 계산된 총 페이지: ${totalPages.value}페이지`)
+  
+  // 유효한 페이지 범위 체크
+  if (page < 1 || page > totalPages.value) {
+    console.warn(`⚠️ 잘못된 페이지 요청: ${page} (유효 범위: 1-${totalPages.value})`)
+    alert(`페이지 ${page}는 존재하지 않습니다. (전체 ${totalPages.value}페이지)`)
+    return
+  }
+  
+  // 동적 pageSize 계산 - 2페이지부터는 안전하게 1개씩 요청
+  let dynamicPageSize = itemsPerPage.value
+  
+  if (page > 1) {
+    // 2페이지부터는 1개씩 안전하게 요청
+    dynamicPageSize = 1
+    console.log(`� 안전 모드: 2페이지 이후는 1개씩 요청 (${itemsPerPage.value}개 → ${dynamicPageSize}개)`)
+  }
+  
+  console.log(`🎯 실제 요청:`)
+  console.log(`  - 요청할 백엔드 페이지: ${page} (1-based)`)
+  console.log(`  - 요청할 pageSize: ${dynamicPageSize}개`)
+  console.log(`  - 설명: ${page === 1 ? '첫 페이지 - 최대 개수 요청' : '2페이지 이후 - 안전하게 1개씩 요청'}`)
+  
   try {
-    console.log(`페이지 변경: ${previousPage} → ${page}`)
     currentPage.value = page
-    const result = await apiService.getBuildings(page - 1, itemsPerPage.value)
-    
-    // totalPages 업데이트
-    console.log('handlePageChange result:', result)
-    if (result && result.totalPages !== undefined) {
-      totalPagesFromAPI.value = result.totalPages
-      console.log(`페이지 ${page}에서 direct totalPages 업데이트:`, totalPagesFromAPI.value)
-    } else if (result && result.pageResponse && result.pageResponse.totalPages) {
-      totalPagesFromAPI.value = result.pageResponse.totalPages
-      console.log(`페이지 ${page}에서 pageResponse totalPages 업데이트:`, totalPagesFromAPI.value)
-    }
+    await apiService.getBuildings(page - 1, dynamicPageSize)
+    console.log(`✅ 페이지 ${page} 로딩 성공`)
   } catch (error) {
-    console.error('페이지 변경 중 오류:', error)
+    console.error('❌ 페이지 변경 중 오류:', error)
     
     // 페이지를 이전 상태로 되돌림
     currentPage.value = previousPage
-    console.log(`페이지 에러로 인해 ${page} → ${previousPage}로 되돌림`)
     
-    // 사용자에게 에러 메시지 표시
+    // 상세한 에러 분석
     let errorMessage = '페이지를 불러오는 데 실패했습니다.'
     
     if (error.response?.status === 500) {
-      errorMessage = `${page}페이지에 데이터가 없습니다. 총 ${totalPagesFromAPI.value}페이지까지 있습니다.`
-      console.warn(`존재하지 않는 페이지 ${page} 요청 (총 ${totalPagesFromAPI.value}페이지)`)
+      console.error(`🚫 500 에러 분석:`)
+      console.error(`  - 요청 페이지: ${page}`)
+      console.error(`  - 백엔드 API: /building?page=${page}&pageSize=${dynamicPageSize}`)
+      console.error(`  - 가능한 원인: 동적 pageSize 계산 오류 또는 백엔드 데이터 변경`)
+      errorMessage = `페이지 ${page} 데이터 로딩에 실패했습니다. 데이터가 변경되었을 수 있습니다.`
     } else if (error.response?.status === 404) {
       errorMessage = '요청한 페이지를 찾을 수 없습니다.'
     } else if (!error.response) {
@@ -1450,17 +1429,7 @@ onMounted(async () => {
   
   // 실제 백엔드 API 연결
   try {
-    const result = await apiService.getBuildings(0, itemsPerPage.value)
-    
-    // totalPages 업데이트
-    console.log('onMounted result:', result)
-    if (result && result.totalPages !== undefined) {
-      totalPagesFromAPI.value = result.totalPages
-      console.log('초기 로딩 - direct totalPages 설정:', totalPagesFromAPI.value)
-    } else if (result && result.pageResponse && result.pageResponse.totalPages) {
-      totalPagesFromAPI.value = result.pageResponse.totalPages
-      console.log('초기 로딩 - pageResponse totalPages 설정:', totalPagesFromAPI.value)
-    }
+    await apiService.getBuildings(0, itemsPerPage.value)
   } catch (error) {
     console.error('초기 데이터 로딩 실패:', error)
     
@@ -1487,14 +1456,14 @@ img{
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding-bottom: 15px;
 }
 
-.page-title-section {
+.header-title-section {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .page-header h1 {
@@ -1504,13 +1473,20 @@ img{
   color: #333;
 }
 
-.total-count {
-  padding: 4px 12px;
-  background: #E3F2FD;
-  color: #1976D2;
-  border-radius: 16px;
+.buildings-count-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  font-weight: 500;
+}
+
+.total-count {
+  color: #e16349;
+  font-weight: 600;
+}
+
+.current-page-info {
+  color: #666;
 }
 
 .header-actions {
@@ -1598,7 +1574,9 @@ img{
 .buildings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
+  align-items: flex-start;
   gap: 20px;
+  height: 706px;
   padding: 30px;
   background: #f8f8f8;
   border-radius: 20px;
