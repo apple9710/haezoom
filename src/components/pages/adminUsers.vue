@@ -596,16 +596,21 @@ const apiService = {
   async createUser(userData) {
     try {
       console.log('사용자 생성 - API 호출')
+      console.log('전달받은 userData:', userData)
+      
+      // 비밀번호 검증
+      if (!userData.password || userData.password.length < 6) {
+        throw new Error('비밀번호는 최소 6자 이상이어야 합니다.')
+      }
       
       // Swagger 스펙에 맞는 API 호출
       const response = await authAPI.register({
-        username: userData.username,
+        id: userData.username,
         password: userData.password,
-        name: userData.name,
         email: userData.email || '',
-        phone: userData.phone || '',
-        company: userData.company || '',
-        authority: userData.userType || 'USER'
+        name: userData.name,
+        buildingArray: userData.buildings && userData.buildings.length > 0 ? userData.buildings[0] : 1, // 첫 번째 실증지 또는 기본값 1
+        role: userData.userType || 'user'
       })
       
       console.log('사용자 생성 성공:', response.data)
@@ -851,12 +856,29 @@ const deleteSelected = async () => {
   
   if (confirm('선택한 사용자를 삭제하시겠습니까?')) {
     try {
-      await apiService.deleteMultipleUsers(selectedUsers.value)
+      // selectedUsers는 이미 사용자 ID들의 배열
+      const userIds = selectedUsers.value
+      console.log('=== 사용자 삭제 요청 디버깅 ===')
+      console.log('선택된 사용자 ID들:', selectedUsers.value)
+      console.log('전송할 userIds:', userIds)
+      console.log('userIds 타입:', typeof userIds)
+      console.log('userIds 배열인가?', Array.isArray(userIds))
+      console.log('userIds 길이:', userIds.length)
+      console.log('각 ID 타입:', userIds.map(id => ({ id, type: typeof id })))
+      console.log('==========================')
+      
+      await authAPI.deleteMultipleUsers(userIds)
       alert('선택한 사용자가 삭제되었습니다.')
       selectedUsers.value = []
       
+      // 사용자 목록 새로고침 - 강제 새로고침
+      console.log('사용자 목록 새로고침 시작...')
+      await loadUsers()
+      console.log('사용자 목록 새로고침 완료')
+      
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
+      console.error('에러 응답:', error.response?.data)
       alert('사용자 삭제에 실패했습니다.')
     }
   }
@@ -865,12 +887,16 @@ const deleteSelected = async () => {
 const deleteUser = async (user) => {
   if (confirm('이 사용자를 삭제하시겠습니까?')) {
     try {
-      await apiService.deleteUser(user.id)
+      console.log('삭제할 사용자 ID:', user.id)
+      await authAPI.deleteUser(user.id)
       alert('사용자가 삭제되었습니다.')
       closeUserDetailModal()
+      // 사용자 목록 새로고침
+      loadUsers()
       
     } catch (error) {
       console.error('사용자 삭제 실패:', error)
+      console.error('에러 응답:', error.response?.data)
       alert('사용자 삭제에 실패했습니다.')
     }
   }
@@ -881,6 +907,17 @@ const toggleAllSelection = () => {
     selectedUsers.value = []
   } else {
     selectedUsers.value = paginatedUsers.value.map(user => user.id)
+  }
+}
+
+// 사용자 목록 새로고침 함수
+const loadUsers = async () => {
+  try {
+    // currentPage는 1-based이므로 0-based로 변환
+    const pageIndex = Math.max(0, (currentPage.value || 1) - 1)
+    await apiService.getUsers(pageIndex, itemsPerPage.value, '', '')
+  } catch (error) {
+    console.error('사용자 목록 로딩 실패:', error)
   }
 }
 

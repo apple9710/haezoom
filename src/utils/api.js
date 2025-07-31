@@ -25,6 +25,22 @@ api.interceptors.request.use(
     console.log('Full URL:', `${config.baseURL}${config.url}`)
     console.log('Headers:', config.headers)
     console.log('Data:', config.data)
+    
+    // DELETE 요청일 때 데이터 상세 정보
+    if (config.method === 'delete' && config.data) {
+      console.log('=== DELETE 요청 데이터 상세 ===')
+      console.log('Data type:', typeof config.data)
+      console.log('Data keys:', Object.keys(config.data))
+      console.log('Data JSON:', JSON.stringify(config.data))
+      if (config.data.userIds) {
+        console.log('userIds:', config.data.userIds)
+        console.log('userIds 길이:', config.data.userIds.length)
+        console.log('userIds 타입들:', config.data.userIds.map(id => typeof id))
+        console.log('userIds 값들:', config.data.userIds)
+      }
+      console.log('=============================')
+    }
+    
     console.log('===================')
     
     const token = localStorage.getItem('auth_token')
@@ -162,17 +178,25 @@ export const authAPI = {
   
   // 사용자 등록 - Swagger 스펙의 RegisterUserReqDto 사용
   register: async (userData) => {
+    // 고유한 ID 생성 (중복 방지)
+    const uniqueId = userData.id || userData.username + '_' + Date.now()
+    
     const registerData = {
-      username: userData.username || userData.id,
+      id: uniqueId,
       password: userData.password,
-      name: userData.name,
       email: userData.email || '',
-      phone: userData.phone || '',
-      company: userData.company || '',
-      authority: userData.authority || userData.userType || 'USER'
+      name: userData.name,
+      buildingArray: userData.buildingArray || userData.buildings || 1, // 실증지 정보
+      role: userData.authority || userData.userType || userData.role || 'user'
     }
     
-    return apiRequest('/auth/register', 'POST', registerData)
+    console.log('=== 사용자 등록 API 호출 ===')
+    console.log('등록 데이터:', registerData)
+    console.log('원본 데이터:', userData)
+    console.log('생성된 고유 ID:', uniqueId)
+    console.log('========================')
+    
+    return apiRequest('/auth', 'POST', registerData)
   },
   
   // 모든 사용자 조회 - Swagger 스펙에 맞는 페이징
@@ -253,7 +277,16 @@ export const authAPI = {
   
   // 다중 사용자 삭제 - Swagger 스펙의 DeleteUsersReqDto 사용
   deleteMultipleUsers: async (userIds) => {
-    return apiRequest('/auth/users', 'DELETE', { userIds })
+    console.log('=== deleteMultipleUsers API 호출 ===')
+    console.log('받은 userIds:', userIds)
+    console.log('userIds 타입:', typeof userIds)
+    console.log('userIds 배열인가?', Array.isArray(userIds))
+    console.log('요청 데이터:', { userIds })
+    console.log('JSON.stringify:', JSON.stringify({ userIds }))
+    console.log('================================')
+    
+    // 올바른 엔드포인트: /api/auth (not /api/auth/users)
+    return apiRequest('/auth', 'DELETE', { userIds })
   },
   
   // 임시 비밀번호 발송
