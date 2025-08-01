@@ -409,10 +409,10 @@
               <label>실증지 명</label>
               <span>{{ selectedBuildingDetail.name }}</span>
             </div>
-            <!-- <div class="detail-info-item">
+            <div class="detail-info-item">
               <label>전화번호</label>
               <span>{{ selectedBuildingDetail.phone }}</span>
-            </div> -->
+            </div>
             <div class="detail-info-item">
               <label>주소</label>
               <span>{{ selectedBuildingDetail.address }}</span>
